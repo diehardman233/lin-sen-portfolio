@@ -1,0 +1,94 @@
+React Bits Silk adapted for this portfolio.
+Source: https://github.com/DavidHDev/react-bits
+
+MIT + Commons Clause License Condition v1.0
+
+Copyright (c) 2026 David Haz
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, and distribute the Software **as part of an application, website, or product**, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+## Commons Clause Restriction
+
+You may use this Software, including for any commercial purpose, **so long as you do not sell, sublicense, or redistribute the components themselves-whether alone, in a bundle, or as a ported version.**
+
+The same restriction covers the React Bits tools (Background Studio, Texture Lab, Shape Magic, Center Stage, Sound Lab and any tools added later) and the sounds in the sound library. **You may not sell, sublicense, or redistribute the tools or the sounds themselves, or offer the tools or a substantially similar copy of them as a hosted service-whether alone, in a bundle, or as a ported version.**
+
+What you make with the tools is yours to use. You can use exported code, images, videos, and audio files in any personal or commercial application, website, or product, including paid ones. **You may not sell or redistribute the exports on their own, either individually or as the product itself, such as a sound, texture, background, or template pack.**
+
+## No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+London Design Awards logo from https://thelondondesignawards.com/images/LDA-logo.png
+Red Dot mark and certificate from supplied portfolio.
+
+Approved project cover: infinite
+https://stzb.163.com/
+https://stzb.res.netease.com/pc/fab/20201016142807/img/kv2410_1_6516008.jpg
+官方宣传画面，用于项目识别。
+
+Approved project cover: blood
+https://www.neteasegames.com/news/game/20201102/30576_913388.html
+https://r.res.easebar.com/pic/20201204/dc98fd39-128d-48bf-ac6a-5144f2b94a8b.jpg
+官方人物主视觉；此来源原图为 650 px。
+
+Approved project cover: diablo
+https://blizzard.gamespress.com/ko/Diablo-Immortal-Launch-Press-Kit
+https://fservus20221227.blob.core.windows.net/files/BlizzardLive/2022/06/020052-99e66c41/Boss_Group_Key_Art_png_jpgcopy.jpg?sv=2026-06-06&se=2026-11-24T14%3A54%3A04Z&sr=b&sp=r&rscd=attachment&rsct=application%2Foctet-strem&sig=mQd8w0s8VOSj5fEBiXN5VOXeTFuaTjHZ9oLBYQ93%2BEk%3D&otf=y&lightbox=y&sky=495c9288316546bb7bd69f69a57ebe495aeae718d3889e93446ef4499f294ad3
+2022 官方宣传原图，宽度 9600 px。
+
+Approved project cover: sky
+https://www.thatskygame.com/
+https://a.storyblok.com/f/108104/2600x1447/95e88405bc/sky-hero.jpeg
+官网原图 · 2600 × 1447
+
+Approved project cover: rivals
+https://www.marvelrivals.com/media/
+https://www.marvelrivals.com/pc/gw/20241128194803/img/3_0e3a2dc8.jpg
+官方壁纸原图 · 3840 × 2160
+
+Approved project cover: yugi
+https://prtimes.jp/main/html/rd/p/000000496.000050711.html
+https://prcdn.freetls.fastly.net/release_image/50711/496/50711-496-ed3f21994ad7d888d70ec3e15e62a4a2-1701x992.png?format=jpeg&auto=webp&quality=85%2C65&width=1950&height=1350&fit=bounds
+官方宣传图 · 1701 × 992
+
+Approved project cover: wolf
+https://www.langrensha.com/
+https://langrensha.res.netease.com/pc/gw/20190509150909/img/kv_20260320_b87c70b.png
+官网原图 · 1920 × 1074
+
+Approved project cover: fairy
+https://game.xiaomi.com/viewpoint/42545863_1626271457589_9
+https://pic.kts.g.mi.com/2f1e861d563b5782f9dcd23ac8b98a38266363268836959435.png
+官方原图 · 1199 × 2131
+
+Approved project cover: audition
+https://m.ali213.net/news/240207/209617.html
+https://img1.ali213.net/shouyou/upload/image/2024/02/07/20240207114051935.jpg
+2024 年龙年春节手游宣传图 · 1920 × 1080
+
+Approved project cover: dbd
+https://www.pocketgamer.com/dead-by-daylight-mobile/reasons-to-play/
+https://media.pocketgamer.com/artwork/ra-93773-1679073010/dead-by-daylight-mobile-heartbeat-keyart.jpg
+手游宣传原图 · 1010 × 505
+
+Approved project cover: nine
+v6-materials/early/original.pdf#page=8
+v6-materials/early/original.pdf#page=8
+本人提供的作品集 · 第 8 页原始画面
+
+Anton typeface: Google Fonts, SIL Open Font License (fonts/OFL.txt).
+Visual direction reference: https://laboiteaslides.fr/en — original portfolio composition, scroll-linked WebGL sculpture and curved section surfaces. Three.js: MIT License (THREE-LICENSE.txt).
