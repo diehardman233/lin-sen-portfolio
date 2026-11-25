@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><script src="demo-guard.js"></script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>示例项目 · 美术全流程 AI 搭建</title>
+
+
+<style>
+:root{
+  --bg:#F5F7FC;--surface:#FFFFFF;--text:#1A1D2E;--text2:#5E6580;--text3:#9CA3B8;
+  --border:#DFE3F0;--accent:#2B5AED;--accent-light:#EBF0FF;
+  --yellow:#FFD426;--yellow-bg:#FFF9E0;--yellow-dark:#E6B800;
+  --blue-deep:#1A3CB0;
+  --ss:#DC2626;--ss-bg:#FEF2F2;--s:#EA580C;--s-bg:#FFF7ED;
+  --a:#D97706;--a-bg:#FFFBEB;--b:#2B5AED;--b-bg:#EBF0FF;
+  --c:#6B7280;--c-bg:#F5F7FC;
+  --green:#059669;--green-bg:#ECFDF5;--purple:#7C3AED;--purple-bg:#F5F3FF;
+  --pink:#DB2777;--pink-bg:#FDF2F8;--cyan:#0891B2;--cyan-bg:#ECFEFF;
+  --radius:12px;--shadow:0 1px 3px rgba(43,90,237,.06),0 1px 2px rgba(0,0,0,.04);--shadow-lg:0 10px 40px rgba(43,90,237,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:'DM Sans','Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(11,29,92,.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.06);transition:all .4s;}
+nav .nav-brand{color:rgba(255,255,255,.9);}
+nav .nav-links a{color:rgba(255,255,255,.7);}
+nav .nav-links a:hover{background:rgba(255,255,255,.1);color:#fff;}
+nav .nav-links a.active{color:#fff;}
+nav .nav-links a.active::after{background:#fff;}
+nav .nav-sep{background:rgba(255,255,255,.2);}
+nav.scrolled{background:rgba(255,255,255,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);box-shadow:0 1px 12px rgba(11,29,92,.06);}
+nav.scrolled .nav-brand{color:var(--blue-deep);}
+nav.scrolled .nav-links a{color:var(--text2);}
+nav.scrolled .nav-links a:hover{background:var(--accent-light);color:var(--accent);}
+nav.scrolled .nav-links a.active{color:var(--accent);}
+nav.scrolled .nav-links a.active::after{background:var(--accent);}
+nav.scrolled .nav-sep{background:var(--border);}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 32px;display:flex;align-items:center;height:56px;gap:20px;overflow-x:auto;white-space:nowrap;}
+.nav-logo{height:32px;flex-shrink:0;filter:brightness(1.2) drop-shadow(0 1px 2px rgba(0,0,0,.15));transition:filter .3s;}
+nav.scrolled .nav-logo{filter:none;}
+.nav-sep{width:1px;height:24px;background:var(--border);border-radius:1px;flex-shrink:0;}
+.nav-brand{font-weight:700;font-size:14px;letter-spacing:.5px;flex-shrink:0;color:var(--blue-deep);}
+.nav-links{display:flex;gap:2px;}
+.nav-links a{font-size:13px;color:var(--text2);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .2s;font-weight:500;position:relative;}
+.nav-links a:hover{background:var(--accent-light);color:var(--accent);}
+.nav-links a.active{color:var(--accent);font-weight:700;}
+.nav-links a.active::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2px;border-radius:1px;background:var(--accent);}
+.container{max-width:1280px;margin:0 auto;padding:0 32px;}
+section{margin-top:64px;}
+.stag{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+section h2{font-size:clamp(1.3rem,3vw,1.8rem);font-weight:700;line-height:1.3;margin-bottom:4px;color:var(--text);}
+.sdesc{color:var(--text2);font-size:14px;max-width:620px;margin-bottom:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:14px;box-shadow:var(--shadow);transition:border-color .3s,box-shadow .3s,transform .3s cubic-bezier(.22,1,.36,1);}
+.card:hover{border-color:rgba(43,90,237,.15);box-shadow:0 4px 20px rgba(43,90,237,.06);transform:translateY(-1px);}
+.card h3{font-size:17px;font-weight:700;margin-bottom:14px;}
+
+.hero-banner{padding:128px 0 100px;position:relative;overflow:hidden;background:linear-gradient(180deg,#070E2A 0%,#0D1B4A 50%,#132352 100%);}
+.hero-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(120px);will-change:transform;}
+.hero-orb.o1{width:900px;height:900px;background:#1A3CB0;opacity:.4;top:-350px;left:-250px;animation:orbF1 20s ease-in-out infinite;}
+.hero-orb.o2{width:700px;height:700px;background:#2B5AED;opacity:.25;bottom:-250px;right:-150px;animation:orbF2 24s ease-in-out infinite;}
+.hero-orb.o3{width:500px;height:500px;background:rgba(255,212,38,.12);top:10%;right:10%;animation:orbF3 18s ease-in-out infinite;}
+@keyframes orbF1{0%,100%{transform:translate(0,0);}50%{transform:translate(60px,40px);}}
+@keyframes orbF2{0%,100%{transform:translate(0,0);}50%{transform:translate(-40px,-30px);}}
+@keyframes orbF3{0%,100%{transform:translate(0,0);}50%{transform:translate(20px,-20px);}}
+.hero-noise{position:absolute;inset:0;opacity:.025;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:128px 128px;pointer-events:none;}
+.hero-inner{max-width:1280px;margin:0 auto;padding:0 32px;position:relative;z-index:2;}
+.hero-top{display:flex;align-items:center;gap:64px;}
+.hero-text{flex:1;min-width:320px;}
+.hero-logo-wrap{flex-shrink:0;}
+.hero-logo-wrap img{height:140px;filter:drop-shadow(0 16px 48px rgba(0,0,0,.35));}
+.hero-banner h1{font-size:clamp(2.4rem,6vw,3.8rem);font-weight:700;line-height:1.08;letter-spacing:-.04em;color:#fff;opacity:0;animation:heroIn .8s ease forwards;}
+.hero-banner h1 span{background:linear-gradient(135deg,#FFD426 0%,#FFE87A 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-banner .sub{font-size:clamp(.9rem,1.6vw,1rem);color:rgba(255,255,255,.7);margin-top:24px;max-width:520px;line-height:2;font-weight:300;letter-spacing:.01em;opacity:0;animation:heroIn .8s ease .2s forwards;}
+.hero-logo-wrap{opacity:0;animation:heroLogoIn 1s ease .3s forwards;}
+@keyframes heroIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+@keyframes heroLogoIn{from{opacity:0;transform:translateY(12px) scale(.92);}to{opacity:1;transform:none;}}
+.hero-stat-row{display:flex;gap:16px;margin:0 auto;max-width:1280px;padding:32px 32px 0;position:relative;z-index:4;flex-wrap:wrap;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px 28px;flex:1;min-width:150px;box-shadow:0 8px 40px rgba(10,26,74,.07);position:relative;overflow:hidden;transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;opacity:0;animation:cardUp .6s ease forwards;}
+.stat-card:nth-child(1){animation-delay:.5s;}
+.stat-card:nth-child(2){animation-delay:.6s;}
+.stat-card:nth-child(3){animation-delay:.7s;}
+.stat-card:nth-child(4){animation-delay:.8s;}
+@keyframes cardUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(10,26,74,.12);}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-card:nth-child(1)::after{background:var(--accent);}
+.stat-card:nth-child(2)::after{background:var(--green);}
+.stat-card:nth-child(3)::after{background:var(--purple);}
+.stat-card:nth-child(4)::after{background:var(--s);}
+.stat-num{font-size:30px;font-weight:700;line-height:1;}
+.stat-label{font-size:12px;color:var(--text2);margin-top:6px;letter-spacing:.02em;}
+@media(max-width:768px){.hero-top{flex-direction:column-reverse;text-align:center;gap:28px;}.hero-banner .sub{margin:24px auto 0;}.hero-logo-wrap img{height:88px;}.hero-stat-row{flex-direction:column;gap:10px;margin-top:-40px;}}
+
+/* TWO LAYER */
+.two-layer{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch;margin:20px 0;}
+.layer-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;}
+.layer-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.layer-card h4{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.layer-card ul{list-style:none;}
+.layer-card li{font-size:13px;padding:4px 0 4px 16px;position:relative;color:var(--text2);line-height:1.6;}
+.layer-card li::before{content:'→';position:absolute;left:0;color:var(--accent);}
+.layer-merge{display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--accent);font-weight:700;opacity:.4;}
+@media(max-width:768px){.two-layer{grid-template-columns:1fr;gap:12px;}.layer-merge{transform:rotate(90deg);}}
+
+/* PYRAMID */
+.pyramid-container{display:flex;align-items:center;gap:48px;margin:20px 0;flex-wrap:wrap;}
+.pyramid-stats{flex:1;min-width:260px;}
+.pyramid-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);}
+.pyramid-row:last-child{border:none;}
+.pyramid-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.pyramid-label{font-size:14px;font-weight:600;width:40px;}
+.pyramid-pct{font-size:13px;color:var(--text2);flex:1;}
+.pyramid-note{font-size:12px;color:var(--text2);}
+
+/* PIPELINE */
+.pl-tabs{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.pl-tab{padding:7px 14px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .25s cubic-bezier(.22,1,.36,1);font-family:inherit;}
+.pl-tab:hover{border-color:var(--accent);color:var(--accent);}
+.pl-tab.active{background:var(--accent);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(43,90,237,.2);}
+.pl-header{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+.pl-header .pl-desc{line-height:1.55;}
+.pl-cta{display:inline-flex;gap:10px;flex-shrink:0;align-items:center;margin-left:auto;}
+.pl-enter-btn{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#fff;background:var(--accent);text-decoration:none;white-space:nowrap;padding:11px 24px;border-radius:10px;border:none;box-shadow:0 3px 10px rgba(43,90,237,.28);transition:all .2s cubic-bezier(.22,1,.36,1);flex-shrink:0;letter-spacing:.3px;cursor:pointer;}
+.pl-enter-btn::after{content:"→";font-size:16px;font-weight:700;transition:transform .2s;}
+.pl-enter-btn:hover{background:#1d4fd6;box-shadow:0 6px 16px rgba(43,90,237,.38);transform:translateY(-1px);}
+.pl-enter-btn:hover::after{transform:translateX(3px);}
+.pl-enter-btn.secondary{background:#fff;color:var(--accent);border:1.5px solid var(--accent);box-shadow:none;}
+.pl-enter-btn.secondary:hover{background:var(--accent-light);box-shadow:0 3px 10px rgba(43,90,237,.18);}
+#plCard{padding:32px 32px 36px;}
+.pl-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;}
+/* FLOW */
+.flow-wrap{overflow-x:auto;padding:36px 0 16px;}
+.flow-row{display:flex;align-items:flex-start;gap:0;min-width:max-content;}
+.flow-node{position:relative;display:flex;flex-direction:column;align-items:center;min-width:210px;max-width:240px;cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1);}
+.flow-node:hover{transform:translateY(-4px);}
+.flow-node:hover .fn-box{border-color:var(--accent);box-shadow:0 8px 28px rgba(68,114,196,.16);}
+.flow-node.active .fn-box{border-color:var(--accent);box-shadow:0 6px 24px rgba(68,114,196,.15);}
+.flow-node .fn-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;margin-bottom:-22px;position:relative;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.18);}
+.flow-node .fn-box{background:#fff;border:2px solid #E8EDF5;border-radius:16px;padding:34px 16px 16px;text-align:center;width:100%;min-height:200px;display:flex;flex-direction:column;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.04);transition:all .3s;}
+.flow-node .fn-title{font-size:17px;font-weight:800;margin-bottom:8px;line-height:1.3;color:var(--text);}
+.flow-node .fn-type-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:10px;white-space:nowrap;}
+.fn-type-tag.t-manual{background:rgba(37,99,235,.08);color:#2563EB;border:1px solid rgba(37,99,235,.2);}
+.fn-type-tag.t-ai-mix{background:rgba(139,92,246,.08);color:#7C3AED;border:1px solid rgba(139,92,246,.2);}
+.fn-type-tag.t-handoff{background:rgba(239,68,68,.08);color:#DC2626;border:1px solid rgba(239,68,68,.2);}
+.flow-node .fn-desc{font-size:12px;color:var(--text2);line-height:1.65;flex:1;text-align:center;}
+.flow-node .fn-ai-line{display:flex;align-items:flex-start;gap:5px;margin-top:10px;padding:5px 12px;border-radius:8px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);font-size:11px;font-weight:700;color:#7C3AED;white-space:normal;max-width:100%;overflow-wrap:anywhere;word-break:break-word;}
+.flow-node .fn-tools{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;justify-content:center;}
+.flow-node .fn-tool-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;}
+.fn-tool-chip:hover{transform:scale(1.06);box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.fn-tool-chip.chip-blue{background:linear-gradient(135deg,#3B82F6,#2563EB);}
+.fn-tool-chip.chip-purple{background:linear-gradient(135deg,#8B5CF6,#7C3AED);}
+.fn-tool-chip.chip-pink{background:linear-gradient(135deg,#EC4899,#DB2777);}
+.fn-tool-chip.chip-cyan{background:linear-gradient(135deg,#06B6D4,#0891B2);}
+.fn-tool-chip.chip-orange{background:linear-gradient(135deg,#F59E0B,#D97706);}
+.flow-node .fn-click-hint{font-size:10px;color:var(--accent);opacity:.4;margin-top:8px;transition:opacity .2s;}
+.flow-node:hover .fn-click-hint{opacity:1;}
+.flow-node .fn-who{font-size:11px;font-weight:600;margin-bottom:6px;}
+.flow-arrow{display:flex;align-items:center;flex-shrink:0;padding:0 4px;margin-top:80px;}
+.flow-arrow svg{width:40px;height:20px;fill:none;stroke:#CBD5E1;stroke-width:2;stroke-dasharray:6 4;}
+.flow-arrow .arrow-head{fill:#CBD5E1;stroke:none;}
+.flow-legend{display:flex;gap:24px;justify-content:center;margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);flex-wrap:wrap;}
+.flow-legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);font-weight:500;}
+.flow-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+/* SUB-PIPELINE INNER TABS */
+.spl-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.spl-tab{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-align:center;}
+.spl-tab .tab-sub{font-size:11px;font-weight:400;display:block;margin-top:2px;opacity:.7;}
+.spl-tab.t-orange{background:rgba(255,251,234,.55);color:#F0A030;border:1px solid rgba(240,160,48,.2);}.spl-tab.t-orange:hover{background:rgba(255,243,208,.7);}.spl-tab.t-orange.active{background:#F0A030;color:#fff;border-color:#F0A030;}
+.spl-tab.t-free-orange{background:rgba(255,251,234,.55);color:#E09520;border:1px solid rgba(224,149,32,.2);}.spl-tab.t-free-orange:hover{background:rgba(255,243,208,.7);}.spl-tab.t-free-orange.active{background:#E09520;color:#fff;border-color:#E09520;}
+.spl-tab.t-purple{background:rgba(243,232,255,.5);color:#9333EA;border:1px solid rgba(147,51,234,.15);}.spl-tab.t-purple:hover{background:rgba(237,224,253,.7);}.spl-tab.t-purple.active{background:#9333EA;color:#fff;border-color:#9333EA;}
+.spl-tab.t-blue{background:rgba(235,240,250,.5);color:#3B82F6;border:1px solid rgba(59,130,246,.15);}.spl-tab.t-blue:hover{background:rgba(214,226,245,.7);}.spl-tab.t-blue.active{background:#3B82F6;color:#fff;border-color:#3B82F6;}
+.spl-tab.t-white{background:rgba(241,245,249,.5);color:#94A3B8;border:1px solid rgba(148,163,184,.15);}.spl-tab.t-white:hover{background:rgba(226,232,240,.7);}.spl-tab.t-white.active{background:#94A3B8;color:#fff;border-color:#94A3B8;}
+.spl-sub-tabs{display:flex;gap:8px;margin-bottom:14px;}
+.spl-sub-tab{padding:6px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;transition:all .2s;font-family:inherit;}
+.spl-sub-tab.t-orange{background:rgba(255,251,234,.55);color:#F0A030;border:1px solid rgba(240,160,48,.2);}.spl-sub-tab.t-orange.active{background:#F0A030;color:#fff;border-color:#F0A030;}
+
+/* STEP DETAIL PANEL */
+.step-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:10px;box-shadow:var(--shadow-lg);animation:fadeSlide .3s ease;}
+.step-panel.open{display:block;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:none;}}
+.sp-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--accent-light);}
+.sp-head h4{font-size:22px;font-weight:700;color:var(--accent-dark);}
+.sp-close{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:5px 14px;font-size:13px;font-family:inherit;}
+.sp-close:hover{border-color:var(--accent);color:var(--accent);}
+.sp-body{padding:20px 24px;}
+.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.sp-grid{grid-template-columns:1fr;}}
+.sp-item{font-size:14px;line-height:1.7;}.sp-item .label{color:var(--text2);font-size:12px;font-weight:600;margin-bottom:4px;}
+.sp-ai{margin-top:12px;padding:14px 16px;border-radius:8px;font-size:14px;line-height:1.7;}
+.sp-footer{padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap;font-size:12px;background:var(--bg);}
+.sp-footer .sf{display:flex;align-items:center;gap:5px;}.sp-footer .sfv{font-weight:700;color:var(--accent);}
+
+/* TIER CARDS */
+.tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+.tier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.tier-card .tier-top{position:absolute;top:0;left:0;right:0;height:3px;}
+.tier-card .tier-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:8px;}
+.tier-card h3{font-size:14px;font-weight:700;margin-bottom:6px;}
+.tier-card .detail{font-size:12px;color:var(--text2);line-height:1.6;}
+.split-card{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:14px 0;}
+.split-half{padding:20px 24px;}
+.split-half h4{font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.split-half ul{list-style:none;padding:0;}.split-half li{font-size:12px;padding:2px 0 2px 16px;position:relative;line-height:1.6;color:var(--text2);}.split-half li::before{content:'·';position:absolute;left:4px;color:var(--accent);font-weight:700;}
+@media(max-width:640px){.split-card{grid-template-columns:1fr;}}
+
+/* GRADING BARS */
+.gr{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.gr-label{width:56px;font-size:13px;font-weight:700;text-align:right;flex-shrink:0;}
+.gr-track{flex:1;height:26px;background:var(--bg);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.gr-fill{height:100%;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;transition:width 1.2s;}
+.gr-pct{width:50px;font-size:13px;font-weight:700;flex-shrink:0;}
+
+/* CONFIG */
+.cfg-panel{display:grid;grid-template-columns:260px 1fr;gap:16px;}
+@media(max-width:768px){.cfg-panel{grid-template-columns:1fr;}}
+.cfg-side{background:var(--bg);border-radius:var(--radius);padding:20px;border:1px solid var(--border);}
+.cfg-side h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:12px;}
+.cg{margin-bottom:14px;}
+.cg label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--text2);}
+.cg select{width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--surface);outline:none;}
+.cg select:focus{border-color:var(--accent);}
+.cg input[type=range]{width:100%;-webkit-appearance:none;height:5px;background:var(--border);border-radius:3px;outline:none;cursor:pointer;}
+.cg input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.cg .rng{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:3px;}
+.cfg-prev{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.pv-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:380px;margin-top:14px;}
+.pv{border-radius:8px;padding:14px;text-align:center;}.pv .pvn{font-size:24px;font-weight:700;}.pv .pvl{font-size:11px;margin-top:2px;color:var(--text2);}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:13px;}
+.tg{width:36px;height:20px;border-radius:10px;background:var(--border);position:relative;transition:background .3s;flex-shrink:0;}.tg.on{background:var(--accent);}
+.tg-t{width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);}.tg.on .tg-t{left:18px;}
+
+/* RING */
+.ring-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:16px 0;}
+.ring-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow);cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1);}
+.ring-card:hover{border-color:var(--accent);}
+.ring-card.selected{border-color:var(--accent);background:var(--accent-light);box-shadow:0 2px 12px rgba(43,90,237,.08);}
+.ring-card svg{display:block;margin:0 auto 6px;}
+.ring-card .rv{font-size:13px;font-weight:700;}.ring-card .rl{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.4;}
+.ring-card .ro{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);margin-top:4px;padding:2px 8px;background:var(--bg);border-radius:10px;}
+.skill-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-top:12px;box-shadow:var(--shadow);animation:panelIn .4s cubic-bezier(.22,1,.36,1);}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.skill-detail h4{font-size:15px;font-weight:700;margin-bottom:10px;}
+.sd-section{margin-bottom:20px;}
+.sd-section:last-child{margin-bottom:0;}
+.sd-section-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.sd-section-title .sd-cnt{font-size:10px;font-weight:600;padding:1px 8px;border-radius:10px;background:var(--bg);color:var(--text3);}
+
+/* KNOWLEDGE LIST */
+.kb-list{display:flex;flex-direction:column;gap:4px;}
+.kb-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:12px;}
+.kb-row .kb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.kb-row .kb-name{font-weight:600;flex:1;}
+.kb-row .kb-type{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--surface);color:var(--text2);border:1px solid var(--border);}
+.kb-row .kb-st{font-size:10px;min-width:65px;text-align:right;}
+
+/* SKILL CARDS */
+.sk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.sk-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;transition:all .3s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden;}
+.sk-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(43,90,237,.08);transform:translateY(-2px);}
+.sk-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0;}
+.sk-card.s-done::before{background:var(--green);}
+.sk-card.s-wip::before{background:var(--accent);}
+.sk-card.s-review::before{background:var(--a);}
+.sk-card.s-todo::before{background:var(--border);}
+.sk-card .sk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.sk-card .sk-name{font-size:13px;font-weight:700;}
+.sk-card .sk-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.sk-card .sk-desc{font-size:11px;color:var(--text2);line-height:1.5;}
+
+/* TIMELINE */
+.tl{display:flex;gap:0;overflow-x:auto;padding:8px 0;}
+.tl-i{flex:1;min-width:170px;position:relative;padding:14px 14px 14px 18px;}
+.tl-i::before{content:'';position:absolute;top:22px;left:0;right:0;height:3px;background:var(--border);}
+.tl-i.done::before{background:var(--green);}.tl-i.now::before{background:linear-gradient(90deg,var(--accent) 55%,var(--border) 55%);}
+.tl-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:var(--surface);position:relative;z-index:1;margin-bottom:8px;}
+.tl-i.done .tl-dot{background:var(--green);border-color:var(--green);}.tl-i.now .tl-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px rgba(43,90,237,.15);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(43,90,237,.15);}50%{box-shadow:0 0 0 8px rgba(43,90,237,.08);}}
+
+.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:900px){.kb{grid-template-columns:repeat(2,1fr);}}@media(max-width:560px){.kb{grid-template-columns:1fr;}}
+.kb-col{background:var(--bg);border-radius:var(--radius);padding:12px;min-height:120px;}
+.kb-hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.kb-hd .cnt{background:var(--border);color:var(--text2);font-size:10px;padding:1px 7px;border-radius:10px;}
+.kb-item{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:5px;font-size:12px;}
+.kb-item .kb-t{font-weight:600;margin-bottom:2px;}
+.kb-item .kb-m{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);}
+.kb-tag{font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;}
+
+.mx-wrap{overflow-x:auto;}
+table.mx{width:100%;border-collapse:collapse;font-size:13px;}
+table.mx th,table.mx td{padding:8px 12px;text-align:center;border-bottom:1px solid var(--border);}
+table.mx th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);background:var(--bg);}
+table.mx td:first-child{text-align:left;font-weight:600;}
+.risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+.risk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;}
+.risk-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.risk-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:8px;}
+.risk-card h4{font-size:14px;font-weight:700;margin-bottom:6px;}.risk-card p{font-size:12px;color:var(--text2);line-height:1.5;}
+.callout{padding:14px 18px;border-radius:8px;margin:14px 0;font-size:13px;line-height:1.6;}
+.callout-blue{background:var(--accent-light);color:var(--blue-deep);border:1px solid rgba(43,90,237,.2);}
+.callout-amber{background:var(--a-bg);color:#92400E;border:1px solid #FDE68A;}
+.callout-green{background:var(--green-bg);color:#065F46;border:1px solid #A7F3D0;}
+footer{max-width:1280px;margin:80px auto 0;padding:32px 32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;color:var(--text3);font-size:13px;flex-wrap:wrap;gap:16px;}
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1);}.fade-in.visible{opacity:1;transform:none;}
+.fade-in .stagger{opacity:0;transform:translateY(16px);transition:opacity .5s cubic-bezier(.22,1,.36,1),transform .5s cubic-bezier(.22,1,.36,1);}
+.fade-in.visible .stagger{opacity:1;transform:none;}
+.fade-in.visible .stagger:nth-child(1){transition-delay:.05s;}
+.fade-in.visible .stagger:nth-child(2){transition-delay:.1s;}
+.fade-in.visible .stagger:nth-child(3){transition-delay:.15s;}
+.fade-in.visible .stagger:nth-child(4){transition-delay:.2s;}
+.fade-in.visible .stagger:nth-child(5){transition-delay:.25s;}
+.fade-in.visible .stagger:nth-child(6){transition-delay:.3s;}
+.fade-in.visible .stagger:nth-child(7){transition-delay:.35s;}
+.fade-in.visible .stagger:nth-child(8){transition-delay:.4s;}
+/* UIUX 3-track flow diagram */
+.uf-grid{display:grid;grid-template-columns:80px auto 44px auto 44px auto 44px auto;grid-template-rows:auto auto 28px auto 24px auto auto;gap:6px 0;align-items:center;min-width:740px;padding:12px 0;}
+.uf-arc{grid-row:1;grid-column:6/9;text-align:center;font-size:10px;font-weight:600;color:var(--text2);border-top:2px solid var(--accent);border-left:2px solid var(--accent);border-right:2px solid var(--accent);border-radius:10px 10px 0 0;padding:5px 0 2px;margin:0 20px;}
+.uf-bx{border:2px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;font-weight:600;text-align:center;background:var(--surface);cursor:pointer;transition:all .25s cubic-bezier(.22,1,.36,1);line-height:1.5;min-width:100px;}
+.uf-bx:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+.uf-bx.active{border-color:var(--accent);background:var(--accent-light);}
+.uf-bx.dash{border-style:dashed;}
+.uf-bx.hi{border-color:var(--accent);background:var(--accent-light);}
+.uf-bx .sub{font-size:10px;font-weight:400;color:var(--text3);margin-top:3px;}
+.uf-ar{text-align:center;line-height:1.2;flex-shrink:0;overflow:visible;}
+.uf-ar b{font-size:18px;color:var(--accent);display:block;}
+.uf-ar span{font-size:10px;color:var(--text2);font-weight:600;white-space:nowrap;}
+.uf-lbl{text-align:right;font-size:10px;font-weight:700;color:var(--text3);line-height:1.4;padding-right:8px;letter-spacing:.3px;}
+.uf-vc{text-align:center;font-size:10px;color:var(--text2);font-weight:600;line-height:1.2;}
+.uf-vc em{font-style:normal;font-size:16px;color:var(--accent);display:block;}
+@media(max-width:640px){.container{padding:0 20px;}.pyramid-container{flex-direction:column;}}
+
+.img-showcase{margin:20px 0;display:grid;gap:12px;}
+.img-showcase.cols-2{grid-template-columns:1fr 1fr;}
+.img-showcase.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.img-showcase figure{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.img-showcase figure img{width:100%;display:block;object-fit:contain;background:#f0f0f0;}
+.img-showcase figcaption{padding:10px 16px;font-size:12px;color:var(--text2);font-weight:500;text-align:center;border-top:1px solid var(--border);}
+.img-full{margin:20px 0;}
+.img-full img{width:100%;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);display:block;background:#f0f0f0;}
+.img-full figcaption{padding:8px 0;font-size:12px;color:var(--text2);font-weight:500;}
+@media(max-width:768px){.img-showcase.cols-2,.img-showcase.cols-3{grid-template-columns:1fr;}}
+</style>
+<style>#demo-disclosure{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);width:max-content;display:flex;gap:18px;align-items:center;padding:10px 18px;background:#232238;color:#fff;box-shadow:0 8px 32px #0003;border-radius:10px;font:12px/1.5 sans-serif}#demo-disclosure a{color:#fff;white-space:nowrap}body{padding-bottom:70px!important}@media(max-width:600px){#demo-disclosure{font-size:11px;gap:10px}}</style></head>
+<body>
+
+<nav id="nav"><div class="nav-inner">
+  <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" class="nav-logo" alt="示例项目">
+  <div class="nav-sep"></div>
+  <div class="nav-brand">美术 AI 搭建</div>
+  <div class="nav-links">
+    <a href="#pipelines">管线</a>
+    <a href="#arch">框架</a>
+    <a href="#pyramid">分级</a>
+    <a href="#progress">搭建进度</a>
+    <a href="#config">AI配置</a>
+    <a href="#plan">计划</a>
+    <a href="#risks">风险</a>
+    <a href="#gallery">作品展示</a>
+    <a href="unavailable.html" style="color:var(--yellow) !important;font-weight:700;">🎮 仓库商城 Demo</a>
+    <a href="unavailable.html" style="color:var(--yellow) !important;font-weight:700;">🏆 交互原型Demo</a>
+  </div>
+</div></nav>
+
+
+<div class="hero-banner">
+  <div class="hero-bg">
+    <div class="hero-orb o1"></div>
+    <div class="hero-orb o2"></div>
+    <div class="hero-orb o3"></div>
+    <div class="hero-noise"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div class="hero-text">
+        <h1>美术全流程<br><span>AI 搭建</span></h1>
+        <p class="sub">八条美术管线全覆盖，需求分级驱动 AI 介入深度。<br>每个环节有自己的分级规则，每个环节有自己的 AI/Agent 工作方式。<br>标准化环节提效 ≥20%，解放美术师聚焦核心创意与审美决策。</p>
+      </div>
+      <div class="hero-logo-wrap"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例项目"></div>
+    </div>
+  </div>
+</div>
+<div class="hero-stat-row">
+  <div class="stat-card"><div class="stat-num" style="color:var(--accent);">8</div><div class="stat-label">美术管线</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:var(--green);">≥20<span style="font-size:18px;">%</span></div><div class="stat-label">标准化提效目标</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--purple);">5</div><div class="stat-label">需求级别 S→D</div></div>
+  <div class="stat-card"><div class="stat-num" style="color:var(--s);">12<span style="font-size:18px;">周</span></div><div class="stat-label">全量落地周期</div></div>
+</div>
+
+<div class="container">
+
+
+<section id="pipelines" class="fade-in">
+  <div class="stag">Agent Pipelines</div>
+  <h2>八条管线 · 点击环节看 AI 怎么做</h2>
+  <div class="sdesc">每条管线展示各环节的 AI/人工分工、工具、分级规则。点击节点展开详情。</div>
+  <div class="pl-tabs" id="plTabs"></div>
+  <div class="card" id="plCard">
+    <div class="pl-header" id="plHeader"></div>
+    <div class="flow-wrap"><div class="flow-row" id="plFlow"></div></div>
+    <div class="step-panel" id="stepPanel">
+      <div class="sp-head"><h4 id="spTitle"></h4><button class="sp-close" onclick="closeStep()">关闭 ×</button></div>
+      <div class="sp-body" id="spBody"></div>
+      <div class="sp-footer" id="spFooter"></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="arch" class="fade-in">
+  <div class="stag">Framework</div>
+  <h2>两层架构</h2>
+  <div class="sdesc">全管线 AI 落地 = 计划路径 + 方法框架。两层各司其职，合并形成完整落地方案。</div>
+
+  <div class="two-layer">
+    <div class="layer-card stagger" style="border-top:3px solid var(--accent);">
+      <h4><span style="background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:12px;">计划层</span> 全管线 AI 落地路径</h4>
+      <ul>
+        <li>八条管线：UI/UX、2D角色原画、2D场景原画、3D角色模型、3D场景模型、动画、特效、平面</li>
+        <li>各管线 Agent 工作流、工具链、试点环节</li>
+        <li>12 周分阶段推进：筹备→试点→验证→推广</li>
+        <li>各管线负责人、里程碑、交付物</li>
+        <li>标准化环节提效 ≥20%</li>
+      </ul>
+    </div>
+    <div class="layer-merge stagger">+</div>
+    <div class="layer-card stagger" style="border-top:3px solid var(--purple);">
+      <h4><span style="background:var(--purple-bg);color:var(--purple);padding:2px 8px;border-radius:4px;font-size:12px;">方法层</span> 需求分级方法框架</h4>
+      <ul>
+        <li>通用分级框架：业务类型→设计目标→质量维度→S~D 五级</li>
+        <li>级别决定 AI 介入上限和复用比例约束</li>
+        <li>级别决定验收标准：S→全维度 / C,D→仅规范性</li>
+        <li>熵增审批：新增设计必须经评审，不由需求方单方面决定</li>
+        <li>方法论设计为全管线通用，各管线按需适配落地</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-blue"><strong>核心逻辑：</strong>每条管线的每个环节，都嵌入分级方法——级别决定了 AI 能接管多少，人工需要投入多少，质量验收到什么标准。不是主观判断"该不该用 AI"，而是级别说了算。</div>
+
+  <div class="card" style="margin-top:20px;">
+    <h3>能力边界</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+      <div style="padding:18px;background:var(--accent-light);"><h4 style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px;">✓ AI 可替代</h4><div style="font-size:13px;color:var(--text2);line-height:1.8;">· 标准化、重复化执行工作<br>· 批量铺量 / 变体生成<br>· 规范对齐 / 格式适配<br>· 参考收集 / 方案初稿<br>· 技术处理（拓扑/UV/切图）</div></div>
+      <div style="padding:18px;background:var(--ss-bg);"><h4 style="font-size:14px;font-weight:700;color:var(--ss);margin-bottom:8px;">✗ 人工不可替代</h4><div style="font-size:13px;color:var(--text2);line-height:1.8;">· 核心创意构思<br>· 审美决策与风格定调<br>· 最终品质验收<br>· 品牌调性把控<br>· 创新交互模式设计</div></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="pyramid" class="fade-in">
+  <div class="stag">Grading System</div>
+  <h2>全管线通用 · 需求分级金字塔</h2>
+  <div class="sdesc">八条管线共用一套分级逻辑。级别决定 AI 介入上限、复用比例、验收标准。健康项目中 S 级极少，C+D 最多。</div>
+
+  <div class="card">
+    <div class="pyramid-container">
+      <div>
+        <svg width="260" height="220" viewbox="0 0 260 220">
+          <polygon points="130,10 30,210 230,210" fill="none" stroke="var(--border)" stroke-width="1"></polygon>
+          <polygon points="130,10 100,70 160,70" fill="var(--s)" opacity=".85"></polygon>
+          <polygon points="100,70 70,130 190,130 160,70" fill="var(--a)" opacity=".70"></polygon>
+          <polygon points="70,130 50,170 210,170 190,130" fill="var(--b)" opacity=".55"></polygon>
+          <polygon points="50,170 30,210 230,210 210,170" fill="var(--c)" opacity=".35"></polygon>
+          <text x="130" y="50" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="DM Sans">S</text>
+          <text x="130" y="108" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="DM Sans">A</text>
+          <text x="130" y="156" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="DM Sans">B</text>
+          <text x="130" y="196" text-anchor="middle" fill="#666" font-size="12" font-weight="700" font-family="DM Sans">C + D</text>
+        </svg>
+      </div>
+      <div class="pyramid-stats" id="fwDynPyramidStats">
+        <div class="pyramid-row"><div class="pyramid-dot" style="background:var(--s)"></div><div class="pyramid-label">S</div><div class="pyramid-pct">≈ 5~10%</div><div class="pyramid-note">品牌级/改变级功能</div></div>
+        <div class="pyramid-row"><div class="pyramid-dot" style="background:var(--a)"></div><div class="pyramid-label">A</div><div class="pyramid-pct">≈ 15~20%</div><div class="pyramid-note">有设计投入的常规需求</div></div>
+        <div class="pyramid-row"><div class="pyramid-dot" style="background:var(--b)"></div><div class="pyramid-label">B</div><div class="pyramid-pct">≈ 25~30%</div><div class="pyramid-note">大量功能性设计</div></div>
+        <div class="pyramid-row"><div class="pyramid-dot" style="background:var(--c)"></div><div class="pyramid-label">C+D</div><div class="pyramid-pct">≈ 40~50%</div><div class="pyramid-note">日常维护、增补、铺量</div></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px 16px;background:var(--bg);border-radius:8px;font-size:13px;color:var(--text2);line-height:1.6;">
+      <strong>健康度检查：</strong>S 超过 15% → 级别通胀；C+D 低于 30% → 日常维护被低效占用
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>级别 × AI 介入度 × 复用约束</h3>
+    <div style="margin-bottom:14px;">
+      <div class="gr"><div class="gr-label" style="color:var(--s);">S</div><div class="gr-track"><div class="gr-fill" style="width:10%;background:var(--s);">10%</div></div><div class="gr-pct" style="color:var(--s);">AI~10%</div></div>
+      <div class="gr"><div class="gr-label" style="color:var(--a);">A</div><div class="gr-track"><div class="gr-fill" style="width:30%;background:var(--a);">AI 30%</div></div><div class="gr-pct" style="color:var(--a);">AI~30%</div></div>
+      <div class="gr"><div class="gr-label" style="color:var(--b);">B</div><div class="gr-track"><div class="gr-fill" style="width:50%;background:var(--b);">AI 50%</div></div><div class="gr-pct" style="color:var(--b);">AI~50%</div></div>
+      <div class="gr"><div class="gr-label" style="color:var(--green);">C/D</div><div class="gr-track"><div class="gr-fill" style="width:80%;background:var(--green);">AI 80%</div></div><div class="gr-pct" style="color:var(--green);">AI~80%</div></div>
+    </div>
+    <div class="mx-wrap"><table class="mx" id="fwDynMatrix"><thead><tr><th>级别</th><th>复用比例</th><th>新增上限</th><th>AI 介入程度</th><th>验收标准</th></tr></thead><tbody id="fwDynMatrixBody">
+      <tr><td style="color:var(--s);">S</td><td>10%</td><td>≤90%</td><td>AI 出方案，人工深度调优</td><td>全维度验收</td></tr>
+      <tr><td style="color:var(--a);">A</td><td>20%</td><td>≤80%</td><td>AI 出初稿，人工修改完善</td><td>6维验收</td></tr>
+      <tr><td style="color:var(--b);">B</td><td>50%</td><td>≤50%</td><td>AI 出成品，人工微调验收</td><td>4维验收</td></tr>
+      <tr><td style="color:var(--c);">C/D</td><td>100%</td><td>0%</td><td>AI 直接产出，人工验收</td><td>仅规范性</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+
+<section id="progress" class="fade-in">
+  <div class="stag">Agent Progress</div>
+  <h2>美术 Agent 搭建进度</h2>
+  <div class="sdesc">各管线 Agent 搭建的实时进度、Skill 库积累情况。点击管线查看已有 Skill。</div>
+
+  <div class="ring-row" id="ringRow"></div>
+  <div class="skill-detail" id="skillDetail">
+    <h4 id="sdTitle"></h4>
+    <p id="sdDesc" style="font-size:13px;color:var(--text2);margin-bottom:16px;"></p>
+    <div id="sdSkills"></div>
+  </div>
+</section>
+
+
+<section id="config" class="fade-in">
+  <div class="stag">AI Configuration</div>
+  <h2>AI 配置化演示</h2>
+  <div class="sdesc">各管线各环节参数可配置，AI 自动推荐级别和资源配置。点击管线切换查看。</div>
+  <div class="pl-tabs" id="cfgTabs"><button class="pl-tab active" onclick="switchCfg(0)">📐 UIUX</button><button class="pl-tab" onclick="switchCfg(1)">🎨 2D角色</button><button class="pl-tab" onclick="switchCfg(2)">🗿 3D角色</button><button class="pl-tab" onclick="switchCfg(3)">🌿 农场美术</button><button class="pl-tab" onclick="switchCfg(4)">🖼️ 2D场景</button></div>
+  <div class="card cfg-pane" id="cfgPane0">
+    <h3>需求智能分级 &amp; 资源预估</h3>
+    <div class="cfg-panel">
+      <div class="cfg-side">
+        <h4>配置参数</h4>
+        <div class="cg"><label>业务类型</label><select id="cfgT" onchange="cfgUpd()"><option value="pay">💰 付费/商业化</option><option value="core">🎮 核心玩法/系统</option><option value="social">💬 社交</option><option value="std" selected>📦 常规功能</option></select></div>
+        <div class="cg"><label>设计复杂度</label><input type="range" id="cfgC" min="1" max="5" value="3" oninput="cfgUpd()"><div class="rng"><span>简单</span><span>复杂</span></div></div>
+        <div class="cg"><label>子界面数量</label><input type="range" id="cfgS" min="1" max="20" value="6" oninput="cfgUpd()"><div class="rng"><span>1</span><span id="sVal">6</span></div></div>
+        <h4 style="margin-top:16px;">AI 辅助开关</h4>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>自动分级推荐</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>组件复用推荐</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>工时自动预估</span></div>
+      </div>
+      <div class="cfg-prev">
+        <div style="font-size:15px;font-weight:700;">AI 分析结果</div>
+        <div class="pv-row">
+          <div class="pv" id="pvG" style="background:var(--b-bg);"><div class="pvn" id="pvGv" style="color:var(--b);">B</div><div class="pvl">推荐级别</div></div>
+          <div class="pv" style="background:var(--green-bg);"><div class="pvn" id="pvRv" style="color:var(--green);">80%</div><div class="pvl">复用比例</div></div>
+          <div class="pv" style="background:var(--purple-bg);"><div class="pvn" id="pvDv" style="color:var(--purple);">4.5d</div><div class="pvl">预估人天</div></div>
+        </div>
+        <div style="margin-top:16px;width:100%;max-width:380px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">AI 推荐复用组件</div>
+          <div id="cfgChips" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin:12px 0 6px;">子需求拆解预览</div>
+          <div id="cfgSubs" style="font-size:12px;color:var(--text2);line-height:1.8;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card cfg-pane" id="cfgPane1" style="display:none;">
+    <h3>品级 &amp; 材质 &amp; 工时推荐</h3>
+    <div class="cfg-panel">
+      <div class="cfg-side">
+        <h4>配置参数</h4>
+        <div class="cg"><label>品级</label><select id="cfg2dTier" onchange="cfg2dUpd()"><option value="white">白装</option><option value="green">绿装</option><option value="blue">蓝装</option><option value="purple" selected>紫装</option><option value="orange">橙装</option></select></div>
+        <div class="cg"><label>角色类型</label><select id="cfg2dType" onchange="cfg2dUpd()"><option value="original">原创角色</option><option value="ip">IP联动角色</option><option value="season">赛季限定</option><option value="event">活动角色</option></select></div>
+        <div class="cg"><label>设计复杂度</label><input type="range" id="cfg2dCx" min="1" max="10" value="7" oninput="cfg2dUpd()"><div class="rng"><span>简单</span><span>复杂</span></div></div>
+        <h4 style="margin-top:16px;">AI 辅助开关</h4>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>配色方案推荐</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>材质适配建议</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>侵权风险检测</span></div>
+      </div>
+      <div class="cfg-prev">
+        <div style="font-size:15px;font-weight:700;">AI 分析结果</div>
+        <div class="pv-row">
+          <div class="pv" id="pv2dGw" style="background:var(--purple-bg);"><div class="pvn" id="pv2dG" style="color:var(--purple);">紫</div><div class="pvl">品级</div></div>
+          <div class="pv" style="background:var(--green-bg);"><div class="pvn" id="pv2dM" style="color:var(--green);">1~2</div><div class="pvl">母材质数</div></div>
+          <div class="pv" style="background:var(--s-bg);"><div class="pvn" id="pv2dD" style="color:var(--s);">12.0d</div><div class="pvl">预估人天</div></div>
+        </div>
+        <div style="margin-top:16px;width:100%;max-width:380px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">AI 推荐材质</div>
+          <div id="cfg2dTags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin:12px 0 6px;">设计拆解预览</div>
+          <div id="cfg2dSubs" style="font-size:12px;color:var(--text2);line-height:1.8;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card cfg-pane" id="cfgPane2" style="display:none;">
+    <h3>模型规格 &amp; 质检推荐</h3>
+    <div class="cfg-panel">
+      <div class="cfg-side">
+        <h4>配置参数</h4>
+        <div class="cg"><label>品质等级</label><select id="cfg3dTier" onchange="cfg3dUpd()"><option value="wg">白绿</option><option value="blue">蓝</option><option value="purple" selected>紫</option><option value="orange">橙</option></select></div>
+        <div class="cg"><label>模型复杂度</label><input type="range" id="cfg3dCx" min="1" max="10" value="5" oninput="cfg3dUpd()"><div class="rng"><span>简单</span><span>复杂</span></div></div>
+        <div class="cg"><label>挂件数量</label><input type="range" id="cfg3dAcc" min="0" max="6" value="2" oninput="cfg3dUpd()"><div class="rng"><span>0</span><span id="cfg3dAccV">2</span></div></div>
+        <h4 style="margin-top:16px;">AI 辅助开关</h4>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>自动 LOD 生成</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>贴图优化推荐</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>骨骼数量验证</span></div>
+      </div>
+      <div class="cfg-prev">
+        <div style="font-size:15px;font-weight:700;">AI 分析结果</div>
+        <div class="pv-row">
+          <div class="pv" style="background:var(--purple-bg);"><div class="pvn" id="pv3dB" style="color:var(--purple);">36</div><div class="pvl">LOD0/1 骨骼上限</div></div>
+          <div class="pv" style="background:var(--cyan-bg);"><div class="pvn" id="pv3dT" style="color:var(--cyan);">1024²</div><div class="pvl">商城贴图尺寸</div></div>
+          <div class="pv" style="background:var(--s-bg);"><div class="pvn" id="pv3dD" style="color:var(--s);">6.0d</div><div class="pvl">预估工时</div></div>
+        </div>
+        <div style="margin-top:16px;width:100%;max-width:380px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">LOD 配置建议</div>
+          <div id="cfg3dTags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin:12px 0 6px;">质检项预览</div>
+          <div id="cfg3dSubs" style="font-size:12px;color:var(--text2);line-height:1.8;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card cfg-pane" id="cfgPane3" style="display:none;">
+    <h3>农场资产设计 &amp; AI 辅助推荐</h3>
+    <div class="cfg-panel">
+      <div class="cfg-side">
+        <h4>配置参数</h4>
+        <div class="cg"><label>资产类型</label><select id="cfgFaType" onchange="cfgFaUpd()"><option value="livestock">畜牧动物</option><option value="pet">宠物</option><option value="miracle">示例农场 B动物</option><option value="collect">藏品</option><option value="fish">鱼/珊瑚</option><option value="accessory">配饰</option></select></div>
+        <div class="cg"><label>品级</label><select id="cfgFaTier" onchange="cfgFaUpd()"><option value="green">绿</option><option value="blue">蓝</option><option value="purple" selected>紫</option><option value="orange">橙</option><option value="red">红</option><option value="rainbow">彩</option></select></div>
+        <div class="cg"><label>设计复杂度</label><input type="range" id="cfgFaCx" min="1" max="10" value="5" oninput="cfgFaUpd()"><div class="rng"><span>简单</span><span>复杂</span></div></div>
+        <h4 style="margin-top:16px;">AI 辅助开关</h4>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>换色方案生成</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>三视图生成</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>批量设计辅助</span></div>
+      </div>
+      <div class="cfg-prev">
+        <div style="font-size:15px;font-weight:700;">AI 分析结果</div>
+        <div class="pv-row">
+          <div class="pv" style="background:var(--green-bg);"><div class="pvn" id="pvFaV" style="color:var(--green);">20~50%</div><div class="pvl">推荐变化幅度</div></div>
+          <div class="pv" style="background:var(--accent-light);"><div class="pvn" id="pvFaA" style="color:var(--accent);">35%</div><div class="pvl">AI 辅助率</div></div>
+          <div class="pv" style="background:var(--s-bg);"><div class="pvn" id="pvFaD" style="color:var(--s);">5.0d</div><div class="pvl">预估人天</div></div>
+        </div>
+        <div style="margin-top:16px;width:100%;max-width:380px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">推荐 AI 工具</div>
+          <div id="cfgFaTags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin:12px 0 6px;">设计拆解预览</div>
+          <div id="cfgFaSubs" style="font-size:12px;color:var(--text2);line-height:1.8;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card cfg-pane" id="cfgPane4" style="display:none;">
+    <h3>场景品质分级 &amp; 产能推荐</h3>
+    <div class="cfg-panel">
+      <div class="cfg-side">
+        <h4>配置参数</h4>
+        <div class="cg"><label>资产类型</label><select id="cfgScType" onchange="cfgScUpd()"><option value="core">商业化核心</option><option value="std">商业化标准</option><option value="func" selected>功能性建筑</option><option value="env">环境氛围</option><option value="bulk">批量铺量</option></select></div>
+        <div class="cg"><label>设计复杂度</label><input type="range" id="cfgScCx" min="1" max="10" value="6" oninput="cfgScUpd()"><div class="rng"><span>简单</span><span>复杂</span></div></div>
+        <div class="cg"><label>子资产数量</label><input type="range" id="cfgScSc" min="1" max="20" value="8" oninput="cfgScUpd()"><div class="rng"><span>1</span><span id="cfgScScV">8</span></div></div>
+        <h4 style="margin-top:16px;">AI 辅助开关</h4>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>自动品质分级</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>风格迁移建议</span></div>
+        <div class="toggle-row" onclick="this.querySelector('.tg').classList.toggle('on')"><div class="tg on"><div class="tg-t"></div></div><span>标效自动预估</span></div>
+      </div>
+      <div class="cfg-prev">
+        <div style="font-size:15px;font-weight:700;">AI 分析结果</div>
+        <div class="pv-row">
+          <div class="pv" id="pvScGw" style="background:var(--a-bg);"><div class="pvn" id="pvScG" style="color:var(--a);">A</div><div class="pvl">推荐级别</div></div>
+          <div class="pv" style="background:var(--green-bg);"><div class="pvn" id="pvScR" style="color:var(--green);">≤50%</div><div class="pvl">复用比例</div></div>
+          <div class="pv" style="background:var(--s-bg);"><div class="pvn" id="pvScD" style="color:var(--s);">21.6d</div><div class="pvl">预估人天</div></div>
+        </div>
+        <div style="margin-top:16px;width:100%;max-width:380px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">AI 推荐工具</div>
+          <div id="cfgScTags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin:12px 0 6px;">子资产拆解预览</div>
+          <div id="cfgScSubs" style="font-size:12px;color:var(--text2);line-height:1.8;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="plan" class="fade-in">
+  <div class="stag">Execution Plan</div>
+  <h2>12 周落地计划</h2>
+  <div class="sdesc">筹备→试点→验证→推广，分阶段有序推进。</div>
+
+  <div class="card">
+    <div class="tl">
+      <div class="tl-i done"><div class="tl-dot"></div><div style="font-size:11px;font-weight:700;color:var(--green);">✓ 完成</div><div style="font-size:14px;font-weight:700;margin:3px 0;">筹备期</div><div style="font-size:12px;color:var(--text2);line-height:1.5;">管线盘点 · 确定试点<br>整理美术规范 · 收集合规资产</div><div style="font-size:11px;color:var(--text2);font-weight:600;margin-top:4px;">Week 1–2</div></div>
+      <div class="tl-i now"><div class="tl-dot"></div><div style="font-size:11px;font-weight:700;color:var(--accent);">进行中</div><div style="font-size:14px;font-weight:700;margin:3px 0;">试点期</div><div style="font-size:12px;color:var(--text2);line-height:1.5;">训练项目专属模型<br>搭建试点 Agent · 小范围测试</div><div style="font-size:11px;color:var(--text2);font-weight:600;margin-top:4px;">Week 3–4</div></div>
+      <div class="tl-i"><div class="tl-dot"></div><div style="font-size:11px;font-weight:700;color:var(--text3);">待开始</div><div style="font-size:14px;font-weight:700;margin:3px 0;">验证期</div><div style="font-size:12px;color:var(--text2);line-height:1.5;">真实需求跑通全流程<br>验证提效效果 · 迭代优化</div><div style="font-size:11px;color:var(--text2);font-weight:600;margin-top:4px;">Week 5–6</div></div>
+      <div class="tl-i"><div class="tl-dot"></div><div style="font-size:11px;font-weight:700;color:var(--text3);">待开始</div><div style="font-size:14px;font-weight:700;margin:3px 0;">推广期</div><div style="font-size:12px;color:var(--text2);line-height:1.5;">推广到全美术管线<br>团队角色转型 · 常态化生产</div><div style="font-size:11px;color:var(--text2);font-weight:600;margin-top:4px;">Week 7–12</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>搭建待办</h3>
+    <div class="kb">
+      <div class="kb-col"><div class="kb-hd" style="color:var(--text2);">📋 待开始 <span class="cnt">5</span></div>
+        <div class="kb-item"><div class="kb-t">动画骨骼匹配工具接入</div><div class="kb-m"><span class="kb-tag" style="background:var(--pink-bg);color:var(--pink);">动画</span></div></div>
+        <div class="kb-item"><div class="kb-t">场景资产库批量导入</div><div class="kb-m"><span class="kb-tag" style="background:var(--green-bg);color:var(--green);">场景</span></div></div>
+        <div class="kb-item"><div class="kb-t">2D 图标批量生成规范对齐</div><div class="kb-m"><span class="kb-tag" style="background:var(--a-bg);color:var(--a);">2D</span></div></div>
+      </div>
+      <div class="kb-col"><div class="kb-hd" style="color:var(--accent);">🔄 进行中 <span class="cnt">4</span></div>
+        <div class="kb-item"><div class="kb-t">项目专属风格 LoRA 训练</div><div class="kb-m"><span class="kb-tag" style="background:var(--ss-bg);color:var(--ss);">底座</span></div></div>
+        <div class="kb-item"><div class="kb-t">UIUX Agent 搭建</div><div class="kb-m"><span class="kb-tag" style="background:var(--accent-light);color:var(--accent);">UIUX</span> 作者</div></div>
+        <div class="kb-item"><div class="kb-t">合规资产库审核整理</div><div class="kb-m"><span class="kb-tag" style="background:var(--purple-bg);color:var(--purple);">资产</span></div></div>
+      </div>
+      <div class="kb-col"><div class="kb-hd" style="color:var(--a);">👁️ 审核中 <span class="cnt">2</span></div>
+        <div class="kb-item"><div class="kb-t">Banana 2D 生成效果验证</div><div class="kb-m"><span class="kb-tag" style="background:var(--a-bg);color:var(--a);">2D</span></div></div>
+        <div class="kb-item"><div class="kb-t">UIUX 设计系统新规范</div><div class="kb-m"><span class="kb-tag" style="background:var(--accent-light);color:var(--accent);">UIUX</span> 作者</div></div>
+      </div>
+      <div class="kb-col"><div class="kb-hd" style="color:var(--green);">✅ 已完成 <span class="cnt">3</span></div>
+        <div class="kb-item" style="opacity:.65;"><div class="kb-t">UIUX 需求分级方法论</div><div class="kb-m"><span class="kb-tag" style="background:var(--green-bg);color:var(--green);">✓</span> 作者</div></div>
+        <div class="kb-item" style="opacity:.65;"><div class="kb-t">管线盘点 &amp; 试点确定</div><div class="kb-m"><span class="kb-tag" style="background:var(--green-bg);color:var(--green);">✓</span></div></div>
+        <div class="kb-item" style="opacity:.65;"><div class="kb-t">3D 模型 AI 全套流程方案</div><div class="kb-m"><span class="kb-tag" style="background:var(--green-bg);color:var(--green);">✓</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>加权提效测算</h3>
+    <div class="mx-wrap"><table class="mx"><thead><tr><th>级别</th><th>需求占比</th><th>AI提效</th><th>加权贡献</th></tr></thead><tbody>
+      <tr><td style="color:var(--s);">S</td><td>~10%</td><td>~10%</td><td>~1%</td></tr>
+      <tr><td style="color:var(--a);">A</td><td>~18%</td><td>~30%</td><td>~5.4%</td></tr>
+      <tr><td style="color:var(--b);">B</td><td>~27%</td><td>~50%</td><td>~13.5%</td></tr>
+      <tr><td style="color:var(--green);">C/D</td><td>~45%</td><td>~80%</td><td>~36%</td></tr>
+      <tr style="font-weight:700;background:var(--accent-light);"><td style="color:var(--accent);">理想加权</td><td></td><td></td><td style="color:var(--accent);">~56%</td></tr>
+    </tbody></table></div>
+    <div class="callout callout-amber"><strong>保守目标：</strong>考虑初期磨合，整体 ≥20%。随资产库和模型成熟 → 40%+。</div>
+  </div>
+</section>
+
+
+<section id="risks" class="fade-in">
+  <div class="stag">Risk Management</div>
+  <h2>风险管控</h2>
+  <div class="sdesc">四类核心风险及应对措施。</div>
+  <div class="risk-grid">
+    <div class="risk-card stagger"><div class="risk-badge" style="background:var(--ss-bg);color:var(--ss);">高</div><h4>版权风险</h4><p>训练资产必须项目自有、版权完整。已建立合规资产库审核流程。</p></div>
+    <div class="risk-card stagger"><div class="risk-badge" style="background:var(--a-bg);color:var(--a);">中</div><h4>团队适配</h4><p>保留核心人工环节。培训美术师转型为需求制定者和审核者。</p></div>
+    <div class="risk-card stagger"><div class="risk-badge" style="background:var(--b-bg);color:var(--b);">中</div><h4>技术选型</h4><p>小团队优先 Codebuddy 低代码方案，不盲目自研。定期更新模型。</p></div>
+    <div class="risk-card stagger"><div class="risk-badge" style="background:var(--a-bg);color:var(--a);">中</div><h4>质量失控</h4><p>AI 产出不直接上线。关键人工审核节点 + 品控验收。</p></div>
+  </div>
+</section>
+
+
+<section id="gallery" class="fade-in">
+  <div class="stag">Pipeline Gallery</div>
+  <h2>各管线作品展示</h2>
+  <div class="sdesc">精选各管线代表性设计成果，展示美术资产的品质标准与 AI 协作效果。</div>
+
+  <div class="card">
+    <h3>📐 UIUX 管线 <span style="font-size:12px;font-weight:500;color:var(--text2);margin-left:8px;">负责人：作者</span></h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">UI 框架/排版/控件/运营资源输出的视觉设计规范。<a href="experience.html" style="color:var(--accent);margin-left:8px;">查看完整管线 →</a></p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="UI框架" loading="lazy"><figcaption>UI 基本框架 — 全屏/二级页面/合图面板/弹窗尺寸标准</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="文本规范" loading="lazy"><figcaption>文本规范 — 字体字号/字色体系/描边样式/反面示例</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎨 2D 角色管线 <span style="font-size:12px;font-weight:500;color:var(--text2);margin-left:8px;">负责人：角色团队 / 综合团队</span></h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">AI + 概念美术工作流 — 从粗稿到最终 3D 预览的全链路。<a href="character.html" style="color:var(--accent);margin-left:8px;">查看完整管线 →</a></p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="AI工作流" loading="lazy"><figcaption>2D 管线流程 — 粗稿概念 → AI 探索 → 人工精修 → AI 细化 → 3D 预览</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Avatar设计模板" loading="lazy"><figcaption>示例期 猫系少女 Avatar 设计模板 — 效果图/三视图/表情集/配色/材质</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🖼️ 2D 场景管线 <span style="font-size:12px;font-weight:500;color:var(--text2);margin-left:8px;">负责人：场景团队</span></h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">示例农场商业化建筑皮肤 — 从概念到模块化渲染的完整流程。<a href="scene-tools.html" style="color:var(--accent);margin-left:8px;">查看完整管线 →</a></p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="幻想小镇" loading="lazy"><figcaption>幻想小镇场景全景 — 建筑/植物/道具的完整场景构成</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="模块化系统" loading="lazy"><figcaption>模块化组件库 + 岛屿鸟瞰 — 标准化组装体系</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🏔️ 3D 场景管线 <span style="font-size:12px;font-weight:500;color:var(--text2);margin-left:8px;">负责人：环境团队</span></h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">轻度风格化PBR + 模块化组件设计。命名规范/模型/贴图/碰撞/LOD/引擎全流程标准。<a href="environment.html" style="color:var(--accent);margin-left:8px;">查看完整管线 →</a></p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="3D场景风格" loading="lazy"><figcaption>3D 场景美术风格标准 — 项目整体美术方向定义</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="3D场景流程" loading="lazy"><figcaption>3D 场景制作流程 — 各阶段制作规范节点</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎮 3D 角色管线 <span style="font-size:12px;font-weight:500;color:var(--text2);margin-left:8px;">负责人：模型团队</span></h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">LOD体系/蒙皮/贴图/骨骼/材质插槽规则/品级标准/UE4导入全链路规范。8 份知识文档 · 7 个 Skill。<a href="model.html" style="color:var(--accent);margin-left:8px;">查看完整管线 →</a></p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LOD模型拆分" loading="lazy"><figcaption>LOD0(商城) vs LOD1/2(游戏) 模型资源拆分策略</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="蓝套装材质" loading="lazy"><figcaption>蓝套装 LOD0 — Face + Cloth 双材质槽拆分</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🌾 农场美术管线 <span style="font-size:12px;font-weight:500;color:var(--text2);margin-left:8px;">负责人：综合团队</span></h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">畜牧动物 · 宠物套装 · 示例农场 B · 鱼类珊瑚 · 配饰管线完整设计体系。22 张参考图。<a href="world-art.html" style="color:var(--accent);margin-left:8px;">查看完整管线 →</a></p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="畜牧动物设计" loading="lazy"><figcaption>示例农场畜牧动物设计总览 — 风格定位/尺寸体系/赛季规划</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="金冠鱼设计" loading="lazy"><figcaption>金冠鱼集合 &amp; 设计思路 — 鱼类装饰资产核心系列</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="callout callout-blue" style="margin-top:16px;">
+    <strong>💡 查看更多：</strong>各管线 HTML 页面内包含完整的作品展示、知识库 and Skill 库。
+    <a href="experience.html" style="color:var(--accent);margin-left:4px;">UIUX</a> ·
+    <a href="character.html" style="color:var(--accent);">2D 角色</a> ·
+    <a href="scene-tools.html" style="color:var(--accent);">2D 场景</a> ·
+    <a href="environment.html" style="color:var(--accent);">3D 场景</a> ·
+    <a href="model.html" style="color:var(--accent);">3D 角色</a> ·
+    <a href="world-art.html" style="color:var(--accent);">农场美术</a>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div style="display:flex;align-items:center;gap:10px;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" style="height:24px;" alt="">美术全流程 AI 搭建 v5.0</div>
+  <div>2026.04 · 发送时请打包整个 KnowledgeBase 文件夹</div>
+</footer>
+
+<script>window.addEventListener("scroll",()=>{const banner=document.querySelector(".hero-banner");const thresh=banner?banner.offsetHeight-60:10;document.getElementById("nav").classList.toggle("scrolled",scrollY>thresh);const links=document.querySelectorAll(".nav-links a");const secs=document.querySelectorAll("section[id]");let cur="";secs.forEach(s=>{if(s.offsetTop-120<=scrollY)cur=s.id});links.forEach(a=>{a.classList.toggle("active",a.getAttribute("href")==="#"+cur)})});const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add("visible")}),{threshold:.06});document.querySelectorAll(".fade-in").forEach(el=>obs.observe(el));function animateNum(el,target,suffix="",prefix=""){const dur=800;let start=null;const isInt=Number.isInteger(target);function step(ts){if(!start)start=ts;const p=Math.min((ts-start)/dur,1);const ease=1-Math.pow(1-p,3);const v=isInt?Math.round(target*ease):(target*ease).toFixed(0);el.textContent=prefix+v+suffix;if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)}const statObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting&&!x.target.dataset.counted){x.target.dataset.counted="1";const cards=x.target.querySelectorAll(".stat-card");const data=[{v:8,s:""},{v:20,s:"%",p:"≥"},{v:5,s:""},{v:12,s:"周"}];cards.forEach((c,i)=>{const n=c.querySelector(".stat-num");if(n&&data[i])animateNum(n,data[i].v,data[i].s,data[i].p||"")})}})},{threshold:.3});const sr=document.querySelector(".hero-stat-row");if(sr)statObs.observe(sr);const PL=[{name:"📐 UI/UX",owner:"作者",progress:50,desc:"三轨道管线：短平快通道（UI-GEN）、正式管线（Cursor+Figma→Codebuddy）、需求治理层。分级方法论 + 设计系统新规范已完成。",steps:[{title:"需求分级",who:"🤖 AI",tools:"Cursor + MD 知识库",ai:"解析策划案文本，自动推荐 S~D 级别；扫描组件库匹配可复用组件清单；输出人天预估与子需求拆解。",human:"确认级别判定、审核复用清单、需求评审会最终定级。",grade:"治理层起点——级别在这里确定，约束后续所有环节。Skill：需求自动分级（进行中）。"},{title:"规范训练",who:"🤖 AI + 👤",tools:"大量训练 → 私有 UIUX 模型",ai:"将旧规范、脏数据、PSD 资产大量训练为项目私有 ai-native 规范模型，输出符合项目风格的设计规范。",human:"筛选训练素材质量、校准模型输出与项目风格一致性。",grade:"前置条件：Atomic Design 六层架构规范（✅ 已完成）。产物被 UI-GEN / Cursor+Figma 调用。"},{title:"敏捷出图",who:"🤖 AI",tools:"UI-GEN（调用 ai-native 规范）",ai:"基于私有模型一键生成符合项目风格的 UIUX 方案图。适用于 H5 活动页、小项目、概念验证等短平快场景。",human:"选定方向、微调布局、确认交付。",grade:"短平快通道——C/D 级需求、H5 活动、前期验证。周期：小时~1天。"},{title:"视觉设计",who:"👤 + 🤖",tools:"PS + comfyUI + SD + nano banana",ai:"基于方案图生成高保真视觉稿；批量风格变体；自动适配多分辨率。",human:"视觉把控、品牌调性审核、精修（S 级人工主导）。",grade:"AI 与人工双向可选——低级别 AI 直出，高级别人工主导。"},{title:"交互原型",who:"🤖 AI + 👤",tools:"Cursor + Figma",ai:"根据分级结果和规范约束自动生成交互原型；C/D 级直接拼装组件库；B/A 级生成多方案；自动输出标注和交互说明。",human:"信息架构把关、交互审核、S 级深度设计。",grade:"正式管线核心。Skill：Figma 组件映射（✅）、组件匹配拼装（待开始）。"},{title:"文档标注",who:"🤖 AI + 👤",tools:"标注工具 / 规范生成",ai:"自动生成设计标注、交互说明文档、开发 Spec。",human:"审核文档准确性和完整性。",grade:"所有级别统一走文档输出流程。"},{title:"动效生成",who:"🤖 AI + 👤",tools:"动效预设匹配 / 参数化",ai:"预设匹配 + 参数化生成标准动效。",human:"审核体验、调优。",grade:"标准动效自动匹配；特殊动效（S级）人工设计。"},{title:"工程输出",who:"🤖 AI",tools:"Codebuddy → UE / Unity",ai:"Figma 设计稿自动转换为引擎工程文件；自动生成 UI 代码框架、切图、动效参数。",human:"引擎适配检查、交互逻辑校验、性能验证。",grade:"Codebuddy 反哺回交互原型节点，形成闭环迭代。"}]},{name:"🎨 2D角色原画",owner:"角色团队 / 综合团队",progress:15,desc:"角色团队负责商品套装，综合团队负责农场。覆盖赛季橙装、IP紫装等全品类的完整生产流程。",steps:[],subPL:[{name:"🔥 赛季橙",tabCls:"t-orange",dot:"#F0A030",sub:"隐藏橙 + 基础橙",desc:"演示说明（业务数据已隐去）",showTiers:true,steps:[{step:"STEP 1",title:"主题发散",who:"👤 运营+策划+原画",desc:"8个候选主题方向",tools:"趋势采集系统 / 竞品分析 / 头脑风暴",ai:"主题趋势自动采集（小红书+竞品+KM），输出热度评分排名。",human:"运营、策划、原画负责人共同发散，收敛到约<strong>8个候选主题</strong>方向。每个主题带有关键词列表，用于后续AI生图。",output:"8个主题方向清单 + 关键词表",aiPct:30},{step:"STEP 2",title:"AI批量出图",who:"🤖 AI + 👤 原画",desc:"每主题5~6张概念图",tools:"Midjourney / Banana + Prompt生成器",ai:"使用<strong>Prompt生成器</strong>按品级规范约束组装prompt，每主题批量生成5~6张概念图。",human:"原画负责人从生成结果中初筛，确保风格和品级感达标。",output:"40~48张筛选后的AI概念图",aiPct:80},{step:"STEP 3",title:"大众玩家CE",who:"👤 运营",desc:"示例项目大众玩家投票调研",tools:"CE调研平台",ai:"—（纯人工调研环节）",human:"运营将40~48张图投放给<strong>偏示例项目的大众玩家</strong>做CE调研，收集投票数据和赛季分。",output:"1~2个确定主题 + 高分概念图",aiPct:0},{step:"STEP 4",title:"体型适配设计",who:"👤 原画 + 🤖 AI辅助",desc:"高分图适配示例项目体型",tools:"Photoshop / Prompt生成器（体型参考生成）",ai:"AI可辅助生成符合示例项目体型比例（2.5~3.5头身比）的参考图，用于体型适配方向探索。",human:"原画基于高分图做符合<strong>示例项目游戏体型</strong>的设计适配。目前以人工调优为主，AI提供参考辅助。",output:"体型适配后的角色设计稿",aiPct:25},{step:"STEP 5",title:"超核玩家调研",who:"👤 运营专项",desc:"高付费玩家一对一深度访谈",tools:"一对一访谈 / 调研平台",ai:"—（纯人工调研环节）",human:"运营专项人员与<strong>超核玩家（高付费群体）一对一对话</strong>，深度验证付费意愿和设计偏好。",output:"演示说明（业务数据已隐去）",aiPct:0},{step:"STEP 6",title:"正视图细化",who:"👤 原画",desc:"前2名分流：隐藏橙 + 基础橙",tools:"Photoshop / Procreate",ai:"AI可辅助材质参考和配色微调。",human:"演示说明（业务数据已隐去）",output:"隐藏橙精细正视图 + 基础橙精细正视图",aiPct:15},{step:"STEP 7",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent可辅助品级合规检查（待搭建）。",human:"内部评审确定最终方案：品级匹配度、材质可行性、色彩规范、侵权风险检查。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 8",title:"三视图制作",who:"👤 原画",desc:"制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助生成（待搭建）。",human:"按品级三视图模板制作正/侧/背视图，附染色方案、材质指定、性格五维等。",output:"完整三视图交付包",aiPct:20},{step:"STEP 9",title:"3D验收交付",who:"👤 3D + 原画",desc:"材质和面数验收后流转下游",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收材质可行性、面数预算、骨骼兼容性。通过后流转到下游3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"🎯 自由橙",tabCls:"t-free-orange",dot:"#E09520",sub:"创新 · 无需CE",desc:"主题发散 → 体型适配设计 → 三视图细化 → 内部确认 → 转到下游",steps:[{step:"STEP 1",title:"主题发散",who:"👤 运营+策划+原画",desc:"创新+参考竞品顶奢方向",tools:"竞品分析 / 趋势采集 / 头脑风暴",ai:"趋势自动采集辅助。",human:"自由橙的主题定位是<strong>创新+参考竞品的顶奢</strong>方向。不受赛季主题约束。",output:"自由橙主题方向",aiPct:30},{step:"STEP 2",title:"体型适配设计",who:"👤 原画 + 🤖 AI辅助",desc:"细调设计/多阶级设计",tools:"Photoshop / Prompt生成器",ai:"AI辅助体型参考生成和变体探索。",human:"原画做符合示例项目体型的设计适配。",output:"体型适配后的设计稿",aiPct:25},{step:"STEP 3",title:"三视图细化",who:"👤 原画",desc:"制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"按橙装品级模板制作三视图。",output:"完整三视图交付包",aiPct:20},{step:"STEP 4",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent（待搭建）。",human:"内部评审确定最终方案。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 5",title:"转到下游",who:"👤 3D + 原画",desc:"材质面数验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收后流转到下游3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"💎 IP紫装",tabCls:"t-purple",dot:"#9333EA",sub:"IP联动角色",desc:"商务立项 → 商品选型 → 技术预判 → 概念设计 → IP监修 → 三视图联调 → 3D制作",steps:[{step:"STEP 1",title:"IP联动立项",who:"👤 商务 + 运营",desc:"确认IP授权范围和素材交接",tools:"商务合同 / IP素材包",ai:"—",human:"确认联动IP的<strong>授权范围、合作周期、权益边界</strong>。",output:"IP授权文件 + 素材包 + 禁忌清单",aiPct:0},{step:"STEP 2",title:"商品选型定档",who:"👤 运营主导 + 美术参与",desc:"确定商品品类、数量、排期",tools:"项目管理工具",ai:"—",human:"确定商品品类与数量、品质分级、排期窗口。",output:"商品选型方案 + 排期表",aiPct:0},{step:"STEP 2.5",title:"技术可行性预判",who:"👤 TA + 3D美术",desc:"体型/材质/性能可行性评估",tools:"UE4 / 骨骼系统",ai:"—",human:"确认骨骼挂点限制、材质插槽规则、性能预算。",output:"技术可行性报告",aiPct:0},{step:"STEP 3",title:"概念设计与内部对齐",who:"👤 美术主导",desc:"输出概念稿，多职能内审",tools:"Photoshop / Prompt生成器 / 内审会议",ai:"AI可辅助生成概念方向的参考图和变体探索。",human:"输出概念设计稿，多职能内审锁定版本。",output:"锁定版概念设计稿",aiPct:25},{step:"STEP 4",title:"IP监修审核",who:"👤 美术对接IP方",desc:"IP方审核，迭代≤3轮",tools:"IP监修流程",ai:"—",human:"提交概念方案至IP方监修审核。",output:"IP方正式通过的概念方案",aiPct:0},{step:"STEP 5",title:"三视图与IP联调",who:"👤 原画主导",desc:"三视图制作 + 持续IP联调",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"推进三视图制作，持续与IP方联调。",output:"IP方确认的最终三视图",aiPct:15},{step:"STEP 5.5",title:"进入3D制作",who:"👤 3D团队",desc:"三视图最终通过后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"三视图通过后，进入3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"✨ 赛季紫装",tabCls:"t-purple",dot:"#9333EA",sub:"正视图→三视图→确认→3D",desc:"紫装正视图设计 → 三视图制作 → 内部确认 → 3D验收",steps:[{step:"STEP 1",title:"紫装正视图设计",who:"👤 原画",desc:"基于赛季主题做紫装正视图",tools:"Photoshop / Procreate",ai:"AI可辅助材质参考和配色探索。",human:"原画基于赛季橙装已确定的主题方向，直接进行<strong>紫装正视图设计</strong>。",output:"紫装正视图设计稿",aiPct:15},{step:"STEP 2",title:"紫装三视图制作",who:"👤 原画",desc:"按紫装模板制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"按紫色品级三视图模板制作。",output:"紫装完整三视图交付包",aiPct:20},{step:"STEP 3",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent可辅助品级合规检查（待搭建）。",human:"内部评审确认最终方案。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 4",title:"3D验收交付",who:"👤 3D + 原画",desc:"材质面数验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收后流转。",output:"进入3D制作流程",aiPct:0}]},{name:"💜 紫装",tabCls:"t-purple",dot:"#9333EA",sub:"正视图→三视图→确认→3D",desc:"紫装正视图设计 → 三视图制作 → 内部确认 → 3D验收",steps:[{step:"STEP 1",title:"紫装正视图设计",who:"👤 原画",desc:"基于需求做紫装正视图",tools:"Photoshop / Procreate",ai:"AI可辅助材质参考和配色探索。",human:"原画基于运营/策划需求，进行<strong>紫装正视图设计</strong>。",output:"紫装正视图设计稿",aiPct:15},{step:"STEP 2",title:"紫装三视图制作",who:"👤 原画",desc:"按紫装模板制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"按紫色品级三视图模板制作。",output:"紫装完整三视图交付包",aiPct:20},{step:"STEP 3",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent可辅助品级合规检查（待搭建）。",human:"内部评审确认最终方案。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 4",title:"3D验收交付",who:"👤 3D + 原画",desc:"材质面数验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收后流转。",output:"进入3D制作流程",aiPct:0}]},{name:"💙 赛季蓝装",tabCls:"t-blue",dot:"#3B82F6",sub:"正视图→三视图→确认→3D",desc:"赛季蓝装正视图设计 → 三视图与染色 → 内部确认 → 3D验收",steps:[{step:"STEP 1",title:"蓝装正视图设计",who:"👤 原画",desc:"基于赛季主题做蓝装正视图",tools:"Photoshop / Procreate",ai:"AI可辅助方案探索和配色参考。",human:"原画基于赛季已确定的主题方向，直接进行<strong>蓝装正视图设计</strong>。",output:"蓝装正视图设计稿",aiPct:15},{step:"STEP 2",title:"三视图与染色",who:"👤 原画 / 供应商",desc:"制作三视图+2个额外染色方案",tools:"Photoshop / 三视图PSD模板",ai:"供应商利用AI辅助三视图生成。",human:"按蓝色品级三视图模板制作，附<strong>2个额外染色方案</strong>。",output:"蓝装三视图 + 染色方案",aiPct:15},{step:"STEP 3",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"—",human:"内部评审确认最终方案和染色方案。",output:"确认的最终设计方案",aiPct:0},{step:"STEP 4",title:"3D验收交付",who:"👤 3D + 原画",desc:"验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收后流转。",output:"进入3D制作流程",aiPct:0}]},{name:"🌊 蓝装",tabCls:"t-blue",dot:"#3B82F6",sub:"运营提需 → 三视图",desc:"运营提需 → AI脑暴方案 → 设计效果图 → 三视图与染色",steps:[{step:"STEP 1",title:"运营-策划提需",who:"👤 运营 + 策划",desc:"赛季投放/活跃投放/付费投放",tools:"需求文档",ai:"—",human:"运营和策划提出蓝装需求。",output:"蓝装需求单",aiPct:0},{step:"STEP 2",title:"AI脑暴方案",who:"🤖 AI + 👤 美术",desc:"AI拼接素材，美术主导",tools:"Midjourney / Banana / Prompt生成器",ai:"AI批量生成方案参考图。",human:"美术主导创意方向，AI作为效率工具。",output:"多个候选设计方案",aiPct:20},{step:"STEP 3",title:"设计效果图",who:"👤 原画",desc:"原画出方案，内部品质对齐",tools:"Photoshop",ai:"—",human:"原画出几个方案，美术内部对齐品质。",output:"确认的设计效果图",aiPct:0},{step:"STEP 4",title:"三视图与染色",who:"👤 原画 / 供应商",desc:"发包CP制作，原画监修",tools:"Photoshop / 三视图PSD模板",ai:"供应商利用AI生成三视图。",human:"发包CP制作，原画监修反馈。",output:"三视图 + 染色方案",aiPct:15}]},{name:"⚪ 白装",tabCls:"t-white",dot:"#94A3B8",sub:"演示说明（业务数据已隐去）",desc:"演示说明（业务数据已隐去）",steps:[{step:"STEP 1",title:"运营-策划提需",who:"👤 运营 + 策划",desc:"需求类型同蓝装",tools:"需求文档",ai:"—",human:"运营和策划提出白装需求。",output:"白装需求单",aiPct:0},{step:"STEP 2",title:"AI脑暴方案",who:"🤖 AI + 👤 美术",desc:"AI辅助方案，美术主导",tools:"Midjourney / Banana / Prompt生成器",ai:"AI批量生成参考方案。",human:"美术快速确定方向。",output:"候选设计方案",aiPct:25},{step:"STEP 3",title:"设计效果图",who:"👤 原画",desc:"简洁设计，快速出图",tools:"Photoshop",ai:"—",human:"白装设计相对简洁，快速出效果图。",output:"确认的设计效果图",aiPct:0},{step:"STEP 4",title:"三视图",who:"👤 原画",desc:"演示说明（业务数据已隐去）",tools:"Photoshop / 三视图PSD模板",ai:"—",human:"演示说明（业务数据已隐去）",output:"三视图交付",aiPct:0}]}]},{name:"🖼️ 2D场景原画",owner:"场景团队",progress:10,desc:"需求分析→脑暴→草图→概念图→配色材质→评审→三视图→混元生模。与场景原画Agent报告保持一致。",steps:[{step:"STEP 1",title:"需求分析",who:"👤 纯人工",desc:"接收需求，理解核心诉求，判断方案可行性",tools:"策划需求文档 / 评审记录",ai:"—",human:"美术同运营/策划对齐目标，识别风险与优先级。",output:"需求分析结论",aiPct:0},{step:"STEP 2",title:"找参考 & 脑暴",who:"🤖 AI + 👤 人机协作",desc:"人力发散思路，AI 快速产出参考方向",tools:"图像服务·混元 / Midjourney / 参考资产库",ai:"AI 辅助生成方向草案与风格参考。",human:"设计师筛选方向并做方案取舍。",output:"候选方向集",aiPct:30},{step:"STEP 3",title:"草图阶段",who:"👤 + 🤖 人机协作",desc:"线稿输出后由 AI 上色，快速验证多套配色",tools:"图像服务·Nano Banana / Photoshop",ai:"AI 完成草图上色与配色变体。",human:"原画绘制线稿，选择可行方案。",output:"草图 + 配色候选",aiPct:45},{step:"STEP 4",title:"概念图搭建",who:"👤 + 🤖 人机协作",desc:"Blender 搭建概念基础，AI 输出主建筑/角色占位",tools:"Blender / 图像服务·混元 / 图像服务·放大",ai:"AI 输出占位与细化参考。",human:"设计师搭建结构与空间关系。",output:"可评审概念图",aiPct:35},{step:"STEP 5",title:"配色 & 材质",who:"🤖 AI + 👤 人机协作",desc:"AI 批量生成配色和材质方案，设计师选优",tools:"图像服务·Nano Banana / 图像服务·混元",ai:"AI 输出多种配色、材质组合。",human:"设计师评估并固化风格标准。",output:"配色材质定版",aiPct:60},{step:"STEP 6",title:"评审打磨",who:"👤 纯人工",desc:"美术/策划/运营联合评审并修正风险项",tools:"评审会议 / 评审文档",ai:"—",human:"根据评审意见打磨细节，确保可落地。",output:"评审通过版本",aiPct:0},{step:"STEP 7",title:"制作三视图",who:"🤖 AI + 👤 人机协作",desc:"AI 输出正/侧/背三视图，供 3D 建模参考",tools:"图像服务·Nano Banana / 图像服务·混元",ai:"AI 生成三视图基础稿。",human:"原画校正结构比例并定稿。",output:"三视图定稿",aiPct:55},{step:"STEP 8",title:"混元生成模型",who:"🤖 AI + 👤 人机协作",desc:"基于三视图由混元 3D 大模型生成白模/拓扑",tools:"混元 3D / Blender",ai:"AI 自动生成白模与拓扑基础。",human:"3D 美术在此基础上精修并验收。",output:"白模+拓扑交付",aiPct:50}]},{name:"🗿 3D角色模型",owner:"模型团队",progress:25,desc:"高模→拓扑→UV→材质→骨骼全流程。AI 在建模和材质环节大幅提效。",steps:[{title:"高模生成",who:"🤖 AI",tools:"混元3D / TripoSR",ai:"从三视图自动生成高精度模型。",human:"审核模型质量。",grade:"B 级以下 AI 产出后微调；A 以上人工深度打磨。"},{title:"拓扑/UV",who:"🤖 AI",tools:"自动拓扑 / UV展开",ai:"自动重拓扑降面 + UV 展开。",human:"检查技术规格。",grade:"纯技术处理，所有级别统一自动化。"},{title:"材质贴图",who:"🤖 AI",tools:"PBR 材质生成",ai:"PBR 材质自动生成。",human:"材质表现调优。",grade:"标准材质自动化；特殊材质人工设计。"},{title:"骨骼蒙皮",who:"🤖 AI",tools:"骨骼蒙皮工具",ai:"标准骨架自动绑定。",human:"权重调优。",grade:"标准角色自动化；特殊骨骼人工处理。"},{title:"引擎适配",who:"🤖 AI",tools:"格式转换 / LOD / 归档",ai:"FBX/glTF 导出 + LOD + 归档。",human:"最终验收。",grade:"完全自动化环节。"}]},{name:"🏗️ 3D场景模型",owner:"环境团队",progress:30,desc:"完整制作规范已沉淀。轻度风格化半写实PBR + 模块化组件设计。AI 在批量搭建和命名校验环节提效。",steps:[{title:"布局规划",who:"🤖 AI",tools:"AI 布局生成",ai:"生成多组平面布局方案。",human:"审核合理性。",grade:"C/D 直接采用；A 以上人工主导布局。"},{title:"资产匹配",who:"🤖 AI",tools:"资产库自动匹配",ai:"从资产库自动匹配和批量摆放。",human:"艺术指导。",grade:"AI 处理标准化填充，人工把控整体氛围。"},{title:"氛围填充",who:"🤖 AI + 👤",tools:"光影/雾效/植被生成",ai:"自动调整光照、雾效、植被密度。",human:"氛围把控和视觉焦点。",grade:"级别越高人工氛围把控越深。"},{title:"性能优化",who:"🤖 AI",tools:"LOD / DrawCall 优化",ai:"面数/DC 优化→引擎输出。",human:"技术验收。",grade:"统一走优化管线。"}]},{name:"✨ 动画",owner:"待定",progress:5,desc:"基础动作→补间→后期。手感调优仍依赖动画师经验。",steps:[{title:"基础动作",who:"🤖 AI",tools:"骨骼匹配 / 循环动画",ai:"自动匹配骨骼的循环动画。",human:"审核动作质量。",grade:"C/D 标准动作直接使用；A 以上作为起点再调优。"},{title:"动画补间",who:"🤖 AI",tools:"关键帧自动补间",ai:"关键帧间自动补间过渡。",human:"调整手感、细节。",grade:"AI 做粗补间，人工做细节。级别越高人工调优越多。"},{title:"后期处理",who:"🤖 AI",tools:"超分 / 调色 / 抠图",ai:"超分/调色/抠图一键处理。",human:"最终验收。",grade:"纯技术处理，所有级别统一自动化。"}]},{name:"💥 特效",owner:"待定",progress:5,desc:"参考匹配→粒子生成→效果调优。核心特效表现力由人工负责。",steps:[{title:"参考匹配",who:"🤖 AI",tools:"特效参考库检索",ai:"自动匹配风格参考。",human:"确认方向。",grade:"所有级别共用。"},{title:"粒子生成",who:"🤖 AI",tools:"粒子系统生成",ai:"基于参考生成粒子系统参数。",human:"效果调优。",grade:"C/D 直接使用；A 以上人工深度调优。"},{title:"引擎适配",who:"🤖 AI",tools:"性能优化 / 导出",ai:"性能优化→引擎导出。",human:"验收。",grade:"统一走优化管线。"}]},{name:"🖼️ 平面(KV等)",owner:"待定",progress:8,desc:"KV、运营物料、传播素材。AI 在构图探索和批量变体环节辅助。",steps:[{title:"需求拆解",who:"🤖 AI",tools:"NLP 提取卖点",ai:"提取传播卖点和视觉需求。",human:"确认传播策略。",grade:"所有级别共用。"},{title:"构图生成",who:"🤖 AI + 👤",tools:"Banana / MJ + LoRA",ai:"AI 生成多组构图方案。",human:"选定方向、精修。",grade:"C/D 直接采用；S 级人工主导创意构图。"},{title:"排版合成",who:"🤖 AI",tools:"排版工具 / 文字合成",ai:"自动排版、文字合成。",human:"审核成品。",grade:"标准排版自动化；特殊排版人工设计。"},{title:"多尺寸适配",who:"🤖 AI",tools:"多平台尺寸裁切",ai:"一键多平台尺寸适配。",human:"验收。",grade:"完全自动化环节。"}]}];let curPL=0;const PL_LINK={0:"experience.html",1:"character.html",2:"scene-tools.html",3:"model.html",4:"environment.html",5:"world-art.html"};const PL_LINK2={1:"world-art.html"};function initTabs(){document.getElementById("plTabs").innerHTML=PL.map((p,i)=>`<button class="pl-tab${i===0?" active":""}" onclick="switchPL(${i})">${p.name}</button>`).join("")}function switchPL(i){curPL=i;document.querySelectorAll(".pl-tab").forEach((t,j)=>t.classList.toggle("active",j===i));const p=PL[i];const card=document.getElementById("plCard");if(p.subPL){renderSubPL(p,i);card.style.display="";return}card.className="card";card.style.padding="";card.style.background="";card.style.borderRadius="";if(!document.getElementById("plHeader")){card.innerHTML='<div class="pl-header" id="plHeader"></div><div class="flow-wrap"><div class="flow-row" id="plFlow"></div></div><div class="step-panel" id="stepPanel"><div class="sp-head"><h4 id="spTitle"></h4><button class="sp-close" onclick="closeStep()">关闭 ×</button></div><div class="sp-body" id="spBody"></div><div class="sp-footer" id="spFooter"></div></div>'}let lh="";if(PL_LINK[i]||PL_LINK2[i]){lh+='<div class="pl-cta">';if(PL_LINK[i])lh+='<a href="'+PL_LINK[i]+'" target="_blank" class="pl-enter-btn">进入工作区</a>';if(PL_LINK2[i])lh+='<a href="'+PL_LINK2[i]+'" target="_blank" class="pl-enter-btn secondary">农场管线</a>';lh+="</div>"}document.getElementById("plHeader").innerHTML=`<div class="pl-badge" style="background:var(--accent-light);color:var(--accent);">进度 ${p.progress}%</div><div style="font-size:13px;color:var(--text2);">负责人：<strong>${p.owner}</strong></div><div class="pl-desc" style="font-size:13px;color:var(--text2);flex:1 1 240px;min-width:0;max-width:520px;">${p.desc}</div>`+lh;const fw=document.getElementById("plFlow");if(i===0){fw.className="";fw.style.cssText="overflow-x:auto;padding:12px 0;";fw.innerHTML='<svg viewBox="0 0 960 400" style="width:100%;min-width:720px;font-family:system-ui,-apple-system,PingFang SC,Microsoft YaHei,sans-serif;" xmlns="http://www.w3.org/2000/svg"><style>.bx{cursor:pointer}.bx:hover rect{stroke:#2563EB;stroke-width:2}.bx.active rect{stroke:#2563EB;stroke-width:2;fill:#EBF5FF}</style><defs><marker id="arw" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#555"/></marker></defs><polyline points="625,60 625,22 835,22 835,200" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><text x="730" y="17" text-anchor="middle" font-size="11" font-weight="600" fill="#555">codebuddy</text><line x1="540" y1="82" x2="480" y2="82" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><line x1="390" y1="104" x2="390" y2="193" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><text x="405" y="155" font-size="11" fill="#555">UI-GEN</text><line x1="625" y1="104" x2="625" y2="198" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><text x="625" y="125" text-anchor="middle" font-size="11" fill="#555">PS+comfyUI+SD+nano banana</text><line x1="268" y1="222" x2="308" y2="222" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><text x="288" y="212" text-anchor="middle" font-size="10" fill="#555">大量训练</text><line x1="470" y1="222" x2="538" y2="222" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><text x="504" y="212" text-anchor="middle" font-size="10" font-weight="600" fill="#555">cursor</text><text x="390" y="268" text-anchor="middle" font-size="10" font-weight="600" fill="#555">cursor+figma</text><line x1="710" y1="222" x2="773" y2="222" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><text x="742" y="212" text-anchor="middle" font-size="10" font-weight="600" fill="#555">codebuddy</text><text x="625" y="262" text-anchor="middle" font-size="10" font-weight="600" fill="#555">figma</text><text x="835" y="262" text-anchor="middle" font-size="10" fill="#555">Unreal/Unity</text><line x1="505" y1="323" x2="505" y2="255" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><line x1="298" y1="347" x2="443" y2="347" stroke="#555" stroke-width="1.5" marker-end="url(#arw)"/><text x="370" y="337" text-anchor="middle" font-size="10" font-weight="600" fill="#555">cursor</text><text x="530" y="388" text-anchor="middle" font-size="10" font-weight="600" fill="#555">cursor+md</text><text x="105" y="82" text-anchor="end" font-size="11" font-weight="700" fill="#999">短平快项目/H5项目/前期验证</text><text x="105" y="225" text-anchor="end" font-size="11" font-weight="700" fill="#999">在研/线上大型项目</text><g class="bx" onclick="openStep(2)"><rect x="300" y="60" width="180" height="44" rx="8" fill="#fff" stroke="#555" stroke-width="1.5"/><text x="390" y="87" text-anchor="middle" font-size="12" font-weight="600" fill="#333" pointer-events="none">敏捷UIUX图/方案</text></g><g class="bx" onclick="openStep(3)"><rect x="540" y="60" width="170" height="44" rx="8" fill="#fff" stroke="#555" stroke-width="1.5"/><text x="625" y="87" text-anchor="middle" font-size="12" font-weight="600" fill="#333" pointer-events="none">AI or 人工视觉图</text></g><g class="bx" onclick="openStep(1)"><rect x="113" y="200" width="155" height="44" rx="8" fill="#fff" stroke="#555" stroke-width="1.5" stroke-dasharray="5,3"/><text x="190" y="226" text-anchor="middle" font-size="11" font-weight="600" fill="#333" pointer-events="none">旧规范、脏数据、PSD资产</text></g><g class="bx" onclick="openStep(1)"><rect x="310" y="195" width="160" height="55" rx="8" fill="#EBF5FF" stroke="#2563EB" stroke-width="2"/><text x="390" y="218" text-anchor="middle" font-size="12" font-weight="600" fill="#333" pointer-events="none">ai-native规范</text><text x="390" y="236" text-anchor="middle" font-size="10" fill="#666" pointer-events="none">(私有UIUX模型)</text></g><g class="bx" onclick="openStep(4)"><rect x="540" y="200" width="170" height="44" rx="8" fill="#fff" stroke="#555" stroke-width="1.5"/><text x="625" y="227" text-anchor="middle" font-size="12" font-weight="600" fill="#333" pointer-events="none">AI-交互原型/方案</text></g><g class="bx" onclick="openStep(7)"><rect x="775" y="200" width="120" height="44" rx="8" fill="#fff" stroke="#555" stroke-width="1.5"/><text x="835" y="227" text-anchor="middle" font-size="12" font-weight="600" fill="#333" pointer-events="none">工程文件</text></g><g class="bx" onclick="openStep(0)"><rect x="178" y="325" width="120" height="44" rx="8" fill="#fff" stroke="#555" stroke-width="1.5"/><text x="238" y="352" text-anchor="middle" font-size="12" font-weight="600" fill="#333" pointer-events="none">策划案</text></g><g class="bx" onclick="openStep(0)"><rect x="445" y="325" width="170" height="44" rx="8" fill="#fff" stroke="#555" stroke-width="1.5"/><text x="530" y="352" text-anchor="middle" font-size="12" font-weight="600" fill="#333" pointer-events="none">需求分级/分析系统</text></g></svg>'}else{let parseToolChips2=function(t){if(!t||t==="—")return[];return t.split("/").map(x=>x.trim()).filter(Boolean).slice(0,3).map(item=>{let cls="chip-blue";const lw=item.toLowerCase();for(const[k,v]of Object.entries(toolColorMap)){if(lw.includes(k)){cls=v;break}}return`<span class="fn-tool-chip ${cls}">${item.substring(0,16)}</span>`}).join("")},getTag2=function(s){if(s.aiPct===0)return{cls:"t-manual",label:"纯人工"};if(s.aiPct>=60)return{cls:"t-ai-mix",label:"AI主导"};if(s.aiPct>0)return{cls:"t-ai-mix",label:"人机协作"};return{cls:"t-manual",label:"纯人工"}};var parseToolChips=parseToolChips2,getTag=getTag2;fw.className="flow-row";fw.style.cssText="";const numColors=["linear-gradient(135deg,#22C55E,#16A34A)","linear-gradient(135deg,#3B82F6,#2563EB)","linear-gradient(135deg,#8B5CF6,#7C3AED)","linear-gradient(135deg,#F59E0B,#D97706)","linear-gradient(135deg,#EF4444,#DC2626)","linear-gradient(135deg,#06B6D4,#0891B2)","linear-gradient(135deg,#EC4899,#DB2777)","linear-gradient(135deg,#10B981,#059669)","linear-gradient(135deg,#6366F1,#4F46E5)"];const toolColorMap={"midjourney":"chip-blue","mj":"chip-blue","banana":"chip-pink","prompt":"chip-purple","photoshop":"chip-cyan","ps":"chip-cyan","procreate":"chip-cyan","comfyui":"chip-blue","ce":"chip-orange","调研":"chip-orange","趋势":"chip-purple","头脑":"chip-cyan","竞品":"chip-blue","一对一":"chip-orange","lora":"chip-pink"};const hasRich=p.steps.some(s=>s.aiPct!==void 0);if(hasRich){fw.innerHTML=p.steps.map((s,j)=>{const arrow=j>0?`<span class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke-dasharray="5 3"/><polygon class="arrow-head" points="30,5 40,10 30,15"/></svg></span>`:"";const tag=getTag2(s);const chips=parseToolChips2(s.tools);const aiLine=s.aiPct>0?`<div class="fn-ai-line">AI 介入 — ${s.desc}</div>`:"";return`${arrow}<div class="flow-node" onclick="openStep(${j})"><div class="fn-num" style="background:${numColors[j%numColors.length]}">${j+1}</div><div class="fn-box"><div class="fn-title">${s.title}</div><div class="fn-type-tag ${tag.cls}">${tag.label}</div><div class="fn-desc">${s.desc}</div>${aiLine}<div class="fn-tools">${chips}</div><div class="fn-click-hint">点击查看详情</div></div></div>`}).join("");let legend=document.querySelector(".flow-legend");if(!legend){const wrap=document.querySelector(".flow-wrap");legend=document.createElement("div");legend.className="flow-legend";legend.innerHTML='<div class="flow-legend-item"><div class="flow-legend-dot" style="background:#2563EB;"></div> 纯人工步骤</div><div class="flow-legend-item"><div class="flow-legend-dot" style="background:#7C3AED;"></div> AI + 人工协作</div><div class="flow-legend-item"><div class="flow-legend-dot" style="background:#DC2626;"></div> 交付节点</div><div class="flow-legend-item" style="margin-left:12px;">👆 可点击跳转 AI 工具平台</div>';wrap.appendChild(legend)}legend.style.display=""}else{const legend=document.querySelector(".flow-legend");if(legend)legend.style.display="none";fw.innerHTML=p.steps.map((s,j)=>{const arrow=j>0?`<span class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke-dasharray="5 3"/><polygon class="arrow-head" points="30,5 40,10 30,15"/></svg></span>`:"";return`${arrow}<div class="flow-node" onclick="openStep(${j})"><div class="fn-num" style="background:${numColors[j%numColors.length]}">${j+1}</div><div class="fn-box"><div class="fn-title">${s.title}</div><div class="fn-desc" style="font-size:10px;">${s.who}</div><div class="fn-tools">${parseToolChips2(s.tools)}</div><div class="fn-click-hint">点击查看详情</div></div></div>`}).join("")}}closeStep()}function openStep(i){const s=PL[curPL].steps[i];if(!s)return;document.querySelectorAll(".flow-node").forEach((n,j)=>n.classList.toggle("active",j===i));document.querySelectorAll(".uf-bx,.bx").forEach(n=>{const si=n.getAttribute("onclick");n.classList.toggle("active",si&&si.includes("openStep("+i+")"))});const d=document.getElementById("stepPanel");d.classList.add("open");document.getElementById("spTitle").textContent=s.title+" — "+s.who;let spExtra="";if(s.output)spExtra+=`<div class="sp-ai" style="background:#FEF2F2;border:1px solid #FECACA;"><strong style="color:#DC2626;">产出物：</strong>${s.output}</div>`;if(s.aiPct!==void 0)spExtra+=`<div class="sp-ai" style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);"><strong style="color:#7C3AED;">AI介入度：</strong><span style="display:inline-block;width:120px;height:8px;background:#E5E7EB;border-radius:4px;vertical-align:middle;margin:0 8px;position:relative;overflow:hidden;"><span style="position:absolute;left:0;top:0;height:100%;width:${s.aiPct}%;background:linear-gradient(90deg,#8B5CF6,#6366F1);border-radius:4px;"></span></span><strong style="color:#7C3AED;">${s.aiPct}%</strong></div>`;document.getElementById("spBody").innerHTML=`<div class="sp-grid"><div class="sp-item"><div class="label">🤖 AI 做什么</div><div class="value">${s.ai}</div></div><div class="sp-item"><div class="label">👤 人工做什么</div><div class="value">${s.human}</div></div></div><div class="sp-ai" style="background:var(--accent-light);border:1px solid #BFDBFE;"><strong style="color:var(--accent);">使用工具：</strong>${s.tools}</div>${spExtra}<div class="sp-ai" style="background:var(--green-bg);border:1px solid #A7F3D0;"><strong style="color:var(--green);">分级规则：</strong><span style="color:#065F46;">${s.grade}</span></div>`;document.getElementById("spFooter").innerHTML=`<div class="sf"><span style="color:var(--text2);">环节</span><span class="sfv">${s.title}</span></div><div class="sf"><span style="color:var(--text2);">分工</span><span class="sfv">${s.who}</span></div>${s.output?'<div class="sf" style="margin-left:auto;"><span style="color:var(--text2);">产出</span><span class="sfv">'+s.output+"</span></div>":""}`;d.scrollIntoView({behavior:"smooth",block:"nearest"})}function closeStep(){document.getElementById("stepPanel").classList.remove("open");document.querySelectorAll(".flow-node").forEach(n=>n.classList.remove("active"))}let curSubPL=0;let curSubPLData=null;const SPL_NUM_COLORS=["linear-gradient(135deg,#22C55E,#16A34A)","linear-gradient(135deg,#3B82F6,#2563EB)","linear-gradient(135deg,#8B5CF6,#7C3AED)","linear-gradient(135deg,#F59E0B,#D97706)","linear-gradient(135deg,#EF4444,#DC2626)","linear-gradient(135deg,#06B6D4,#0891B2)","linear-gradient(135deg,#EC4899,#DB2777)","linear-gradient(135deg,#10B981,#059669)","linear-gradient(135deg,#6366F1,#4F46E5)","linear-gradient(135deg,#14B8A6,#0D9488)"];const SPL_TOOL_MAP={"midjourney":"chip-blue","mj":"chip-blue","banana":"chip-pink","prompt":"chip-purple","photoshop":"chip-cyan","ps":"chip-cyan","procreate":"chip-cyan","ue4":"chip-orange","3d":"chip-orange","comfyui":"chip-blue","ce":"chip-orange","调研":"chip-orange","趋势":"chip-purple","竞品":"chip-blue","评审":"chip-cyan","商务":"chip-orange","骨骼":"chip-orange","一对一":"chip-orange"};function splParseTools(t){if(!t||t==="—")return"";return t.split("/").map(x=>x.trim()).filter(Boolean).slice(0,3).map(item=>{let cls="chip-blue";const lw=item.toLowerCase();for(const[k,v]of Object.entries(SPL_TOOL_MAP)){if(lw.includes(k)){cls=v;break}}return`<span class="fn-tool-chip ${cls}">${item.substring(0,18)}</span>`}).join("")}function splGetTag(s){if(!s.aiPct||s.aiPct===0)return{cls:"t-manual",label:"纯人工"};if(s.aiPct>=60)return{cls:"t-ai-mix",label:"AI主导"};return{cls:"t-ai-mix",label:"人机协作"}}function splIsHandoff(s){return s.title.includes("交付")||s.title.includes("下游")||s.title.includes("转到")||s.title.includes("3D验收")||s.title.includes("进入3D")}function renderSubPL(p,plIdx){curSubPLData=p.subPL;curSubPL=0;const card=document.getElementById("plCard");card.className="card";card.style.padding="20px 20px 14px";card.style.background="#FFFFFF";card.style.borderRadius="18px";let headerHtml='<div class="pl-header" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">';headerHtml+=`<div class="pl-badge" style="background:var(--accent-light);color:var(--accent);">进度 ${p.progress}%</div>`;headerHtml+=`<div style="font-size:13px;color:var(--text2);">负责人：<strong>${p.owner}</strong></div>`;headerHtml+=`<div class="pl-desc" style="font-size:13px;color:var(--text2);flex:1 1 240px;min-width:0;max-width:520px;">${p.desc}</div>`;if(PL_LINK[plIdx]||PL_LINK2[plIdx]){headerHtml+='<div class="pl-cta">';if(PL_LINK[plIdx])headerHtml+=`<a href="${PL_LINK[plIdx]}" target="_blank" class="pl-enter-btn">进入工作区</a>`;if(PL_LINK2[plIdx])headerHtml+=`<a href="${PL_LINK2[plIdx]}" target="_blank" class="pl-enter-btn secondary">农场管线</a>`;headerHtml+="</div>"}headerHtml+="</div>";const tabsHtml=p.subPL.map((sp,j)=>`<button class="spl-tab ${sp.tabCls}${j===0?" active":""}" onclick="switchSubPipeline(${j})"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${sp.dot};margin-right:6px;vertical-align:middle;${sp.tabCls==="t-white"?"border:1px solid #CBD5E1;":""}"></span>${sp.name.replace(/^.\s*/,"")}<span class="tab-sub">${sp.sub}</span></button>`).join("");const subTabsHtml=`<div class="spl-sub-tabs" id="splSubTabs" style="display:none;"><button class="spl-sub-tab t-orange active" id="splSubFlow" onclick="switchSubView('flow')"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F0A030;margin-right:5px;vertical-align:middle;"></span>生产流程</button><button class="spl-sub-tab t-orange" id="splSubTiers" onclick="switchSubView('tiers')"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F0A030;margin-right:5px;vertical-align:middle;"></span>品阶强度规则</button></div>`;const tiersHtml=`<div id="splTiersContent" style="display:none;">
+<h3 style="margin-bottom:14px;font-size:18px;">品级强度区分规则</h3>
+<div class="tier-grid">
+<div class="tier-card"><div class="tier-top" style="background:#94A3B8"></div><span class="tier-badge" style="background:#F9FAFB;color:#94A3B8">白装</span><h3>基础布偶</h3><div class="detail">外轮廓简单·材质统一常规<br>无配饰·无染色·无特效<br>默认眼·通用表情</div></div>
+<div class="tier-card"><div class="tier-top" style="background:#2563EB"></div><span class="tier-badge" style="background:#EFF6FF;color:#2563EB">绿装</span><h3>穿搭套装</h3><div class="detail">外轮廓＋外围元素贴附<br>三件套：上衣＋下衣＋手套<br>无配饰·无染色</div></div>
+<div class="tier-card"><div class="tier-top" style="background:#2563EB"></div><span class="tier-badge" style="background:#EFF6FF;color:#2563EB">蓝装</span><h3>主题套装</h3><div class="detail">小幅度外轮廓外扩<br>全身一体化设计<br>入场动画道具</div></div>
+<div class="tier-card"><div class="tier-top" style="background:#7C3AED"></div><span class="tier-badge" style="background:#F5F3FF;color:#7C3AED">紫装</span><h3>高级套装</h3><div class="detail">复杂外轮廓＋功能性结构<br>华丽材质（1~2母材质）<br>背饰·2染色·定制表情×4<br>关键部位特效材质</div></div>
+<div class="tier-card"><div class="tier-top" style="background:#D97706"></div><span class="tier-badge" style="background:#FFF7ED;color:#D97706">橙装</span><h3>顶级套装</h3><div class="detail">复杂外轮廓＋特殊骨骼<br>材质复合定制（≤3母材质）<br>PV动画·定制五官·定制表情×4<br>特效材质＋外围扩展特效</div></div>
+</div>
+<div class="split-card" style="margin-top:20px;">
+<div class="split-half" style="background:#FFF7ED;border-right:1px solid var(--border);"><h4><span style="color:#D97706;">🔥</span> 隐藏橙</h4><p style="font-size:12px;color:#D97706;font-weight:600;margin-bottom:8px;">稀缺性 · "一眼贵"</p><ul><li>材质表现力拉满，多种高级材质混合</li><li>外轮廓有辨识度</li><li>特效华丽，细节经得起特写</li><li>定制五官 + 专属PV动画</li><li>设计资源投入最大</li></ul></div>
+<div class="split-half" style="background:var(--bg);"><h4><span style="color:#D97706;">⭐</span> 基础橙</h4><p style="font-size:12px;color:#D97706;font-weight:600;margin-bottom:8px;">参与度核心 · 亲和力</p><ul><li>材质适度华丽，主次分明</li><li>外轮廓清晰辨识度高，但不过度复杂</li><li>目标：让更多玩家愿意参与赛季</li><li>设计资源投入适中</li></ul></div>
+</div></div>`;card.innerHTML=`${headerHtml}<div class="spl-tabs" id="splTabs">${tabsHtml}</div>${subTabsHtml}<div id="splFlowContent"><div id="splMeta" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;font-size:13px;color:var(--text2);"></div><div class="flow-wrap"><div class="flow-row" id="splFlow"></div></div><div id="splLegend"></div><div class="step-panel" id="splStepPanel"><div class="sp-head"><h4 id="splSpTitle"></h4><button class="sp-close" onclick="closeSplStep()">关闭 ×</button></div><div class="sp-body" id="splSpBody"></div><div class="sp-footer" id="splSpFooter"></div></div></div>${tiersHtml}`;switchSubPipeline(0)}function switchSubPipeline(j){curSubPL=j;document.querySelectorAll(".spl-tab").forEach((t,k)=>t.classList.toggle("active",k===j));const sp=curSubPLData[j];document.getElementById("splMeta").innerHTML=`<span style="font-size:12px;color:var(--text2);">${sp.desc}</span>`;const subTabs=document.getElementById("splSubTabs");if(sp.showTiers){subTabs.style.display="flex";switchSubView("flow")}else{subTabs.style.display="none";document.getElementById("splFlowContent").style.display="block";document.getElementById("splTiersContent").style.display="none"}renderSplFlow(sp.steps);closeSplStep()}function switchSubView(tab){const flowEl=document.getElementById("splFlowContent");const tiersEl=document.getElementById("splTiersContent");const btnF=document.getElementById("splSubFlow");const btnT=document.getElementById("splSubTiers");if(tab==="flow"){flowEl.style.display="block";tiersEl.style.display="none";btnF.classList.add("active");btnT.classList.remove("active")}else{flowEl.style.display="none";tiersEl.style.display="block";btnF.classList.remove("active");btnT.classList.add("active")}}function renderSplFlow(steps){const el=document.getElementById("splFlow");el.innerHTML=steps.map((s,i)=>{const arrow=i>0?`<span class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke-dasharray="5 3"/><polygon class="arrow-head" points="30,5 40,10 30,15"/></svg></span>`:"";const handoff=splIsHandoff(s);const tag=handoff?{cls:"t-handoff",label:"交付节点"}:splGetTag(s);const chips=splParseTools(s.tools);const aiLine=s.aiPct>0?`<div class="fn-ai-line">AI 介入 — ${s.desc}</div>`:"";return`${arrow}<div class="flow-node${handoff?" handoff":""}" onclick="openSplStep(${i})"><div class="fn-num" style="background:${SPL_NUM_COLORS[i%SPL_NUM_COLORS.length]}">${i+1}</div><div class="fn-box"><div class="fn-title">${s.title}</div><div class="fn-type-tag ${tag.cls}">${tag.label}</div><div class="fn-desc">${s.desc}</div>${aiLine}<div class="fn-tools">${chips}</div><div class="fn-click-hint">点击查看详情</div></div></div>`}).join("");const legendEl=document.getElementById("splLegend");legendEl.innerHTML='<div class="flow-legend"><div class="flow-legend-item"><div class="flow-legend-dot" style="background:#2563EB;"></div> 纯人工步骤</div><div class="flow-legend-item"><div class="flow-legend-dot" style="background:#7C3AED;"></div> AI + 人工协作</div><div class="flow-legend-item"><div class="flow-legend-dot" style="background:#DC2626;"></div> 交付节点</div><div class="flow-legend-item" style="margin-left:16px;"><span style="font-size:12px;color:var(--text2);">👆</span> 可点击跳转 AI 工具平台</div></div>'}function openSplStep(i){const steps=curSubPLData[curSubPL].steps;const s=steps[i];if(!s)return;document.querySelectorAll("#splFlow .flow-node").forEach((n,j)=>n.classList.toggle("active",j===i));const d=document.getElementById("splStepPanel");d.classList.add("open");document.getElementById("splSpTitle").textContent=s.step+" — "+s.title;const bc=s.aiPct>=60?"var(--accent)":s.aiPct>=25?"#F0A030":s.aiPct>0?"var(--green)":"#ddd";document.getElementById("splSpBody").innerHTML=`
+    <div class="sp-grid"><div class="sp-item"><div class="label">🤖 AI 做什么</div><div class="value">${s.ai}</div></div><div class="sp-item"><div class="label">👤 人工做什么</div><div class="value">${s.human}</div></div></div>
+    <div class="sp-ai" style="background:var(--accent-light);border:1px solid #DDD6FE;margin-top:14px;"><strong style="color:var(--accent);">使用工具：</strong>${s.tools}</div>
+    <div class="sp-ai" style="background:#EBF0FA;border:1px solid #D6E2F5;"><strong style="color:var(--accent);">产出物：</strong>${s.output}</div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text2);font-weight:600;">AI 介入度</span><div style="flex:1;height:7px;background:#E5E7EB;border-radius:4px;overflow:hidden;"><div style="width:${s.aiPct}%;height:100%;background:${bc};border-radius:4px;"></div></div><span style="font-size:12px;font-weight:700;color:${bc};">${s.aiPct}%</span></div>`;document.getElementById("splSpFooter").innerHTML=`<div class="sf"><span style="color:var(--text2);">环节</span><span class="sfv">${s.title}</span></div><div class="sf"><span style="color:var(--text2);">分工</span><span class="sfv">${s.who}</span></div><div class="sf" style="margin-left:auto;"><span style="color:var(--text2);">产出</span><span class="sfv">${s.output}</span></div>`;d.scrollIntoView({behavior:"smooth",block:"nearest"})}function closeSplStep(){const d=document.getElementById("splStepPanel");if(d)d.classList.remove("open");document.querySelectorAll("#splFlow .flow-node").forEach(n=>n.classList.remove("active"))}initTabs();switchPL(0);const PROG=[{name:"UI/UX",pct:50,color:"#2563EB",owner:"作者",desc:"三轨道管线 · 分级方法论✅ 设计规范✅ Agent 搭建中",knowledge:[{name:"UIUX 需求分级方法论",type:"方法论",status:"done",desc:"S~D 五级分级框架，复用约束，熵增审批机制。",link:"unavailable.html"},{name:"示例项目 UIUX 新规范",type:"规范",status:"done",desc:"基于 Atomic Design 六层架构的设计系统规范（Figma）。",link:"unavailable.html"},{"name":"内部项目资料","type":"资料","status":"hidden","desc":"项目说明已隐去","link":"unavailable.html"},{name:"UIUX Agent 方向探索",type:"调研",status:"review",desc:"Agent 尝试方向与当前卡点分析。",link:"unavailable.html"}],skills:[{name:"Figma 组件映射",status:"done",desc:"从截图/原型自动生成组件映射表，标注已有组件和缺失占位。"},{name:"需求自动分级",status:"wip",desc:"输入需求描述，自动推荐 S~D 级别 + 输出复用组件清单。"},{name:"组件匹配拼装",status:"todo",desc:"C/D 级需求自动匹配组件库，拼装完整界面方案。"},{name:"动效参数化生成",status:"todo",desc:"根据级别匹配预设动效，支持参数化调整。"}]},{name:"2D角色原画",pct:15,color:"#EA580C",owner:"角色团队 / 综合团队",desc:"角色团队(商品套装)·综合团队(农场) · 5 份知识文档 · 7 个 Skill",knowledge:[{name:"角色 Avatar 设计规范",type:"规范",status:"done",desc:"品级/体型/色彩/IP联动/配饰全流程标准。",link:"2D-Character/2026-04-03_Character-Avatar-Design-Standards.md"},{name:"角色材质清单",type:"清单",status:"done",desc:"23 种材质 × 品级适用矩阵。",link:"2D-Character/2026-04-03_Character-Material-Catalog.md"},{name:"设计侵权规避指南",type:"指南",status:"done",desc:"案例/方法/分工，避免设计侵权风险。",link:"2D-Character/2026-04-03_Design-Infringement-Avoidance.md"},{name:"农场生物设计规范",type:"规范",status:"done",desc:"畜牧/宠物套装/奇迹动物设计标准。",link:"Farm-Art/2026-04-03_Farm-Creature-Design-Standards.md"},{name:"农场装饰资产与配饰管线",type:"规范",status:"done",desc:"藏品/鱼/珊瑚/NPC/头背饰全流程。",link:"Farm-Art/2026-04-03_Farm-Decorative-Asset-Standards.md"}],skills:[{name:"AI 配色方案推荐",status:"todo",desc:"根据品级和材质自动推荐和谐配色方案。"},{name:"材质适配建议",status:"todo",desc:"自动匹配品级适用材质，输出材质清单。"},{name:"侵权风险检测",status:"todo",desc:"AI 辅助检测设计元素的潜在侵权风险。"},{name:"AI 三视图生成",status:"todo",desc:"根据正面概念图自动生成三视图。"},{name:"AI 换色方案",status:"todo",desc:"根据母版自动生成多色系变体方案。"},{name:"批量设计辅助",status:"todo",desc:"批量生成同系列不同尺寸的设计变体。"},{name:"好感度照片生成",status:"todo",desc:"AI 生成宠物好感度阶段情感照片。"}]},{name:"2D场景原画",pct:10,color:"#059669",owner:"场景团队",desc:"4 份知识文档已完成 · 需求分级+SVC 产能数据齐备",knowledge:[{name:"2D 场景需求分级方法论",type:"方法论",status:"done",desc:"S-D 品质分级框架，SVC 产能验证，复用约束。",link:"2D-Scene/2026-04-02_2D-Scene-Requirement-Grading.md"},{name:"商品设计标准（核心资产）",type:"规范",status:"done",desc:"商品资产分级与品质标准定义。",link:"2D-Scene/2026-04-02_Commercial-Product-Design-Standards.md"},{name:"示例期 双农场美术 SVC 产能规划",type:"数据",status:"done",desc:"示例期 赛季产能规划，人力与工时数据。",link:"2D-Scene/2026-04-02_S19-Dual-Farm-Art-SVC.md"},{name:"示例农场·天空之城建筑皮肤方案",type:"方案",status:"done",desc:"主题建筑皮肤设计方案与参考。",link:"2D-Scene/2026-04-02_StarFarm-SkyCity-Building-Skins.md"}],skills:[{name:"风格迁移生成",status:"todo",desc:"基于参考图自动生成目标风格的场景资产。"},{name:"模块化拼装",status:"todo",desc:"场景模块自动组合拼装，生成完整场景布局。"},{name:"AI 概念图生成",status:"todo",desc:"根据描述和约束条件自动生成场景概念图。"},{name:"资产批量变体",status:"todo",desc:"基于母版资产批量生成色彩/材质变体。"}]},{name:"3D角色模型",pct:25,color:"#7C3AED",owner:"模型团队",desc:"全套方案已出 · 制作规范✅ · 材质插槽规则✅ · 品级标准✅ · 8 份知识文档 · 7 个 Skill",knowledge:[{name:"角色模型制作规范（完整版）",type:"规范",status:"done",desc:"LOD/蒙皮/贴图/骨骼/材质插槽/品级标准全套制作规范。",link:"3D-Character/2026-04-02_Character-Model-Specifications.md"},{name:"橙\\紫套装材质插槽规则",type:"规范",status:"done",desc:"各 LOD 级别材质槽上限、DrawCall 预算、换脸插槽规则。",link:"unavailable.html"},{name:"角色-TA合作效率 & 材质品级标准",type:"流程",status:"done",desc:"各品级材质配置标准、橙装制作流程、跨职能协作规范。",link:"unavailable.html"},{name:"示例项目3D角色服装制作规范",type:"规范",status:"done",desc:"示例团队文档版完整服装制作规范。",link:"unavailable.html"},{name:"紫橙服饰装制作规范（进阶篇）",type:"规范",status:"done",desc:"紫橙高品质套装进阶制作规范。",link:"unavailable.html"},{name:"材质库 & 材质标效",type:"数据",status:"done",desc:"材质库及各品级材质标效对照表。",link:"unavailable.html"},{name:"示例项目纹理设置",type:"数据",status:"done",desc:"角色贴图纹理参数设置参考表。",link:"unavailable.html"},{name:"3D 模型 AI 生成 Agent 方案",type:"方案",status:"wip",desc:"全套流程方案，3D AI Agent 架构设计。",link:"unavailable.html"}],skills:[{name:"自动 LOD 生成",status:"todo",desc:"根据品质等级自动生成 LOD0/1/2 模型。"},{name:"贴图优化推荐",status:"todo",desc:"自动检测并推荐贴图压缩、尺寸和 Mipmap 优化。"},{name:"骨骼数量验证",status:"todo",desc:"自动校验骨骼数量是否符合品级上限（32/36/60）。"},{name:"模型质检自动化",status:"todo",desc:"一键运行模型质检清单，输出合规报告。"},{name:"材质插槽校验",status:"todo",desc:"校验各 LOD 级别材质槽数量是否符合 DrawCall 预算。"},{name:"材质评估辅助",status:"todo",desc:"橙装制作前自动评估材质复用性，匹配已有材质库。"},{name:"命名规范校验",status:"todo",desc:"校验模型/材质/贴图前缀和后缀是否符合命名规则。"}]},{name:"3D场景模型",pct:30,color:"#059669",owner:"环境团队",desc:"制作规范✅ · 命名规范✅ · 轻度风格化PBR + 模块化组件 · 5 份知识文档 · 8 个 Skill",knowledge:[{name:"3D 场景制作规范（完整版）",type:"规范",status:"done",desc:"美术风格/命名规范/模型/贴图/碰撞/LOD/引擎全流程标准。",link:"3D-Scene/2026-04-07_3D-Scene-Production-Standards.md"},{name:"换色材质参数使用规则",type:"材质",status:"wip",desc:"BP 内颜色接口参数设置规则及 Color Changer 配置。",link:"unavailable.html"},{name:"示例项目资产路径规划",type:"工程",status:"wip",desc:"UE 工程内资产目录结构与路径管理规范。",link:""},{name:"赛道内装饰物件模型标准",type:"规范",status:"done",desc:"装饰物/地块/道具按分类定义面数、碰撞、LOD 规则。",link:""},{name:"场景资产库",type:"资产",status:"wip",desc:"场景模型资产整理及合规审核。",link:""}],skills:[{name:"命名规范校验",status:"done",desc:"AI 自动校验资产命名是否符合 SM/MI/T/BP 前缀规则和编号规范。"},{name:"面数自动检查",status:"done",desc:"按模型分类和尺寸自动判定面数是否超标，输出告警报告。"},{name:"LOD 自动生成",status:"wip",desc:"根据面数区间自动生成对应级数 LOD，面数逐级递减。"},{name:"贴图通道校验",status:"todo",desc:"校验 D/M/N/RAME 贴图通道和分辨率是否达标。"},{name:"碰撞自动化检查",status:"todo",desc:"检查 OGC/UGC 碰撞是否符合概括规则和命名规范。"},{name:"模块化组件匹配",status:"todo",desc:"从资产库自动匹配复用模块化组件进行场景搭建。"},{name:"换色方案生成",status:"todo",desc:"根据 Color Changer 参数自动生成多套配色变体。"},{name:"场景自动搭建",status:"todo",desc:"资产库匹配 + 自动摆放 + 氛围填充。"}]},{name:"动画",pct:5,color:"#DB2777",owner:"待定",desc:"工具选型中",knowledge:[],skills:[{name:"基础动作生成",status:"todo",desc:"骨骼匹配的循环动画自动生成。"},{name:"关键帧补间",status:"todo",desc:"关键帧间自动补间过渡动画。"}]},{name:"特效",pct:5,color:"#D97706",owner:"待定",desc:"工具选型中",knowledge:[],skills:[{name:"粒子系统生成",status:"todo",desc:"基于参考生成粒子系统参数。"}]},{name:"平面(KV)",pct:8,color:"#0891B2",owner:"待定",desc:"构图探索中",knowledge:[],skills:[{name:"KV 构图生成",status:"todo",desc:"AI 生成多组 KV 构图方案。"},{name:"多尺寸适配",status:"todo",desc:"一键多平台尺寸裁切输出。"}]}];let curRing=0;function initRings(){document.getElementById("ringRow").innerHTML=PROG.map((p,i)=>{const c=226.2,off=c*(1-p.pct/100);return`<div class="ring-card${i===0?" selected":""}" id="ring${i}" onclick="selectRing(${i})"><svg width="70" height="70" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="#E5E7EB" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="${p.color}" stroke-width="6" stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round" transform="rotate(-90 40 40)"/><text x="40" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="${p.color}" font-family="DM Sans">${p.pct}%</text></svg><div class="rv" style="color:${p.color};">${p.name}</div><div class="rl">${p.desc}</div><div class="ro">${p.owner}</div></div>`}).join("");selectRing(0)}function selectRing(i){curRing=i;document.querySelectorAll(".ring-card").forEach((c,j)=>c.classList.toggle("selected",j===i));const p=PROG[i],d=document.getElementById("skillDetail");d.style.display="block";document.getElementById("sdTitle").textContent=p.name;let descHtml=`当前进度 ${p.pct}% · 负责人：${p.owner} · ${p.knowledge.length} 份知识文档 · ${p.skills.length} 个 Skill`;if(PL_LINK[i])descHtml+=` &nbsp;<a href="${PL_LINK[i]}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">查看管线详情 →</a>`;if(PL_LINK2[i])descHtml+=` &nbsp;<a href="${PL_LINK2[i]}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">农场管线 →</a>`;document.getElementById("sdDesc").innerHTML=descHtml;const sc={"done":"var(--green)","review":"var(--a)","wip":"var(--accent)","todo":"var(--text3)"};const sl={"done":"✅ 已完成","review":"👁️ 审核中","wip":"🔄 进行中","todo":"📋 待开始"};const badgeBg={"done":"var(--green-bg)","review":"var(--a-bg)","wip":"var(--accent-light)","todo":"var(--c-bg)"};const badgeC={"done":"var(--green)","review":"var(--a)","wip":"var(--accent)","todo":"var(--text3)"};let html="";html+=`<div class="sd-section"><div class="sd-section-title">📚 知识库 <span class="sd-cnt">${p.knowledge.length}</span></div>`;if(p.knowledge.length){html+='<div class="kb-list">';p.knowledge.forEach(k=>{const nameHtml=k.link?`<a href="${k.link}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">${k.name} ↗</a>`:`<span style="font-weight:600;">${k.name}</span>`;html+=`<div class="kb-row"><div class="kb-dot" style="background:${sc[k.status]};"></div><div class="kb-name">${nameHtml}</div><div class="kb-type">${k.type}</div><div class="kb-st" style="color:${badgeC[k.status]};">${sl[k.status]}</div></div>`;html+=`<div style="font-size:11px;color:var(--text3);padding:0 0 2px 18px;margin-bottom:2px;">${k.desc}</div>`});html+="</div>"}else{html+='<div style="font-size:12px;color:var(--text3);padding:8px 0;">暂无知识文档，待补充。</div>'}html+="</div>";html+=`<div class="sd-section"><div class="sd-section-title">⚡ Skill 库 <span class="sd-cnt">${p.skills.length}</span></div>`;html+='<div class="sk-grid">';p.skills.forEach(s=>{html+=`<div class="sk-card s-${s.status}"><div class="sk-head"><div class="sk-name">${s.name}</div><div class="sk-badge" style="background:${badgeBg[s.status]};color:${badgeC[s.status]};">${sl[s.status]}</div></div><div class="sk-desc">${s.desc}</div></div>`});html+="</div></div>";document.getElementById("sdSkills").innerHTML=html}initRings();const GM={pay:{1:"C",2:"B",3:"A",4:"S",5:"S"},core:{1:"D",2:"C",3:"B",4:"A",5:"S"},social:{1:"D",2:"C",3:"B",4:"A",5:"A"},std:{1:"D",2:"D",3:"C",4:"B",5:"B"}};let RM={},CM={},BG={},bdMap={};const comps=["标准弹窗","标准按钮","列表组件","Tab导航","搜索栏","卡片容器","标签组","输入框","开关控件","分页器","进度条","Toast提示"];async function loadFrameworkGrading(){try{const resp=await fetch("./UX-Methodology/grading-config.json");const GRADING=await resp.json();for(const[grade,data]of Object.entries(GRADING.grades)){RM[grade]=data.reuse;CM[grade]=data.color;BG[grade]=data.bg}for(const[grade,data]of Object.entries(GRADING.mandays)){bdMap[grade]=data.total}cfgUpd();if(typeof cfgScUpd==="function")cfgScUpd();renderFwDynamic(GRADING)}catch(e){console.error(e)}}function renderFwDynamic(G){const pyrNotes={S:"品牌级/改变级功能",A:"有设计投入的常规需求",B:"大量功能性设计","C+D":"日常维护、增补、铺量"};const pyrEl=document.getElementById("fwDynPyramidStats");if(pyrEl&&G.pyramid){const pyrData=[{label:"S",pct:G.pyramid.S,color:"var(--s)",note:pyrNotes.S},{label:"A",pct:G.pyramid.A,color:"var(--a)",note:pyrNotes.A},{label:"B",pct:G.pyramid.B,color:"var(--b)",note:pyrNotes.B},{label:"C+D",pct:G.pyramid.CD,color:"var(--c)",note:pyrNotes["C+D"]}];pyrEl.innerHTML=pyrData.map(p=>`<div class="pyramid-row"><div class="pyramid-dot" style="background:${p.color}"></div><div class="pyramid-label">${p.label}</div><div class="pyramid-pct">≈ ${p.pct}</div><div class="pyramid-note">${p.note}</div></div>`).join("")}const aiIntervention={S:"AI 出方案，人工深度调优",A:"AI 出初稿，人工修改完善",B:"AI 出成品，人工微调验收"};const reviewStd={S:"全维度验收",A:"6维验收",B:"4维验收"};const mBody=document.getElementById("fwDynMatrixBody");if(mBody&&G.grades){const allG=Object.keys(G.grades);let rows="";allG.forEach(g=>{const d=G.grades[g];const isCD=g==="C"||g==="D";rows+=`<tr><td style="color:${d.color};">${isCD?"C/D":g}</td><td>${d.reuse}</td><td>≤${d.newCap}</td><td>${aiIntervention[g]||(isCD?"AI 直接产出，人工验收":"—")}</td><td>${reviewStd[g]||(isCD?"仅规范性":"—")}</td></tr>`});const uniqueRows=[];const seen=new Set;rows.split("<tr>").filter(Boolean).forEach(r=>{const label=r.match(/>([^<]+)<\/td>/)?.[1]||"";if(!seen.has(label)){seen.add(label);uniqueRows.push("<tr>"+r)}});mBody.innerHTML=uniqueRows.join("")}}loadFrameworkGrading();function cfgUpd(){if(Object.keys(RM).length===0)return;const t=document.getElementById("cfgT").value,cx=+document.getElementById("cfgC").value,sc=+document.getElementById("cfgS").value;document.getElementById("sVal").textContent=sc;const g=GM[t][cx],bd=bdMap[g]||2,d=(bd*sc*.3).toFixed(1);document.getElementById("pvGv").textContent=g;document.getElementById("pvGv").style.color=CM[g];document.getElementById("pvG").style.background=BG[g];document.getElementById("pvRv").textContent=RM[g];document.getElementById("pvDv").textContent=d+"d";const n=Math.min(Math.round(sc*1.2),8),sh=[...comps].sort(()=>Math.random()-.5).slice(0,n);document.getElementById("cfgChips").innerHTML=sh.map(c=>`<span style="font-size:11px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-radius:14px;">${c}</span>`).join("");const gds=["S","A","B","C","D"];let subs="";for(let i=0;i<Math.min(sc,6);i++){const sg=i<1?g:gds[Math.min(gds.indexOf(g)+i,gds.length-1)];subs+=`<span style="color:${CM[sg]};font-weight:600;">${sg}</span> 子界面${i+1} → ${RM[sg]} 复用<br>`}document.getElementById("cfgSubs").innerHTML=subs}cfgUpd();function switchCfg(i){document.querySelectorAll("#cfgTabs .pl-tab").forEach((t,j)=>t.classList.toggle("active",j===i));document.querySelectorAll(".cfg-pane").forEach((p,j)=>p.style.display=j===i?"block":"none");if(i===1)cfg2dUpd();if(i===2)cfg3dUpd();if(i===3)cfgFaUpd();if(i===4)cfgScUpd()}function cfg2dUpd(){const tier=document.getElementById("cfg2dTier").value,type=document.getElementById("cfg2dType").value,cx=+document.getElementById("cfg2dCx").value;const TM={white:{l:"白",c:"var(--c)",bg:"var(--c-bg)",mat:"0~1",b:.5},green:{l:"绿",c:"var(--green)",bg:"var(--green-bg)",mat:"0~1",b:1},blue:{l:"蓝",c:"var(--accent)",bg:"var(--accent-light)",mat:"1",b:2},purple:{l:"紫",c:"var(--purple)",bg:"var(--purple-bg)",mat:"1~2",b:5},orange:{l:"橙",c:"var(--s)",bg:"var(--s-bg)",mat:"2~3",b:10}};const YM={original:1,ip:1.3,season:1.2,event:.8};const t=TM[tier],d=(t.b*YM[type]*(.5+cx*.1)).toFixed(1);document.getElementById("pv2dG").textContent=t.l;document.getElementById("pv2dG").style.color=t.c;document.getElementById("pv2dGw").style.background=t.bg;document.getElementById("pv2dM").textContent=t.mat;document.getElementById("pv2dD").textContent=d+"d";const mats=["金属","皮革","布料","硅胶","毛绒","珠光","透明","渐变"].sort(()=>Math.random()-.5).slice(0,Math.min(3+Math.floor(cx/3),6));document.getElementById("cfg2dTags").innerHTML=mats.map(m=>'<span style="font-size:11px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-radius:14px;">'+m+"</span>").join("");const parts=["头部造型","面部表情","上身装饰","下身装饰","鞋履","配饰","特效挂件","尾巴/翅膀"];document.getElementById("cfg2dSubs").innerHTML=parts.slice(0,Math.min(3+cx,8)).map(p=>'<span style="color:'+t.c+';font-weight:600;">'+t.l+"</span> "+p+"<br>").join("")}function cfg3dUpd(){const tier=document.getElementById("cfg3dTier").value,cx=+document.getElementById("cfg3dCx").value,acc=+document.getElementById("cfg3dAcc").value;document.getElementById("cfg3dAccV").textContent=acc;const TC={wg:{bones:26,tex:"512²",b:2},blue:{bones:30,tex:"512²",b:3.5},purple:{bones:36,tex:"1024²",b:6},orange:{bones:52,tex:"1024²",b:10}};const t=TC[tier],d=(t.b*(.6+cx*.08)+acc*.5).toFixed(1);document.getElementById("pv3dB").textContent=t.bones+acc*2;document.getElementById("pv3dT").textContent=t.tex;document.getElementById("pv3dD").textContent=d+"d";const lods=["LOD0: 全精度","LOD1: 50% 面数","LOD2: 25% 面数","商城展示: 高模","战斗: LOD1 适配"];document.getElementById("cfg3dTags").innerHTML=lods.slice(0,3+Math.floor(cx/4)).map(l=>'<span style="font-size:11px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-radius:14px;">'+l+"</span>").join("");const cks=["面数达标","骨骼数量","贴图尺寸","UV 重叠检查","蒙皮权重","命名规范","挂点验证","LOD 切换"];document.getElementById("cfg3dSubs").innerHTML=cks.slice(0,4+Math.floor(cx/2)).map(c=>"✓ "+c+"<br>").join("")}function cfgFaUpd(){const type=document.getElementById("cfgFaType").value,tier=document.getElementById("cfgFaTier").value,cx=+document.getElementById("cfgFaCx").value;const TB={livestock:3,pet:4,miracle:6,collect:2,fish:1.5,accessory:1};const TI={green:.5,blue:.8,purple:1,orange:1.5,red:2,rainbow:2.5};const d=(TB[type]*TI[tier]*(.5+cx*.1)).toFixed(1);const VM={green:"10~20%",blue:"15~30%",purple:"20~50%",orange:"30~60%",red:"40~70%",rainbow:"50~80%"};const ai=Math.min(20+cx*5+(["collect","fish","accessory"].includes(type)?15:0),80);document.getElementById("pvFaV").textContent=VM[tier];document.getElementById("pvFaA").textContent=ai+"%";document.getElementById("pvFaD").textContent=d+"d";const tools=["LoRA 风格生成","comfyUI 换色","SD 三视图","批量变体工具","好感度照片 AI","参考匹配"].sort(()=>Math.random()-.5).slice(0,3+Math.floor(cx/3));document.getElementById("cfgFaTags").innerHTML=tools.map(t=>'<span style="font-size:11px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-radius:14px;">'+t+"</span>").join("");const TK={livestock:["体型设计","花色方案","动作参考","品级差异化"],pet:["套装主题","配色方案","装饰细节","好感度表情"],miracle:["概念设计","配色变体","特效设计","动画参考"],collect:["外观设计","品级变体","展示效果"],fish:["造型设计","颜色变体","动画循环"],accessory:["造型设计","适配验证","品级差异"]};document.getElementById("cfgFaSubs").innerHTML=(TK[type]||[]).map(t=>"→ "+t+"<br>").join("")}function cfgScUpd(){if(Object.keys(RM).length===0)return;const t=document.getElementById("cfgScType").value,cx=+document.getElementById("cfgScCx").value,sc=+document.getElementById("cfgScSc").value;document.getElementById("cfgScScV").textContent=sc;const GM2={core:["S","A","B"],std:["A","B","C"],func:["B","C","D"],env:["B","C","D"],bulk:["C","D"]};const grades=GM2[t],idx=Math.max(0,Math.min(grades.length-1,Math.round((10-cx)/10*(grades.length-1)))),g=grades[idx];document.getElementById("pvScG").textContent=g;document.getElementById("pvScG").style.color=CM[g];document.getElementById("pvScGw").style.background=BG[g];document.getElementById("pvScR").textContent=RM[g];const bd={S:10,A:6,B:3.5,C:1.5,D:.5},d=(bd[g]*sc*(.5+cx/20)).toFixed(1);document.getElementById("pvScD").textContent=d+"d";const tools=["AI概念图","风格迁移","材质生成","光影调整","构图辅助","AI变体","模块拼装","贴图生成","氛围渲染","色彩方案","AI三视图"];const cnt=Math.min(tools.length,Math.max(3,Math.round(sc*.8))),sh=[...tools].sort(()=>Math.random()-.5);document.getElementById("cfgScTags").innerHTML=sh.slice(0,cnt).map(c=>'<span style="font-size:11px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-radius:14px;">'+c+"</span>").join("");let subs="";for(let i=1;i<=Math.min(sc,8);i++){const si=Math.max(0,Math.min(grades.length-1,idx+Math.floor((i-1)*grades.length/sc)));const sg=grades[si];subs+='<span style="color:'+CM[sg]+';font-weight:600;">'+sg+"</span> 子资产"+i+" → "+RM[sg]+" 复用<br>"}document.getElementById("cfgScSubs").innerHTML=subs}
+</script>
+<footer style="text-align:center;padding:24px 0;margin-top:48px;border-top:1px solid rgba(0,0,0,.08);font-size:13px;color:#999;">制作人 Author: 作者</footer>
+<aside id="demo-disclosure"><a href="index.html">平台首页</a><span>脱敏演示 · 项目素材已遮挡 · 含演示样例数据 · 生成服务未连接</span></aside></body>
+</html>

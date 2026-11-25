@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><script src="demo-guard.js"></script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角色AI工作集 · 示例项目</title>
+
+<style>
+:root{
+  --bg:#F5F7FB;--surface:#FFFFFF;--text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --border:#E2E8F0;--accent:#3B82F6;--accent-light:#EFF6FF;
+  --radius:16px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:17px;}
+body{font-family:'DM Sans','Noto Sans SC',sans-serif;background:linear-gradient(180deg,#EBF2FF 0%,#F5F7FB 40%,#FFF 100%);background-attachment:fixed;color:var(--text);line-height:1.7;min-height:100vh;position:relative;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+background-image:
+  radial-gradient(circle at 15% 15%,rgba(59,130,246,.12) 1.5px,transparent 1.5px),
+  radial-gradient(circle at 85% 8%,rgba(139,92,246,.1) 1px,transparent 1px),
+  radial-gradient(circle at 45% 25%,rgba(59,130,246,.08) 1px,transparent 1px),
+  radial-gradient(circle at 70% 18%,rgba(168,85,247,.09) 1.2px,transparent 1.2px),
+  radial-gradient(circle at 25% 40%,rgba(99,102,241,.07) 1px,transparent 1px),
+  radial-gradient(circle at 90% 35%,rgba(59,130,246,.1) 1.5px,transparent 1.5px),
+  radial-gradient(circle at 10% 60%,rgba(139,92,246,.06) 1px,transparent 1px),
+  radial-gradient(circle at 55% 50%,rgba(59,130,246,.05) 1.2px,transparent 1.2px),
+  radial-gradient(circle at 78% 55%,rgba(168,85,247,.07) 1px,transparent 1px),
+  radial-gradient(circle at 35% 70%,rgba(59,130,246,.06) 1.5px,transparent 1.5px),
+  radial-gradient(circle at 62% 75%,rgba(139,92,246,.05) 1px,transparent 1px),
+  radial-gradient(circle at 8% 85%,rgba(99,102,241,.08) 1.2px,transparent 1.2px),
+  radial-gradient(circle at 92% 80%,rgba(59,130,246,.07) 1px,transparent 1px),
+  radial-gradient(circle at 50% 90%,rgba(168,85,247,.06) 1.5px,transparent 1.5px),
+  radial-gradient(circle at 20% 95%,rgba(59,130,246,.05) 1px,transparent 1px);
+background-size:100% 100%;
+animation:twinkle 4s ease-in-out infinite alternate;}
+@keyframes twinkle{0%{opacity:.6;}100%{opacity:1;}}
+body>*{position:relative;z-index:1;}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(90deg,rgba(235,245,255,.95),rgba(255,255,255,.95),rgba(240,235,255,.95));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(226,232,240,.6);height:56px;display:flex;align-items:center;padding:0 40px;gap:20px;}
+nav a{text-decoration:none;color:var(--text2);font-size:14px;font-weight:500;padding:6px 12px;border-radius:6px;transition:all .2s;}
+nav a:hover{background:var(--accent-light);color:var(--accent);}
+.nav-brand{font-weight:700;font-size:15px;color:var(--accent);}
+
+/* Hero */
+.hero{max-width:1200px;margin:0 auto;padding:96px 40px 32px;text-align:center;}
+.hero h1{font-size:clamp(2rem,4vw,2.6rem);font-weight:700;background:linear-gradient(135deg,#3B82F6 0%,#6366F1 40%,#8B5CF6 60%,#A855F7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.hero p{font-size:15px;color:var(--text2);max-width:560px;margin:0 auto;}
+
+/* ═══ PART 1: AI 工具集 ═══ */
+.section{max-width:1200px;margin:0 auto;padding:0 40px;}
+.section-title{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.section h2{font-size:22px;font-weight:700;margin-bottom:6px;}
+.section .desc{font-size:14px;color:var(--text2);margin-bottom:20px;}
+
+.app-grid{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:48px;}
+.app-card{display:flex;align-items:center;gap:20px;padding:20px 28px;border-radius:20px;border:none;text-decoration:none;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:all .3s;min-width:280px;flex:1;}
+.app-card.card-blue{background:linear-gradient(135deg,#3B82F6,#2563EB);}
+.app-card.card-purple{background:linear-gradient(135deg,#8B5CF6,#A855F7);}
+.app-card.card-orange{background:linear-gradient(135deg,#F59E0B,#D97706);}
+.app-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.2);}
+.app-icon{width:72px;height:72px;border-radius:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;}
+.app-icon.blue{background:linear-gradient(135deg,#3B82F6,#2563EB);box-shadow:0 4px 14px rgba(37,99,235,.3);}
+.app-icon.purple{background:rgba(255,255,255,.2);box-shadow:0 4px 14px rgba(0,0,0,.1);}
+.app-icon.orange{background:rgba(255,255,255,.2);box-shadow:0 4px 14px rgba(0,0,0,.1);}
+.app-info .app-name{font-size:16px;font-weight:700;color:#fff;}
+.app-info .app-desc{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px;}
+.app-info .app-link{font-size:13px;font-weight:600;margin-top:4px;}
+.app-link.live{color:#fff;}
+.app-link.dev{color:rgba(255,255,255,.85);}
+.app-badge{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:700;margin-left:6px;vertical-align:middle;}
+.app-badge.live{background:rgba(255,255,255,.25);color:#fff;}
+.app-badge.dev{background:rgba(255,255,255,.25);color:#fff;}
+
+/* ═══ PART 2: 一键出图流程 ═══ */
+.flow-section{margin-top:16px;padding-bottom:80px;}
+.workspace-shell{display:block;}
+.workspace-main{display:flex;flex-direction:column;gap:24px;min-width:0;}
+.workspace-top{padding:20px 24px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(239,246,255,.92));border:1px solid rgba(59,130,246,.12);box-shadow:var(--shadow-lg);}
+.mode-switch{display:inline-flex;gap:8px;padding:6px;border-radius:18px;background:#EEF4FF;border:1px solid rgba(59,130,246,.12);}
+.mode-tab{border:none;background:transparent;color:var(--text2);padding:10px 18px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;}
+.mode-tab:hover{color:var(--accent);background:rgba(59,130,246,.08);}
+.mode-tab.active{color:#fff;background:linear-gradient(135deg,#3B82F6,#6366F1);box-shadow:0 8px 20px rgba(59,130,246,.25);}
+.mode-note{margin-top:18px;padding:14px 18px;border-radius:14px;background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(99,102,241,.06));border:1px solid rgba(59,130,246,.16);font-size:13px;color:#1D4ED8;line-height:1.8;}
+.theme-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+.theme-source-select{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
+.theme-refresh-btn{position:relative;}
+.theme-refresh-btn .refresh-icon{display:inline-flex;align-items:center;justify-content:center;transform-origin:center;}
+.theme-refresh-btn.loading .refresh-icon{animation:spin .7s linear infinite;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.theme-option-tip{font-size:12px;color:var(--text3);margin-top:12px;}
+.theme-option-board{display:flex;flex-direction:column;gap:16px;margin-top:14px;}
+.theme-custom-hero{padding:18px 20px;border-radius:18px;border:2px dashed rgba(139,92,246,.42);background:linear-gradient(135deg,rgba(245,243,255,.98),rgba(238,242,255,.94));display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:all .2s;}
+.theme-custom-hero:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(99,102,241,.12);}
+.theme-custom-hero.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12),0 10px 24px rgba(59,130,246,.12);}
+.theme-custom-hero strong{font-size:18px;color:var(--text);display:flex;align-items:center;gap:8px;}
+.theme-custom-hero span{font-size:13px;color:var(--text2);line-height:1.7;}
+.theme-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;}
+.theme-option-column{display:flex;flex-direction:column;gap:10px;min-width:0;}
+.theme-option-heading{display:flex;align-items:center;gap:8px;padding:2px 4px;font-size:14px;font-weight:700;color:var(--text2);}
+.theme-option-heading::before,.theme-option-heading::after{content:'';height:1px;flex:1;background:rgba(148,163,184,.45);}
+.theme-option-list{display:grid;grid-template-columns:1fr;gap:10px;}
+.theme-option-card{border:1px solid var(--border);background:#fff;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:all .2s;min-height:88px;}
+.theme-option-card:hover{border-color:var(--accent);background:var(--accent-light);transform:translateY(-1px);}
+.theme-option-card.active{border-color:var(--accent);background:linear-gradient(135deg,#EFF6FF,#EEF2FF);box-shadow:0 6px 16px rgba(59,130,246,.12);}
+.theme-option-card.custom{border-style:dashed;}
+.theme-option-card strong{font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.theme-option-card span{font-size:13px;color:var(--text2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.prompt-extra-box{margin-top:18px;padding:16px 18px;border-radius:16px;border:1px solid rgba(59,130,246,.14);background:linear-gradient(135deg,rgba(248,250,252,.98),rgba(239,246,255,.88));}
+.prompt-extra-box textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--surface);outline:none;font-family:inherit;min-height:76px;resize:vertical;}
+.prompt-extra-live{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.72);border:1px dashed rgba(59,130,246,.22);font-size:13px;color:var(--text2);line-height:1.7;word-break:break-word;}
+.prompt-extra-live.pending{color:var(--text3);}
+.prompt-translate-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.prompt-translate-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.18);font-size:12px;font-weight:700;color:#1D4ED8;}
+.prompt-translate-badge.fallback{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.18);color:#475569;}
+.prompt-translate-badge.raw{background:rgba(15,23,42,.06);border-color:rgba(148,163,184,.18);color:#334155;}
+.ref-panel-shell{margin-top:4px;border:1px solid rgba(125,166,255,.22);border-radius:24px;background:linear-gradient(135deg,#A9C7FF 0%,#8CB4FF 52%,#7FAAF8 100%);box-shadow:0 14px 32px rgba(96,148,255,.22);overflow:hidden;}
+.ref-panel-shell>summary{list-style:none;cursor:pointer;padding:18px 20px;background:transparent;border:none;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:700;color:#fff;}
+.ref-panel-shell>summary::-webkit-details-marker{display:none;}
+.ref-panel-shell>summary::after{content:'展开';font-size:12px;color:rgba(255,255,255,.92);font-weight:600;}
+.ref-panel-shell[open]>summary{border-bottom:1px solid rgba(255,255,255,.18);}
+.ref-panel-shell[open]>summary::after{content:'收起';}
+.ref-panel-shell.required{border:1px solid rgba(125,166,255,.22);background:linear-gradient(135deg,#A9C7FF 0%,#8CB4FF 52%,#7FAAF8 100%);}
+.ref-panel-shell.required>summary{display:none;}
+.ref-panel-body{padding:22px 24px 24px;border:none;background:transparent;}
+.ref-panel-shell.required .ref-panel-body{padding:22px 24px 24px;border:none;background:transparent;}
+.ref-panel-shell:not([open]):not(.required) .ref-panel-body{display:none;}
+.ref-panel-summary-hint{font-size:12px;font-weight:600;color:rgba(255,255,255,.92);margin-left:10px;}
+.ref-panel-shell .panel-kicker,.ref-panel-shell h3,.ref-panel-shell p,.ref-panel-shell label,.ref-panel-shell #refDescTip{color:rgba(255,255,255,.96)!important;}
+.ref-panel-shell .summary-muted{color:rgba(255,255,255,.9)!important;}
+.ref-panel-shell .mode-note{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);color:#fff;}
+.ref-panel-shell .ref-slot{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.24);}
+.ref-panel-shell .ref-slot:hover{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.42);}
+.ref-panel-shell .ref-slot .ref-plus,.ref-panel-shell .ref-slot .ref-hint{color:rgba(255,255,255,.88);}
+.ref-panel-shell .ref-tag{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.22);}
+.ref-panel-shell .ref-tag:hover{background:rgba(255,255,255,.24);border-color:rgba(255,255,255,.32);}
+.ref-panel-shell textarea{background:rgba(255,255,255,.96);border-color:rgba(255,255,255,.28);}
+.auto-download-box{margin-top:16px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(248,250,252,.98),rgba(239,246,255,.9));border:1px solid rgba(59,130,246,.14);}
+.auto-download-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.auto-download-title{font-size:14px;font-weight:700;color:var(--text);}
+.auto-download-folder{margin-top:8px;font-size:12px;color:var(--text2);}
+.auto-download-box .api-hint{margin-top:8px;}
+
+/* Step indicators */
+.steps-bar{display:flex;align-items:center;justify-content:flex-start;gap:0;flex-wrap:wrap;}
+.step-dot{display:flex;align-items:center;gap:0;cursor:pointer;}
+.step-dot .dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;background:#CBD5E1;transition:all .3s;flex-shrink:0;}
+.step-dot .dot-label{font-size:12px;font-weight:600;color:var(--text3);margin-left:8px;white-space:nowrap;transition:color .3s;}
+.step-dot.active .dot{background:linear-gradient(135deg,#3B82F6,#6366F1);box-shadow:0 3px 12px rgba(59,130,246,.3);}
+.step-dot.active .dot-label{color:var(--accent);}
+.step-dot.done .dot{background:linear-gradient(135deg,#F59E0B,#D97706);box-shadow:0 3px 12px rgba(245,158,11,.25);}
+.step-dot.done .dot-label{color:#D97706;}
+.step-line{width:48px;height:2px;background:#E2E8F0;margin:0 4px;flex-shrink:0;}
+.step-line.done{background:#F59E0B;}
+
+/* Step panels */
+.step-panel{display:block;scroll-margin-top:86px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+.panel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow);}
+.panel-card.stage-card{padding:28px 32px;transition:border-color .2s,box-shadow .2s,transform .2s;}
+.panel-card.stage-current{border-color:rgba(59,130,246,.28);box-shadow:0 16px 40px rgba(59,130,246,.12);}
+.panel-card h3{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.panel-kicker{font-size:12px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.summary-muted{font-size:13px;color:var(--text2);line-height:1.8;}
+.side-card{background:rgba(255,255,255,.94);border:1px solid rgba(226,232,240,.9);border-radius:18px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(18px);height:100%;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.summary-item{padding:12px 14px;border-radius:14px;background:#F8FAFC;border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;min-width:0;}
+.summary-item span{font-size:12px;color:var(--text3);}
+.summary-item strong{font-size:14px;color:var(--text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.workflow-tip{display:flex;flex-direction:column;gap:10px;padding-left:18px;margin-top:12px;color:var(--text2);font-size:13px;line-height:1.7;}
+.workflow-tip li::marker{color:var(--accent);}
+body[data-mode="txt2img"] .img2img-only{display:none !important;}
+body[data-mode="img2img"] .txt2img-only{display:none !important;}
+body[data-mode="img2img"] .workspace-top{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(245,243,255,.94));}
+body[data-mode="img2img"] .ref-slot{border-color:rgba(139,92,246,.28);}
+@media(max-width:900px){.theme-option-grid{grid-template-columns:1fr;}}
+@media(max-width:800px){.steps-bar{overflow-x:auto;padding-bottom:6px;flex-wrap:nowrap;}.step-dot .dot-label{margin-right:12px;}.gen-preview,.history-grid{grid-template-columns:1fr;}}
+@media(max-width:640px){.workspace-top,.panel-card.stage-card{padding:24px 20px;}.summary-grid,.form-grid{grid-template-columns:1fr;}.theme-custom-hero,.theme-option-anchor,.theme-option-card{padding:14px 16px;}}
+
+
+/* Form elements */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.form-grid{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:13px;font-weight:600;color:var(--text2);}
+.form-group select,.form-group input,.form-group textarea{padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--surface);outline:none;transition:all .2s;font-family:inherit;}
+.form-group select:focus,.form-group input:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.form-group textarea{min-height:80px;resize:vertical;}
+
+/* Reference images */
+.ref-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:12px;}
+@media(max-width:800px){.ref-grid{grid-template-columns:repeat(3,1fr);}}
+.ref-slot{position:relative;aspect-ratio:1;border:2px dashed var(--border);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;background:#FAFBFC;overflow:hidden;}
+.ref-slot:hover{border-color:var(--accent);background:var(--accent-light);}
+.ref-slot.has-img{border-style:solid;border-color:var(--accent);}
+.ref-slot .ref-num{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 2px 6px rgba(59,130,246,.3);}
+.ref-slot .ref-plus{font-size:24px;color:var(--text3);transition:color .2s;}
+.ref-slot:hover .ref-plus{color:var(--accent);}
+.ref-slot .ref-hint{font-size:11px;color:var(--text3);margin-top:4px;}
+.ref-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;}
+.ref-slot .ref-remove{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(220,38,38,.85);color:#fff;font-size:12px;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:3;}
+.ref-slot.has-img .ref-remove{display:flex;}
+.ref-slot.has-img .ref-plus,.ref-slot.has-img .ref-hint{display:none;}
+
+/* Prompt description with ref tags */
+.ref-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(59,130,246,.2);margin:2px;transition:all .2s;user-select:none;}
+.ref-tag:hover{background:rgba(59,130,246,.15);border-color:var(--accent);}
+.ref-tags-bar{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+
+/* Keywords display */
+.kw-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.kw-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid rgba(59,130,246,.2);background:var(--accent-light);color:var(--accent);}
+.kw-chip .kw-x{cursor:pointer;opacity:.5;font-size:14px;margin-left:2px;}.kw-chip .kw-x:hover{opacity:1;}
+
+/* Code output */
+.code-box{background:#1E293B;border-radius:12px;padding:16px;overflow-x:auto;position:relative;margin-top:12px;}
+.code-box pre{color:#E2E8F0;font-size:13px;font-family:'JetBrains Mono',monospace;line-height:1.6;margin:0;white-space:pre-wrap;}
+.code-box .copy-btn{position:absolute;top:10px;right:10px;padding:5px 12px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.1);color:#E2E8F0;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;}
+.code-box .copy-btn:hover{background:rgba(255,255,255,.2);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s;text-decoration:none;border:none;font-family:inherit;}
+.btn.primary{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.25);}
+.btn.primary:hover{box-shadow:0 6px 20px rgba(37,99,235,.35);transform:translateY(-1px);}
+.btn.success{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;box-shadow:0 4px 12px rgba(245,158,11,.25);}
+.btn.success:hover{box-shadow:0 6px 20px rgba(245,158,11,.35);transform:translateY(-1px);}
+.btn.secondary{background:var(--surface);color:var(--accent);border:1.5px solid var(--border);}
+.btn.secondary:hover{border-color:var(--accent);background:var(--accent-light);}
+.btn.outline{background:transparent;color:var(--text2);border:1.5px solid var(--border);}
+.btn.outline:hover{border-color:var(--text2);}
+.btn-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
+
+/* Status */
+.status{padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;margin-top:16px;display:none;align-items:center;gap:8px;}
+.status.show{display:flex;}
+.status.info{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);color:#2563EB;}
+.status.success{background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.2);color:#16A34A;}
+.status.warn{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);color:#D97706;}
+
+/* Preview grid for generated images — 固定4列，一批刚好一行 */
+.gen-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;}
+.gen-thumb{aspect-ratio:3/4;border-radius:10px;background:#F1F5F9;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--text3);position:relative;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.gen-thumb:hover{transform:scale(1.02);box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.gen-thumb .gen-num{position:absolute;top:8px;left:8px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(0,0,0,.5);color:#fff;z-index:2;}
+.gen-thumb .gen-dl{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;transition:all .2s;text-decoration:none;backdrop-filter:blur(4px);}
+.gen-thumb .gen-dl:hover{background:rgba(59,130,246,.85);transform:scale(1.1);}
+@keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+.gen-thumb.loading{animation:pulse 1.5s ease infinite;}
+.gen-thumb.loading::after{content:'生成中...';position:absolute;bottom:10px;font-size:11px;color:var(--text3);}
+.gen-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;}
+.gen-thumb.failed{background:#FEF2F2;border-color:#FCA5A5;}
+.gen-thumb.failed::after{content:'失败';color:#DC2626;}
+
+/* History section */
+.history-section{margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.history-header h4{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+.history-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.history-date{grid-column:1/-1;font-size:12px;font-weight:600;color:var(--text3);padding:8px 0 4px;border-bottom:1px solid var(--border);margin-top:8px;}
+.history-date:first-child{margin-top:0;}
+.load-more-btn{grid-column:1/-1;text-align:center;padding:16px;}
+.load-more-btn button{padding:10px 28px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;}
+.load-more-btn button:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+
+/* Image lightbox */
+.lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;animation:fadeIn .2s ease;}
+.lightbox img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.lightbox .lb-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;}
+.lightbox .lb-close:hover{background:rgba(255,255,255,.3);}
+
+/* API Config Panel */
+.api-config{margin-top:16px;padding:20px;border-radius:12px;background:linear-gradient(135deg,rgba(59,130,246,.04),rgba(99,102,241,.04));border:1px solid rgba(59,130,246,.15);}
+.api-config summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--accent);user-select:none;display:flex;align-items:center;gap:8px;list-style:none;}
+.api-config summary::-webkit-details-marker{display:none;}
+.api-config summary::after{content:'▶';font-size:10px;margin-left:auto;transition:transform .2s;color:var(--text3);}
+.api-config[open] summary::after{transform:rotate(90deg);}
+.api-config .api-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.api-config .api-form .full{grid-column:1/-1;}
+.api-config label{font-size:12px;font-weight:600;color:var(--text2);}
+.api-config input,.api-config select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:var(--surface);outline:none;width:100%;font-family:inherit;}
+.api-config input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.api-hint{font-size:11px;color:var(--text3);margin-top:3px;}
+.api-status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+.api-status-dot.ok{background:#16A34A;}
+.api-status-dot.err{background:#DC2626;}
+.api-status-dot.pending{background:#F59E0B;animation:pulse 1s infinite;}
+
+/* Progress bar */
+.progress-wrap{margin-top:16px;display:none;}
+.progress-bar{height:6px;border-radius:3px;background:#E2E8F0;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#3B82F6,#6366F1);transition:width .3s ease;width:0%;}
+.progress-text{font-size:12px;color:var(--text2);margin-top:4px;display:flex;justify-content:space-between;}
+
+/* Task log */
+.task-log{max-height:160px;overflow-y:auto;margin-top:12px;padding:10px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);line-height:1.8;display:none;}
+.task-log .log-ok{color:#16A34A;}.task-log .log-err{color:#DC2626;}.task-log .log-info{color:#2563EB;}
+
+footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);font-size:13px;color:var(--text3);margin-top:48px;}
+</style>
+<style>#demo-disclosure{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);width:max-content;display:flex;gap:18px;align-items:center;padding:10px 18px;background:#232238;color:#fff;box-shadow:0 8px 32px #0003;border-radius:10px;font:12px/1.5 sans-serif}#demo-disclosure a{color:#fff;white-space:nowrap}body{padding-bottom:70px!important}@media(max-width:600px){#demo-disclosure{font-size:11px;gap:10px}}</style></head>
+<body>
+
+<nav>
+  <span class="nav-brand">角色AI工作集</span>
+  <a href="character.html">← 返回管线主页</a>
+</nav>
+
+<div class="hero">
+  <h1>角色AI工作集</h1>
+  <p>AI工具入口 + 一键出图流程，从赛季主题到批量成图的完整链路</p>
+</div>
+
+
+<div class="section">
+  <div class="section-title">AI Toolkit</div>
+  <h2>AI 工具集</h2>
+  <div class="desc">点击图标进入对应AI平台</div>
+
+  <div class="app-grid">
+    <a class="app-card card-blue" href="unavailable.html">
+      <div class="app-icon blue">🤖</div>
+      <div class="app-info">
+        <div class="app-name">图像服务AI平台 <span class="app-badge live">已上线</span></div>
+        <div class="app-desc">多模型切换 · 批量生图 · 风格迁移 · 图生图</div>
+        <div class="app-link live">进入平台 →</div>
+      </div>
+    </a>
+    <a class="app-card card-purple" href="#" onclick="alert('ComfyUI 线上平台正在开发中，敬请期待！');return false;">
+      <div class="app-icon purple">🎨</div>
+      <div class="app-info">
+        <div class="app-name">ComfyUI 线上平台 <span class="app-badge dev">开发中</span></div>
+        <div class="app-desc">在线工作流编排 · 直接生图 · 角色原画专用模板</div>
+        <div class="app-link dev">即将上线 →</div>
+      </div>
+    </a>
+    <div class="app-card card-orange" style="cursor:pointer;" onclick="toggleThemeFilter()">
+      <div class="app-icon orange">🎯</div>
+      <div class="app-info">
+        <div class="app-name">赛季主题筛选系统 <span class="app-badge live">已上线</span></div>
+        <div class="app-desc">AI脑洞 · 趋势采集 · 竞品分析 · 策划储备 · 主题检测</div>
+        <div class="app-link live" id="themeFilterToggleText">点击展开 ↓</div>
+      </div>
+    </div>
+    <a class="app-card card-teal" href="#" onclick="alert('设计查重系统正在开发中，敬请期待！');return false;">
+      <div class="app-icon teal">🧬</div>
+      <div class="app-info">
+        <div class="app-name">设计查重 <span class="app-badge dev">开发中</span></div>
+        <div class="app-desc">Arthub 资产池接入 · 角色相似度排序 · 撞设风险复核</div>
+        <div class="app-link dev">即将上线 →</div>
+      </div>
+    </a>
+  </div>
+
+  
+  <div id="themeFilterEmbed" style="display:none;margin-top:-24px;margin-bottom:48px;border-radius:16px;overflow:hidden;border:2px solid rgba(245,158,11,.3);box-shadow:0 8px 32px rgba(0,0,0,.1);transition:all .3s;">
+    <div style="padding:10px 20px;background:linear-gradient(135deg,#F59E0B,#D97706);">
+      <span style="font-size:13px;font-weight:700;color:#fff;">🎯 赛季主题筛选系统</span>
+    </div>
+    <iframe id="themeFilterIframe" style="width:100%;height:85vh;border:none;background:#0a0e1a;"></iframe>
+  </div>
+</div>
+
+
+<div class="section flow-section">
+  <div class="section-title">AI Image Pipeline</div>
+  <h2>AI 一键出图工作台</h2>
+
+  <div class="workspace-shell">
+    <div class="workspace-main">
+      <div class="panel-card workspace-top">
+        <div class="mode-switch" role="tablist" aria-label="生图模式切换">
+          <button class="mode-tab active" id="modeTxt2Img" onclick="setGenerateMode('txt2img')">✨ 文生图</button>
+          <button class="mode-tab" id="modeImg2Img" onclick="setGenerateMode('img2img')">🖼️ 图生图</button>
+        </div>
+
+        <div class="steps-bar" id="stepsBar" style="margin-top:20px;">
+          <div class="step-dot active txt2img-only" id="stepTheme" onclick="goStep(0)"><div class="dot" id="stepThemeNum">1</div><div class="dot-label" id="stepThemeLabel">主题方向</div></div>
+          <div class="step-line txt2img-only" id="stepLineTheme"></div>
+          <div class="step-dot" id="stepRef" onclick="goStep(1)"><div class="dot" id="stepRefNum">2</div><div class="dot-label" id="stepRefLabel">参考图</div></div>
+          <div class="step-line" id="stepLineRef"></div>
+          <div class="step-dot" id="stepPrompt" onclick="goStep(2)"><div class="dot" id="stepPromptNum">3</div><div class="dot-label" id="stepPromptLabel">Prompt</div></div>
+          <div class="step-line" id="stepLinePrompt"></div>
+          <div class="step-dot" id="stepGen" onclick="goStep(3)"><div class="dot" id="stepGenNum">4</div><div class="dot-label" id="stepGenLabel">生图</div></div>
+        </div>
+      </div>
+
+      <div class="step-panel active txt2img-only" id="sp0">
+        <div class="panel-card stage-card stage-current">
+          <div class="panel-kicker" id="themeStageKicker">01 / 主题方向</div>
+          <h3>📋 主题与角色方向</h3>
+          <p class="summary-muted">先确定赛季主题与角色品级，再继续补参考图和 Prompt；下方主题列表会常驻显示，刷新后可以直接看到变化。</p>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>赛季主题方向</label>
+              <select id="theme" onchange="onThemeChange()" class="theme-source-select">
+                <option value="">请选择主题...</option>
+                <option value="custom">✏️ 自定义主题...</option>
+                <option value="" disabled style="font-weight:700;color:#8B5CF6;">── 🤖 AI脑洞推荐 ──</option>
+                <option value="ai1">液态金属 · 流体机甲</option>
+                <option value="ai2">微缩世界 · 蚁人视角</option>
+                <option value="ai3">纸艺折叠 · 立体绘本</option>
+                <option value="ai4">极光冰晶 · 北极幻境</option>
+                <option value="ai5">甲虫铠甲 · 昆虫机甲</option>
+                <option value="ai6">海盗蒸汽 · 天空之城</option>
+                <option value="" disabled style="font-weight:700;color:#3B82F6;">── 📋 经典主题 ──</option>
+                <option value="cyberpunk">赛博朋克 · 科技未来</option>
+                <option value="fairytale">童话梦境 · 奇幻冒险</option>
+                <option value="ocean">深海秘境 · 海洋生物</option>
+                <option value="sakura">樱花祭典 · 和风雅韵</option>
+                <option value="candy">糖果乐园 · 甜系少女</option>
+                <option value="galaxy">星际漫游 · 宇宙探索</option>
+              </select>
+              <div class="theme-toolbar">
+                <button class="btn secondary theme-refresh-btn" id="btnThemeRefresh" onclick="refreshAIThemes()" title="刷新AI脑洞与经典主题" style="padding:8px 14px;font-size:15px;flex-shrink:0;">
+                  <span class="refresh-icon">🔄</span>
+                  <span>刷新主题</span>
+                </button>
+              </div>
+            </div>
+            <div class="form-group" id="customThemeGroup" style="display:none;">
+              <label>自定义主题名称</label>
+              <input type="text" id="customThemeName" placeholder="例如：蒸汽朋克 · 维多利亚机械">
+            </div>
+            <div class="form-group" id="customKwGroup" style="display:none;">
+              <label>自定义关键词（逗号分隔）</label>
+              <input type="text" id="customKw" placeholder="例如：齿轮,铜管,蒸汽,护目镜,维多利亚,机械臂">
+            </div>
+            <div class="form-group" id="customStyleGroup" style="display:none;">
+              <label>风格描述（英文）</label>
+              <input type="text" id="customStyle" placeholder="例如：steampunk, victorian era, brass and copper, mechanical gears">
+            </div>
+            <div class="form-group">
+              <label>品级</label>
+              <select id="tier">
+                <option value="orange-hidden">隐藏橙装</option>
+                <option value="orange-base">基础橙装</option>
+                <option value="purple">紫装</option>
+                <option value="blue">蓝装</option>
+              </select>
+            </div>
+          </div>
+          <div id="themePreview" style="margin-top:16px;display:none;">
+            <label style="font-size:13px;font-weight:600;color:var(--text2);">主题关键词预览</label>
+            <div id="themeKws" class="kw-list"></div>
+          </div>
+          <div class="theme-option-tip">下方 AI脑洞推荐 与 经典主题 提供通用演示主题；如果暂时不贴参考图，可以直接从这里生成 Prompt。</div>
+          <div class="theme-option-board" id="themeOptionBoard"></div>
+          <div class="btn-row">
+            <button class="btn secondary" onclick="openTxt2imgRefPanel()">可选：贴参考图</button>
+            <button class="btn primary" onclick="generatePromptFromThemeStep()">直接生成 Prompt →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-panel" id="sp1">
+        <div class="panel-card stage-card">
+          <details class="ref-panel-shell" id="refPanelShell">
+            <summary>🖼️ 可选：贴参考图 <span class="ref-panel-summary-hint">不贴也可以，直接从上一步生成 Prompt</span></summary>
+            <div class="ref-panel-body">
+              <div class="panel-kicker" id="refStageKicker">02 / 参考图输入</div>
+              <h3 id="refSectionTitle">🖼️ 参考图与局部描述</h3>
+              <p id="refLead" style="font-size:13px;color:var(--text2);margin-bottom:4px;">文生图模式下可选上传灵感图；图生图模式下建议至少上传 1 张参考图，并明确说明希望保留的轮廓、配色或局部细节。</p>
+              <div class="mode-note img2img-only" style="margin-top:0;margin-bottom:16px;">图生图建议：可以把脸、发型、服装、配色分别放在不同编号里，后续 Prompt 会自动把这些引用写进去。</div>
+
+              <div class="ref-grid" id="refGrid">
+                
+              </div>
+
+              <div style="margin-top:20px;">
+                <label id="refDescLabel" style="font-size:13px;font-weight:600;color:var(--text2);">图片参考描述</label>
+                <p id="refDescTip" style="font-size:12px;color:var(--text3);margin-bottom:6px;">点击编号标签插入引用，例如："参考 ① 的帽子造型 + ③ 的配色方案"</p>
+                <div class="ref-tags-bar" id="refTags"></div>
+                <textarea id="refDesc" placeholder="例如：参考 ① 的帽子造型和蝴蝶结元素，② 的鞋子设计，③ 的面部妆容风格，整体配色偏 ④ 的马卡龙色调..." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--surface);outline:none;font-family:inherit;min-height:80px;resize:vertical;"></textarea>
+              </div>
+
+              <div class="btn-row">
+                <button class="btn outline txt2img-only" onclick="goStep(0)">返回主题</button>
+                <button class="btn primary" onclick="goStep(2)">继续：生成 Prompt →</button>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="step-panel" id="sp2">
+        <div class="panel-card stage-card">
+          <div class="panel-kicker" id="promptStageKicker">03 / Prompt 工作区</div>
+          <h3 id="promptSectionTitle">✨ Prompt 生成与微调</h3>
+          <p id="promptLead" class="summary-muted" style="margin-bottom:16px;">系统会结合主题、品级和参考图描述生成结构化 Prompt；你可以继续手动微调，再把结果直接送到下方生图区。</p>
+
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="btn primary" onclick="generatePrompt()">✨ 一键生成 Prompt</button>
+            <button class="btn secondary" onclick="editPrompt()">✏️ 手动微调</button>
+          </div>
+
+          <div class="prompt-extra-box">
+            <div class="prompt-translate-meta">
+              <label style="font-size:13px;font-weight:600;color:var(--text2);">MJ Prompt 补充词语（中翻英）</label>
+              <span class="prompt-translate-badge fallback" id="promptTranslateBadge">翻译通道：基础翻译</span>
+            </div>
+            <p style="font-size:12px;color:var(--text3);margin:6px 0 10px;">可直接输入中文补词，系统会实时逐项翻译成英文，并在生成时一起拼进 MJ Prompt。已接入混元优先翻译，未配置时会自动降级。</p>
+            <textarea id="promptExtraInput" placeholder="例如：银白长发、玻璃翅膀、体积光、轻微逆光、宝石耳饰"></textarea>
+            <div class="prompt-extra-live" id="promptExtraLive"></div>
+            <details class="api-config" id="hunyuanTranslateConfig" style="margin-top:12px;">
+              <summary>🔤 实时翻译设置（推荐混元）</summary>
+              <div class="api-form">
+                <div class="full">
+                  <label>混元 API Key</label>
+                  <input type="password" id="hunyuanApiKey" placeholder="展示版不连接内部服务" oninput="saveHunyuanApiKey()" value="" disabled>
+                  <div class="api-hint">
+                    <span class="api-status-dot" id="hunyuanApiDot"></span>
+                    <span id="hunyuanApiStatus">未配置</span>
+                    · 已配置时优先走混元实时中译英；未配置时自动降级为基础翻译
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div id="promptResult" style="display:none;">
+            <div>
+              <label style="font-size:13px;font-weight:600;color:var(--text2);">提取的关键词</label>
+              <div id="kwsOut" class="kw-list" style="margin-top:8px;"></div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <label style="font-size:13px;font-weight:600;color:var(--text2);">MJ Prompt</label>
+              <div class="code-box">
+                <button class="copy-btn" onclick="copyText('promptCode')">复制</button>
+                <pre id="promptCode"></pre>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <label style="font-size:13px;font-weight:600;color:var(--text2);">JSON 结构化数据</label>
+              <div class="code-box">
+                <button class="copy-btn" onclick="copyText('jsonCode')">复制</button>
+                <pre id="jsonCode"></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn outline" onclick="goStep(1)">返回参考图</button>
+            <button class="btn success" onclick="goStep(3)" id="btnToGen" style="display:none;">进入生图区 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-panel" id="sp3">
+        <div class="panel-card stage-card">
+          <div class="panel-kicker" id="genStageKicker">04 / 批量生图</div>
+          <h3 id="genSectionTitle">🚀 批量生图与结果回看</h3>
+          <p id="genLead" class="summary-muted" style="margin-bottom:16px;">支持 DemoDraw API 实时生图，也保留图像服务平台与 ComfyUI 的手动/开发中工作流；手动模式下可把结果重新上传回这个页面预览。</p>
+
+          <div class="form-grid">
+            <div class="form-group" id="genCountGroup">
+              <label id="genCountLabel">生成批次（一批4张）</label>
+              <input type="number" id="genCount" min="1" max="100" value="1" placeholder="输入 1-100">
+              <div class="api-hint" id="genCountHint">每批生成 4 张图，共 4 张</div>
+            </div>
+            <div class="form-group">
+              <label>生图引擎</label>
+              <select id="genEngine" onchange="onEngineChange()">
+                <option value="art">Midjourney (DemoDraw API) ⚡</option>
+                <option value="mj">Midjourney (图像服务平台 · 手动)</option>
+                <option value="comfy">ComfyUI 工作流（开发中）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>模型版本</label>
+              <select id="genModel">
+                <option value="niji6">Niji 6（推荐角色）</option>
+                <option value="niji7">Niji 7（最新动漫）</option>
+                <option value="v7">MJ v7（最新版本）</option>
+                <option value="v6">MJ v6</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>定时执行</label>
+              <select id="genSchedule" onchange="onScheduleChange()">
+                <option value="now">立即执行</option>
+                <option value="30m">30 分钟后</option>
+                <option value="1h">1 小时后</option>
+                <option value="2h">2 小时后</option>
+                <option value="tonight">今晚 21:30 开始（下班后）</option>
+                <option value="overnight" disabled>通宵模式（暂未开放）</option>
+                <option value="custom">自定义时间...</option>
+              </select>
+            </div>
+            <div class="form-group" id="customTimeGroup" style="display:none;">
+              <label>自定义开始时间</label>
+              <input type="datetime-local" id="customTime">
+            </div>
+            <div class="form-group" id="durationGroup" style="display:none;">
+              <label>持续时长（小时）</label>
+              <input type="number" id="duration" min="1" max="24" value="8" placeholder="持续工作时长">
+            </div>
+          </div>
+
+          <div id="overnightInfo" style="display:none;margin-top:16px;padding:14px 18px;border-radius:10px;background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(217,119,6,.06));border:1px solid rgba(245,158,11,.2);font-size:13px;color:#92400E;line-height:1.7;">
+            <strong>🌙 通宵模式说明：</strong><br>
+            · 系统将在设定时间开始持续生图，直到达到设定张数或时长<br>
+            · 每生成一张自动保存到本地目录，按编号命名<br>
+            · 早上验收时可一键浏览所有成果，挑选满意的进行高清放大<br>
+            · 预计 8 小时可生成 <strong id="estCount">约 200-400 张</strong>
+          </div>
+
+          <details class="api-config" id="artApiConfig">
+            <summary>🔑 DemoDraw API 配置</summary>
+            <div class="api-form">
+              <div class="full">
+                <label>API Key（在 ArtAI 平台申请）</label>
+                <input type="password" id="artApiKey" placeholder="展示版不连接内部服务" oninput="saveArtApiKey()" value="" disabled>
+                <div class="api-hint">
+                  <span class="api-status-dot" id="artApiDot"></span>
+                  <span id="artApiStatus">未配置</span>
+                  · API Key 会保存在浏览器本地，不会上传
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="auto-download-box">
+            <div class="auto-download-head">
+              <label class="auto-download-title" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                <input type="checkbox" id="autoDownloadToggle" onchange="toggleAutoDownload(this.checked)" style="width:16px;height:16px;cursor:pointer;">
+                <span>生成完成后自动保存到本地</span>
+              </label>
+              <button class="btn secondary" type="button" id="btnPickLocalFolder" onclick="pickLocalSaveFolder()" style="padding:8px 16px;font-size:13px;display:none;">📁 选择本地文件夹</button>
+            </div>
+            <div class="api-hint" id="autoDownloadNote">默认不会自动下载。勾选上方选项后，生成完成才会自动保存到本地（可选择本地文件夹直存，否则落到浏览器默认下载目录）。</div>
+            <div class="auto-download-folder" id="localSaveFolderStatus" style="display:none;">当前保存位置：浏览器默认下载目录</div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn outline" onclick="goStep(2)">返回 Prompt</button>
+            <button class="btn success" onclick="startGenerate()" id="btnStartGen" style="font-size:15px;padding:14px 28px;">🚀 开始批量生图</button>
+            <button class="btn secondary" onclick="document.getElementById('manualGenInput').click()" id="btnManualUpload" style="display:none;">🖼 上传手动结果</button>
+            <button class="btn outline" onclick="stopGenerate()" id="btnStopGen" style="display:none;color:#DC2626;border-color:#FCA5A5;">⏹ 停止生图</button>
+          </div>
+
+          <div class="progress-wrap" id="progressWrap">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <label style="font-size:13px;font-weight:600;color:var(--text2);">生图进度</label>
+              <span id="progressPercent" style="font-size:12px;font-weight:700;color:var(--accent);">0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text">
+              <span id="progressDone">0 / 0 完成</span>
+              <span id="progressEta">预计剩余 --</span>
+            </div>
+          </div>
+
+          <div class="status" id="genStatus"></div>
+          <div class="task-log" id="taskLog"></div>
+
+          <div id="genResults" style="display:none;margin-top:24px;">
+            <label style="font-size:13px;font-weight:600;color:var(--text2);">生成预览</label>
+            <div class="gen-preview" id="genPreview"></div>
+          </div>
+
+          <div class="history-section" id="historySection">
+            <div class="history-header">
+              <h4>📂 生成历史</h4>
+              <button class="btn secondary" onclick="toggleHistory()" id="btnHistory" style="padding:8px 18px;font-size:13px;">展开历史</button>
+            </div>
+            <div id="historyContent" style="display:none;">
+              <div class="history-grid" id="historyGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>角色AI工作集 · 示例项目 2D角色原画管线 · 2026.04</footer>
+
+
+<input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+<input type="file" id="manualGenInput" accept="image/*" multiple style="display:none;" onchange="handleManualGenImages(event)">
+
+<script>const THEMES={cyberpunk:{name:"赛博朋克",kw:["霓虹灯光","机械肢体","电路纹理","全息投影","暗色调","金属质感","LED发光","数据流","未来都市","赛博眼镜"],style:"cyberpunk, neon glow, holographic, mechanical parts, dark futuristic",color:"neon blue, electric purple, hot pink"},fairytale:{name:"童话梦境",kw:["魔法城堡","精灵翅膀","星光粒子","彩虹色调","蘑菇森林","水晶宝石","月光银","花瓣飘落","童话书页","魔法杖"],style:"fairy tale, magical, whimsical, enchanted forest, dreamy",color:"pastel pink, lavender, mint green, gold sparkle"},ocean:{name:"深海秘境",kw:["水母发光","珊瑚礁","美人鱼","贝壳装饰","海洋蓝","珍珠光泽","气泡","海藻纹理","深海生物","荧光"],style:"deep sea, bioluminescent, underwater kingdom, coral reef",color:"deep blue, turquoise, pearl white, bioluminescent green"},sakura:{name:"樱花祭典",kw:["樱花花瓣","和服改良","扇子","灯笼","鸟居","金箔","丝绸","祥云","武士","折纸"],style:"Japanese sakura festival, elegant kimono, traditional patterns",color:"cherry blossom pink, ivory white, gold, deep red"},candy:{name:"糖果乐园",kw:["棒棒糖","马卡龙色","糖果包装","甜甜圈","奶油","蝴蝶结","泡泡","星星糖","彩虹糖","草莓"],style:"candy land, sweet, pastel colors, kawaii, dessert themed",color:"pastel pink, baby blue, mint, lemon yellow, lilac"},galaxy:{name:"星际漫游",kw:["星云","宇航服","行星环","银河","太空站","陨石","等离子","光速","星座","暗物质"],style:"space exploration, galaxy, astronaut, cosmic nebula",color:"cosmic purple, starlight silver, deep space blue, aurora green"},forest:{name:"魔法森林",kw:["古树精灵","蘑菇","萤火虫","藤蔓","花冠","鹿角","苔藓","树洞","魔法阵","精灵耳"],style:"enchanted forest, elf kingdom, magical creatures, ancient trees",color:"emerald green, earth brown, golden light, mystic purple"},rock:{name:"摇滚机甲",kw:["铆钉","皮夹克","电吉他","火焰","涂鸦","链条","墨镜","荧光涂装","街头","音响"],style:"rock and roll, mecha armor, street style, graffiti, edgy",color:"black, chrome silver, electric red, neon green"},ai1:{name:"液态金属",kw:["水银质感","流体造型","镜面反射","金属液滴","变形","铬合金","科幻","流线型","融化","重塑"],style:"liquid metal, chrome fluid, morphing shapes, reflective mercury, sci-fi",color:"chrome silver, liquid gold, mercury blue, mirror finish"},ai2:{name:"微缩世界",kw:["蚁人视角","微观","放大镜","露珠","草丛","昆虫","缩小","巨大花朵","蘑菇伞","微型城市"],style:"miniature world, macro photography, tiny perspective, oversized nature",color:"grass green, dewdrop clear, warm sunlight, earth tones"},ai3:{name:"纸艺折叠",kw:["折纸","立体书","纸雕","剪纸","折痕","翻页","弹出","手工纸","几何折叠","书页"],style:"paper craft, origami, pop-up book, paper sculpture, folded art",color:"cream white, kraft brown, pastel accents, ink black"},ai4:{name:"极光冰晶",kw:["极光","冰晶","雪花","冰川","北极光","透明冰"],style:"aurora borealis, ice crystal, arctic fantasy",color:"aurora green, ice blue, crystal white"},ai5:{name:"甲虫铠甲",kw:["甲壳","虹彩","复眼","触角","昆虫翅膀","生物装甲"],style:"beetle armor, insect mecha, iridescent shell",color:"iridescent green, scarab gold, dark chitin"},ai6:{name:"海盗蒸汽",kw:["飞空艇","海盗旗","蒸汽管","齿轮","望远镜","云海"],style:"sky pirate, steampunk airship, floating city",color:"brass gold, sky blue, leather brown"}};const THEME_PICK_COUNT=6;const THEME_SOURCE_CACHE_KEY="theme_filter_recommendations";let lastThemeSnapshot={ai:[],classic:[]};const THEME_POOL_TARGET=120;const AI_POOL_BASE=[{"id":"sample-0","name":"示例 · 纸艺旅人","kw":["折纸","纸层","轻盈"],"style":"paper craft, folded shapes","color":"ivory, muted blue"},{"id":"sample-1","name":"示例 · 海岸漫步","kw":["海浪","贝壳","清透"],"style":"coastal, simple silhouette","color":"sea blue, soft white"},{"id":"sample-2","name":"示例 · 花园访客","kw":["花瓣","叶片","柔和"],"style":"botanical, soft shapes","color":"leaf green, pale pink"}];const AI_POOL_STYLE_PACKS=[{"suffix":"示例配色","kw":["柔和"],"style":"soft lighting","color":"muted blue"}];const CLASSIC_POOL_BASE=[{"id":"sample-0","name":"示例 · 纸艺旅人","kw":["折纸","纸层","轻盈"],"style":"paper craft, folded shapes","color":"ivory, muted blue"},{"id":"sample-1","name":"示例 · 海岸漫步","kw":["海浪","贝壳","清透"],"style":"coastal, simple silhouette","color":"sea blue, soft white"},{"id":"sample-2","name":"示例 · 花园访客","kw":["花瓣","叶片","柔和"],"style":"botanical, soft shapes","color":"leaf green, pale pink"}];const CLASSIC_POOL_STYLE_PACKS=[{"suffix":"示例配色","kw":["柔和"],"style":"soft lighting","color":"muted blue"}];function buildExpandedThemePool(baseItems,stylePacks,targetCount,type="ai"){const baseList=baseItems.map(item=>({id:item.id,name:item.name,kw:Array.isArray(item.kw)?item.kw.slice(0,6):[],style:item.style,color:item.color}));const results=baseList.map(item=>({...item}));const seen=new Set(results.map(item=>item.name));stylePacks.forEach((pack,packIndex)=>{baseList.forEach((baseItem,itemIndex)=>{if(results.length>=targetCount)return;const name=`${baseItem.name} · ${pack.suffix}`;if(seen.has(name))return;seen.add(name);results.push({id:`${type}${itemIndex+1}-${packIndex+1}`,name,kw:Array.from(new Set([...baseItem.kw||[],...pack.kw||[]])).slice(0,6),style:`${baseItem.style}, ${pack.style}`,color:`${baseItem.color}, ${pack.color}`})})});return results.slice(0,targetCount)}const AI_POOL=buildExpandedThemePool(AI_POOL_BASE,AI_POOL_STYLE_PACKS,THEME_POOL_TARGET,"ai");const CLASSIC_POOL=buildExpandedThemePool(CLASSIC_POOL_BASE,CLASSIC_POOL_STYLE_PACKS,THEME_POOL_TARGET,"classic");function normalizeThemeItem(item,type="ai"){if(!item)return null;const name=String(item.name||"").trim();if(!name)return null;const keywords=Array.isArray(item.keywords)?item.keywords.filter(Boolean):Array.isArray(item.kw)?item.kw.filter(Boolean):String(item.keywords||item.kw||"").split(/[,，、]/).map(v=>v.trim()).filter(Boolean);return{name,desc:String(item.desc||item.style||name).trim(),keywords,color:String(item.color||"custom").trim(),type}}function setThemeRefreshState(isLoading){const btn=document.getElementById("btnThemeRefresh");if(!btn)return;btn.disabled=isLoading;btn.classList.toggle("loading",isLoading)}function getCurrentThemeSnapshotFromSelect(){const sel=document.getElementById("theme");const snapshot={ai:[],classic:[]};if(!sel)return snapshot;Array.from(sel.options).forEach(opt=>{if(!opt.value||opt.value==="custom")return;const themeData=THEMES[opt.value]||{};const name=String(themeData.name||opt.textContent||"").trim();if(!name)return;if(opt.value.startsWith("ai"))snapshot.ai.push(name);else snapshot.classic.push(name)});return snapshot}function rememberThemeSnapshot(aiItems,classicItems){lastThemeSnapshot={ai:aiItems.map(item=>item.name),classic:classicItems.map(item=>item.name)}}function uniqueThemeItems(items,excludedNames=[]){const excluded=new Set(excludedNames);const seen=new Set;return items.filter(item=>{const key=item?.name?.trim();if(!key||seen.has(key)||excluded.has(key))return false;seen.add(key);return true})}function shuffleThemeItems(items){const next=items.slice();for(let i=next.length-1;i>0;i-=1){const j=Math.floor(Math.random()*(i+1));[next[i],next[j]]=[next[j],next[i]]}return next}function pickNonRepeatingThemes(pool,count,excludedNames=[],type="ai"){const normalizedPool=pool.map(item=>normalizeThemeItem(item,type)).filter(Boolean);const freshPool=shuffleThemeItems(uniqueThemeItems(normalizedPool,excludedNames));const backupPool=shuffleThemeItems(uniqueThemeItems(normalizedPool,[]));const picks=[];freshPool.forEach(item=>{if(picks.length<count)picks.push(item)});backupPool.forEach(item=>{if(picks.length>=count)return;if(!picks.some(pick=>pick.name===item.name))picks.push(item)});return picks.slice(0,count)}function buildClassicPoolList(){return CLASSIC_POOL.map(item=>({...item}))}function createThemePrompt(excludedAiNames,excludedClassicNames){return"请为通用角色设计生成主题样例，输出 name、desc、keywords、color 与 type 字段。"}function buildThemeOptionCard(opt,selectedValue,sel){const card=document.createElement("div");card.className="theme-option-card"+(opt.value===selectedValue?" active":"")+(opt.value==="custom"?" custom":"");card.tabIndex=0;card.setAttribute("role","button");card.setAttribute("aria-pressed",opt.value===selectedValue?"true":"false");const themeData=THEMES[opt.value];const subtitle=opt.value==="custom"?"手动填写主题名称、关键词和风格":(themeData?.kw||[]).slice(0,3).join(" · ")||"点击选中该主题";card.innerHTML=`<strong>${opt.textContent}</strong><span>${subtitle}</span>`;const handlePick=()=>{sel.value=opt.value;onThemeChange()};card.onclick=handlePick;card.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();handlePick()}};return card}function rebuildAllOptions(aiItems,classicItems){const sel=document.getElementById("theme");const previousValue=sel.value;const firstOpt=sel.options[0];const nextAiItems=aiItems.map(item=>normalizeThemeItem(item,"ai")).filter(Boolean).slice(0,THEME_PICK_COUNT);const nextClassicItems=classicItems.map(item=>normalizeThemeItem(item,"classic")).filter(Boolean).slice(0,THEME_PICK_COUNT);sel.innerHTML="";sel.appendChild(firstOpt);const customOpt=document.createElement("option");customOpt.value="custom";customOpt.textContent="✏️ 自定义主题...";sel.appendChild(customOpt);const aiSep=document.createElement("option");aiSep.disabled=true;aiSep.style.fontWeight="700";aiSep.style.color="#8B5CF6";aiSep.textContent="── 🤖 AI脑洞推荐 ──";sel.appendChild(aiSep);nextAiItems.forEach((item,index)=>{const key="ai"+(index+1);THEMES[key]={name:item.name,kw:item.keywords||[],style:item.desc||item.name,color:item.color||"custom"};const opt=document.createElement("option");opt.value=key;opt.textContent=item.name;sel.appendChild(opt)});const clsSep=document.createElement("option");clsSep.disabled=true;clsSep.style.fontWeight="700";clsSep.style.color="#3B82F6";clsSep.textContent="── 📋 经典主题 ──";sel.appendChild(clsSep);nextClassicItems.forEach((item,index)=>{const key="cls"+(index+1);THEMES[key]={name:item.name,kw:item.keywords||[],style:item.desc||item.name,color:item.color||"custom"};const opt=document.createElement("option");opt.value=key;opt.textContent=item.name;sel.appendChild(opt)});rememberThemeSnapshot(nextAiItems,nextClassicItems);const hasPrevious=Array.from(sel.options).some(opt=>opt.value===previousValue);sel.value=hasPrevious?previousValue:"";renderThemeOptionBoard(sel.value);onThemeChange()}function renderThemeOptionBoard(selectedValue=document.getElementById("theme")?.value||""){const board=document.getElementById("themeOptionBoard");const sel=document.getElementById("theme");if(!board||!sel)return;board.innerHTML=`
+    <div class="theme-custom-hero ${selectedValue==="custom"?"active":""}" id="themeCustomHero" role="button" tabindex="0" aria-pressed="${selectedValue==="custom"}">
+      <strong>✏️ 自定义主题</strong>
+      <span>你可以直接手填主题名、关键词和风格描述，不跟随下方推荐刷新。</span>
+    </div>
+    <div class="theme-option-grid">
+      <div class="theme-option-column">
+        <div class="theme-option-heading">🤖 AI脑洞推荐</div>
+        <div class="theme-option-list" id="themeAiList"></div>
+      </div>
+      <div class="theme-option-column">
+        <div class="theme-option-heading">📋 经典主题</div>
+        <div class="theme-option-list" id="themeClassicList"></div>
+      </div>
+    </div>
+  `;const customHero=board.querySelector("#themeCustomHero");const activateCustom=()=>{sel.value="custom";onThemeChange()};customHero.onclick=activateCustom;customHero.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();activateCustom()}};const aiList=board.querySelector("#themeAiList");const classicList=board.querySelector("#themeClassicList");Array.from(sel.options).forEach(opt=>{if(!opt.value||opt.value==="custom"||opt.disabled)return;if(opt.value.startsWith("ai")){aiList.appendChild(buildThemeOptionCard(opt,selectedValue,sel));return}classicList.appendChild(buildThemeOptionCard(opt,selectedValue,sel))})}function applyThemeSourcePayload(payload,source="bridge"){const aiItems=(payload?.ai||payload?.aiItems||[]).map(item=>normalizeThemeItem(item,"ai")).filter(Boolean).slice(0,THEME_PICK_COUNT);const classicItems=(payload?.classic||payload?.classicItems||[]).map(item=>normalizeThemeItem(item,"classic")).filter(Boolean).slice(0,THEME_PICK_COUNT);if(aiItems.length===THEME_PICK_COUNT&&classicItems.length===THEME_PICK_COUNT){rebuildAllOptions(aiItems,classicItems);demoStorage.setItem(THEME_SOURCE_CACHE_KEY,JSON.stringify({ai:aiItems,classic:classicItems}));if(source!=="cache")console.log("theme source synced from",source);return true}return false}function loadThemeSourceCache(){try{const cached=JSON.parse(demoStorage.getItem(THEME_SOURCE_CACHE_KEY)||"null");if(cached)return applyThemeSourcePayload(cached,"cache")}catch(error){console.log("theme source cache parse failed",error)}return false}function ensureInitialThemeOptions(){const cachedLoaded=loadThemeSourceCache();if(cachedLoaded)return;const aiPicks=pickNonRepeatingThemes(AI_POOL,THEME_PICK_COUNT,[],"ai");const classicPicks=pickNonRepeatingThemes(buildClassicPoolList(),THEME_PICK_COUNT,[],"classic");rebuildAllOptions(aiPicks,classicPicks)}window.addEventListener("message",event=>{const data=event.data;if(!data)return;if(data.type==="theme-filter-picks"||data.type==="season-theme-picks"){applyThemeSourcePayload(data.payload||data,"postMessage")}});async function refreshAIThemes(){setThemeRefreshState(true);const snapshot=lastThemeSnapshot.ai.length||lastThemeSnapshot.classic.length?lastThemeSnapshot:getCurrentThemeSnapshotFromSelect();const apiKey=demoStorage.getItem("hunyuan_api_key");if(apiKey){const prompt=createThemePrompt(snapshot.ai,snapshot.classic);try{const resp=await fetch("unavailable.html",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},body:JSON.stringify({model:"hunyuan-turbo",messages:[{role:"user",content:prompt}],temperature:.95})});const data=await resp.json();const text=data.choices?.[0]?.message?.content||"";const match=text.match(/\[[\s\S]*\]/);if(match){const items=JSON.parse(match[0]);const aiItems=uniqueThemeItems(items.filter(item=>item.type==="ai").map(item=>normalizeThemeItem(item,"ai")).filter(Boolean),snapshot.ai).slice(0,THEME_PICK_COUNT);const classicItems=uniqueThemeItems(items.filter(item=>item.type==="classic").map(item=>normalizeThemeItem(item,"classic")).filter(Boolean),snapshot.classic).slice(0,THEME_PICK_COUNT);if(aiItems.length===THEME_PICK_COUNT&&classicItems.length===THEME_PICK_COUNT){rebuildAllOptions(aiItems,classicItems);setThemeRefreshState(false);return}}}catch(e){console.log("混元API调用失败，回退离线",e)}}const aiPicks=pickNonRepeatingThemes(AI_POOL,THEME_PICK_COUNT,snapshot.ai,"ai");const classicPicks=pickNonRepeatingThemes(buildClassicPoolList(),THEME_PICK_COUNT,snapshot.classic,"classic");rebuildAllOptions(aiPicks,classicPicks);setThemeRefreshState(false)}const TIER_SUFFIX={"orange-hidden":", ultra detailed, luxury materials, complex silhouette, special effects, premium quality, 3 material types --q 2 --s 750","orange-base":", highly detailed, elegant materials, clear silhouette, moderate complexity --q 2 --s 600","purple":", detailed, 1-2 material types, back accessory allowed, effect materials --q 2 --s 500","blue":", clean design, single material, minimal accessories --q 2 --s 400"};let curStep=0;let currentMode="txt2img";const refImages=[null,null,null,null,null];let pendingSlot=-1;function getModeMeta(){if(currentMode==="img2img"){return{shortName:"图生图",refTitle:"🖼️ 图生图参考图与局部描述",refLead:"图生图模式直接从参考图开始，建议至少上传 1 张参考图，并明确写清楚要保留或替换的局部细节。",refLabel:"图生图参考描述",refTip:"点击编号标签插入引用，例如：“保留 ① 的发型结构 + ③ 的服装层次，配色改成 ② 的方案”",promptTitle:"✨ 图生图 Prompt 生成与微调",promptLead:"Prompt 会更强调参考图中的局部继承与风格约束，适合做定向改图和风格靠拢。",genTitle:"🚀 图生图批量生成与结果回看",genLead:"仍然保留原有引擎、定时、历史与 API 配置；区别在于 Prompt 会优先围绕参考图展开。",summaryHero:"当前为图生图模式，本流程直接从参考图开始。",themeSummary:"按参考图"}}return{shortName:"文生图",refTitle:"🖼️ 参考图与局部描述",refLead:"文生图模式下可选上传灵感图；如果有明确风格参考，也可以在这里写清楚。",refLabel:"图片参考描述",refTip:"点击编号标签插入引用，例如：“参考 ① 的帽子造型 + ③ 的配色方案”",promptTitle:"✨ Prompt 生成与微调",promptLead:"系统会结合主题、品级和参考图描述生成结构化 Prompt；你可以继续手动微调，再把结果直接送到下方生图区。",genTitle:"🚀 批量生图与结果回看",genLead:"支持 DemoDraw API 实时生图，也保留图像服务平台与 ComfyUI 的手动/开发中工作流；手动模式下可把结果重新上传回这个页面预览。",summaryHero:"当前为文生图模式，先从主题与角色方向开始。",themeSummary:null}}function getFilledRefCount(){return refImages.filter(Boolean).length}function bindRefPanelToggle(){const refPanel=document.getElementById("refPanelShell");if(!refPanel)return;refPanel.addEventListener("toggle",()=>{if(currentMode==="txt2img"){txt2imgRefExpanded=refPanel.open}})}function syncRefPanelMode(){const refPanel=document.getElementById("refPanelShell");if(!refPanel)return;const isImg2Img=currentMode==="img2img";refPanel.classList.toggle("required",isImg2Img);if(isImg2Img){refPanel.open=true;return}refPanel.open=txt2imgRefExpanded}function openTxt2imgRefPanel(){txt2imgRefExpanded=true;syncRefPanelMode();goStep(1)}async function generatePromptFromThemeStep(){goStep(2);if(curStep!==2)return;await generatePrompt()}function getTierLabel(){const tier=document.getElementById("tier");return tier?.selectedOptions?.[0]?.textContent||"未选择"}function getEngineLabel(){const engine=document.getElementById("genEngine");return(engine?.selectedOptions?.[0]?.textContent||"未选择").replace(" ⚡","")}function getScheduleLabel(){const schedule=document.getElementById("genSchedule");return schedule?.selectedOptions?.[0]?.textContent||"立即执行"}function getPlannedOutputText(){const count=parseInt(document.getElementById("genCount")?.value||"1",10)||1;const engine=document.getElementById("genEngine")?.value||"art";return engine==="art"?count*4+" 张":count+" 张"}function refreshModeStepUi(){const isImg2Img=currentMode==="img2img";document.getElementById("stepTheme").hidden=isImg2Img;document.getElementById("stepLineTheme").hidden=isImg2Img;document.getElementById("stepRefNum").textContent=isImg2Img?"1":"2";document.getElementById("stepPromptNum").textContent=isImg2Img?"2":"3";document.getElementById("stepGenNum").textContent=isImg2Img?"3":"4";document.getElementById("refStageKicker").textContent=isImg2Img?"01 / 参考图输入":"02 / 参考图输入";document.getElementById("promptStageKicker").textContent=isImg2Img?"02 / Prompt 工作区":"03 / Prompt 工作区";document.getElementById("genStageKicker").textContent=isImg2Img?"03 / 批量生图":"04 / 批量生图"}function updateStepIndicators(n){document.querySelectorAll(".step-dot").forEach((d,i)=>{d.classList.remove("active","done");if(i===n)d.classList.add("active");else if(i<n)d.classList.add("done")});document.querySelectorAll(".step-line").forEach((l,i)=>{l.classList.toggle("done",i<n)})}function markCurrentStage(n){document.querySelectorAll(".panel-card.stage-card").forEach((card,i)=>{card.classList.toggle("stage-current",i===n)})}function updateWorkspaceSummary(){const summaryMode=document.getElementById("summaryMode");if(!summaryMode)return;const themeData=getThemeData();const promptText=document.getElementById("promptCode")?.textContent?.trim()||"";const meta=getModeMeta();summaryMode.textContent=meta.shortName;document.getElementById("summaryTheme").textContent=meta.themeSummary||(themeData?themeData.name:"未选择");document.getElementById("summaryTier").textContent=currentMode==="img2img"?"按参考图":getTierLabel();document.getElementById("summaryRefs").textContent=getFilledRefCount()+" / 5";document.getElementById("summaryEngine").textContent=getEngineLabel();document.getElementById("summaryTotal").textContent=getPlannedOutputText();document.getElementById("summarySchedule").textContent=getScheduleLabel();document.getElementById("summaryPrompt").textContent=promptText?"已生成 / 可微调":"未生成";document.getElementById("summaryHero").textContent=meta.summaryHero}function setGenerateMode(mode){currentMode=mode==="img2img"?"img2img":"txt2img";document.body.dataset.mode=currentMode;document.getElementById("modeTxt2Img").classList.toggle("active",currentMode==="txt2img");document.getElementById("modeImg2Img").classList.toggle("active",currentMode==="img2img");const meta=getModeMeta();document.getElementById("refSectionTitle").textContent=meta.refTitle;document.getElementById("refLead").textContent=meta.refLead;document.getElementById("refDescLabel").textContent=meta.refLabel;document.getElementById("refDescTip").textContent=meta.refTip;document.getElementById("promptSectionTitle").textContent=meta.promptTitle;document.getElementById("promptLead").textContent=meta.promptLead;document.getElementById("genSectionTitle").textContent=meta.genTitle;document.getElementById("genLead").textContent=meta.genLead;refreshModeStepUi();if(currentMode==="img2img"&&curStep===0){curStep=1}if(currentMode==="txt2img"&&!document.getElementById("theme").value&&curStep>0){curStep=0}updateStepIndicators(curStep);markCurrentStage(curStep);updateWorkspaceSummary()}function bindWorkspaceInputs(){["theme","tier","customThemeName","customKw","customStyle","refDesc","genCount","genEngine","genModel","genSchedule","customTime","duration"].forEach(id=>{const el=document.getElementById(id);if(!el)return;const evt=el.tagName==="SELECT"||el.type==="datetime-local"?"change":"input";el.addEventListener(evt,updateWorkspaceSummary);if(evt!=="change")el.addEventListener("change",updateWorkspaceSummary)});const promptCode=document.getElementById("promptCode");if(promptCode)promptCode.addEventListener("input",updateWorkspaceSummary)}function goStep(n){if(currentMode==="img2img"&&n===0){n=1}if(currentMode==="txt2img"&&n>=1&&!document.getElementById("theme").value){showStatus("genStatus","请先选择赛季主题","warn");return}if(currentMode==="txt2img"&&n>=1&&document.getElementById("theme").value==="custom"&&!document.getElementById("customThemeName").value){showStatus("genStatus","请输入自定义主题名称","warn");return}if(currentMode==="txt2img"&&n===1){txt2imgRefExpanded=true;syncRefPanelMode()}curStep=n;updateStepIndicators(n);markCurrentStage(n);const target=document.getElementById("sp"+n);if(target){window.scrollTo({top:target.offsetTop-76,behavior:"smooth"})}}function onThemeChange(){const v=document.getElementById("theme").value;const preview=document.getElementById("themePreview");const isCustom=v==="custom";document.getElementById("customThemeGroup").style.display=isCustom?"flex":"none";document.getElementById("customKwGroup").style.display=isCustom?"flex":"none";document.getElementById("customStyleGroup").style.display=isCustom?"flex":"none";renderThemeOptionBoard(v);if(!v){preview.style.display="none";updateWorkspaceSummary();return}if(isCustom){preview.style.display="none";updateWorkspaceSummary();return}preview.style.display="block";const t=THEMES[v];document.getElementById("themeKws").innerHTML=t.kw.map(k=>'<span class="kw-chip">'+k+"</span>").join("");updateWorkspaceSummary()}function getThemeData(){const v=document.getElementById("theme").value;if(v==="custom"){const name=document.getElementById("customThemeName").value||"自定义主题";const kwStr=document.getElementById("customKw").value;const kw=kwStr?kwStr.split(/[,，、\s]+/).filter(Boolean):["自定义元素"];const style=document.getElementById("customStyle").value||name;return{name,kw,style,color:"custom palette"}}return THEMES[v]||null}function toggleThemeFilter(){const embed=document.getElementById("themeFilterEmbed");const iframe=document.getElementById("themeFilterIframe");const text=document.getElementById("themeFilterToggleText");if(embed.style.display==="none"){embed.style.display="block";if(!iframe.src)iframe.src="themes.html";text.textContent="点击收起 ↑";setTimeout(()=>embed.scrollIntoView({behavior:"smooth",block:"start"}),100)}else{embed.style.display="none";text.textContent="点击展开 ↓"}}function initRefGrid(){const grid=document.getElementById("refGrid");const circled=["①","②","③","④","⑤"];grid.innerHTML="";for(let i=0;i<5;i++){const slot=document.createElement("div");slot.className="ref-slot";slot.id="ref-slot-"+i;slot.onclick=()=>{pendingSlot=i;document.getElementById("fileInput").click()};slot.innerHTML=`
+      <div class="ref-num">${circled[i]}</div>
+      <div class="ref-plus">+</div>
+      <div class="ref-hint">点击上传</div>
+      <div class="ref-remove" onclick="event.stopPropagation();removeRef(${i})">×</div>
+    `;grid.appendChild(slot)}updateRefTags()}function handleFileSelect(e){const file=e.target.files[0];if(!file||pendingSlot<0)return;const reader=new FileReader;reader.onload=function(ev){refImages[pendingSlot]=ev.target.result;const slot=document.getElementById("ref-slot-"+pendingSlot);slot.classList.add("has-img");const oldImg=slot.querySelector("img");if(oldImg)oldImg.remove();const img=document.createElement("img");img.src=ev.target.result;slot.appendChild(img);updateRefTags()};reader.readAsDataURL(file);e.target.value=""}function removeRef(i){refImages[i]=null;const slot=document.getElementById("ref-slot-"+i);slot.classList.remove("has-img");const img=slot.querySelector("img");if(img)img.remove();updateRefTags()}function updateRefTags(){const bar=document.getElementById("refTags");const circled=["①","②","③","④","⑤"];bar.innerHTML="";refImages.forEach((r,i)=>{if(r){const tag=document.createElement("span");tag.className="ref-tag";tag.textContent="引用 "+circled[i];tag.onclick=()=>{const ta=document.getElementById("refDesc");const pos=ta.selectionStart||ta.value.length;ta.value=ta.value.slice(0,pos)+circled[i]+ta.value.slice(pos);ta.focus();updateWorkspaceSummary()};bar.appendChild(tag)}});updateWorkspaceSummary()}let promptExtraDebounce=null;let promptExtraTranslatedValue="";let promptExtraTranslateSeq=0;let promptExtraLastProvider="fallback";const promptExtraTranslationCache=new Map;const HUNYUAN_OPENAI_BASE="unavailable.html";const HUNYUAN_TRANSLATE_MODEL="hunyuan-turbos-latest";function containsChinese(text){return/[\u3400-\u9FFF]/.test(text)}function normalizePromptText(text){return(text||"").replace(/[，、；｜]/g,", ").replace(/\s*\n+\s*/g,", ").replace(/\s*,\s*/g,", ").replace(/\s+/g," ").replace(/,+/g,",").replace(/^,|,$/g,"").trim()}const PROMPT_EXTRA_TRANSLATION_MAP=[["银白长发","silver white long hair"],["银白","silver white"],["白色","white"],["黑色","black"],["红色","red"],["蓝色","blue"],["粉色","pink"],["紫色","purple"],["金色","gold"],["银色","silver"],["长发","long hair"],["短发","short hair"],["卷发","curly hair"],["笑脸","smiling face"],["微笑","gentle smile"],["大笑","bright smile"],["可爱","cute"],["甜美","sweet"],["优雅","elegant"],["玻璃翅膀","glass wings"],["翅膀","wings"],["体积光","volumetric lighting"],["轻微逆光","soft backlighting"],["逆光","backlighting"],["宝石耳饰","gem earrings"],["金属质感","metallic texture"],["丝绸","silk fabric"],["发光","glowing details"],["粒子","particle effects"],["梦幻","dreamy atmosphere"],["蝴蝶结","ribbon bow"],["猫耳","cat ears"],["狐耳","fox ears"],["兔耳","bunny ears"],["腮红","soft blush"],["泪痣","beauty mark"],["发饰","hair ornament"]];function splitPromptExtraTerms(text){return String(text||"").split(/[\n,，、;；|｜]+/).map(item=>item.trim()).filter(Boolean)}function escapeRegExp(text){return String(text||"").replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function fallbackTranslatePromptTerm(term){let output=String(term||"").trim();PROMPT_EXTRA_TRANSLATION_MAP.forEach(([zh,en])=>{output=output.replace(new RegExp(escapeRegExp(zh),"g"),en)});return normalizePromptText(output)}function fallbackTranslatePromptText(text){return normalizePromptText(splitPromptExtraTerms(text).map(fallbackTranslatePromptTerm).filter(Boolean).join(", "))}function updatePromptTranslateBadge(provider=getHunyuanApiKey()?"hunyuan":"fallback"){const badge=document.getElementById("promptTranslateBadge");if(!badge)return;badge.className="prompt-translate-badge";if(provider==="hunyuan"){badge.textContent="翻译通道：混元实时";return}if(provider==="online"){badge.textContent="翻译通道：在线翻译";return}if(provider==="raw"){badge.classList.add("raw");badge.textContent="翻译通道：原文直出";return}badge.classList.add("fallback");badge.textContent="翻译通道：基础翻译"}function setPromptTranslateProvider(provider){promptExtraLastProvider=provider;updatePromptTranslateBadge(provider)}async function requestHunyuanPromptTranslation(text,apiKey=getHunyuanApiKey()){if(!apiKey)throw new Error("missing hunyuan api key");const response=await fetch("/api/",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},body:JSON.stringify({_target_url:HUNYUAN_OPENAI_BASE+"/chat/completions",model:HUNYUAN_TRANSLATE_MODEL,temperature:.2,messages:[{role:"system",content:"You are a translation engine for MJ prompts. Translate Chinese prompt fragments into concise, natural English prompt phrases. Keep the original order. Output only the translated English phrases separated by commas. Do not explain."},{role:"user",content:text}]})});if(!response.ok)throw new Error("hunyuan translate request failed");const data=await response.json();const translated=data?.choices?.[0]?.message?.content||"";return normalizePromptText(String(translated).replace(/^['"]|['"]$/g,""))}async function requestPublicPromptTranslation(text){const url="unavailable.html"+encodeURIComponent(text)+"&langpair=zh-CN|en-US";const response=await fetch(url);if(!response.ok)throw new Error("translate request failed");const data=await response.json();const translated=data?.responseData?.translatedText||"";return normalizePromptText(translated.replace(/&quot;/g,'"').replace(/&#39;/g,"'"))}async function requestPromptTranslation(text){const raw=String(text||"").trim();if(!raw)return"";const cached=promptExtraTranslationCache.get(raw);if(cached){setPromptTranslateProvider(cached.provider);return cached.text}const apiKey=getHunyuanApiKey();if(apiKey){try{const translated=await requestHunyuanPromptTranslation(raw,apiKey);if(translated&&!containsChinese(translated)){promptExtraTranslationCache.set(raw,{text:translated,provider:"hunyuan"});setPromptTranslateProvider("hunyuan");return translated}}catch(error){console.warn("混元翻译失败，自动降级:",error)}}try{const translated=await requestPublicPromptTranslation(raw);if(translated&&!containsChinese(translated)){promptExtraTranslationCache.set(raw,{text:translated,provider:"online"});setPromptTranslateProvider("online");return translated}}catch(error){console.warn("在线翻译失败，继续降级:",error)}const fallback=fallbackTranslatePromptTerm(raw);promptExtraTranslationCache.set(raw,{text:fallback,provider:"fallback"});setPromptTranslateProvider("fallback");return fallback}async function translatePromptExtraTerms(text){const terms=splitPromptExtraTerms(text);const translatedTerms=await Promise.all(terms.map(async term=>{if(!containsChinese(term))return normalizePromptText(term);return requestPromptTranslation(term)}));return normalizePromptText(translatedTerms.filter(Boolean).join(", "))}function updatePromptExtraPreview(translated="",pending=false,rawMode=false){const liveEl=document.getElementById("promptExtraLive");if(!liveEl)return;if(!translated){liveEl.style.display="none";liveEl.textContent="";liveEl.classList.remove("pending");return}liveEl.style.display="block";liveEl.classList.toggle("pending",pending);liveEl.textContent=rawMode?`按原文拼入：${translated}`:`实时中翻英：${translated}`}function previewPromptExtraTranslation(raw){if(!raw){promptExtraTranslatedValue="";updatePromptExtraPreview("");setPromptTranslateProvider(getHunyuanApiKey()?"hunyuan":"fallback");return""}if(!containsChinese(raw)){promptExtraTranslatedValue=normalizePromptText(raw);updatePromptExtraPreview(promptExtraTranslatedValue,false,true);setPromptTranslateProvider("raw");return promptExtraTranslatedValue}promptExtraTranslatedValue=fallbackTranslatePromptText(raw);updatePromptExtraPreview(promptExtraTranslatedValue,true,false);setPromptTranslateProvider(getHunyuanApiKey()?"hunyuan":"fallback");return promptExtraTranslatedValue}async function translatePromptExtra(force=false){const inputEl=document.getElementById("promptExtraInput");if(!inputEl)return"";const raw=inputEl.value.trim();const seq=++promptExtraTranslateSeq;const previewValue=previewPromptExtraTranslation(raw);if(!raw||!containsChinese(raw))return previewValue;try{const translated=await translatePromptExtraTerms(raw);if(seq!==promptExtraTranslateSeq)return promptExtraTranslatedValue;if(!translated)throw new Error("empty translation");promptExtraTranslatedValue=translated;updatePromptExtraPreview(promptExtraTranslatedValue,false,false);return promptExtraTranslatedValue}catch(error){if(seq!==promptExtraTranslateSeq)return promptExtraTranslatedValue;promptExtraTranslatedValue=previewValue||fallbackTranslatePromptText(raw);updatePromptExtraPreview(promptExtraTranslatedValue,force?false:true,false);return promptExtraTranslatedValue}}function schedulePromptExtraTranslation(){const inputEl=document.getElementById("promptExtraInput");const raw=inputEl?.value.trim()||"";previewPromptExtraTranslation(raw);clearTimeout(promptExtraDebounce);if(!raw||!containsChinese(raw))return;promptExtraDebounce=setTimeout(()=>{translatePromptExtra()},180)}function bindPromptExtraInput(){const inputEl=document.getElementById("promptExtraInput");if(!inputEl)return;inputEl.addEventListener("input",schedulePromptExtraTranslation);inputEl.addEventListener("change",()=>translatePromptExtra(true))}async function buildPromptPayload(){const refDesc=document.getElementById("refDesc").value.trim();const refCount=getFilledRefCount();const modelKey=document.getElementById("genModel").value;const extraPrompt=await translatePromptExtra(true);if(currentMode==="img2img"){const keywords=["参考图驱动","轮廓保留","局部继承","配色靠拢","细节重组"];let prompt2="cute chibi character, 2.5-3 head body ratio, image guided redesign, preserve reference silhouette, preserve detail hierarchy, image guidance strength: medium, keep recognisable visual cues, follow reference palette with targeted adjustments";if(refDesc)prompt2+=", reference notes: "+refDesc;if(refCount>0)prompt2+=", reference images count: "+refCount;if(extraPrompt)prompt2+=", "+extraPrompt;prompt2+=" --ar 3:4"+(MODEL_SUFFIX[modelKey]||" --niji 6");return{themeName:"参考图驱动",tier:null,keywords,style:"reference driven character redesign, preserve silhouette, inherit local details",colorPalette:"follow reference palette with targeted adjustments",referenceDescription:refDesc||null,referenceImages:refCount+" uploaded",extraPromptInput:document.getElementById("promptExtraInput")?.value.trim()||"",extraPromptEnglish:extraPrompt||null,prompt:prompt2,modelKey}}const theme=document.getElementById("theme").value;if(!theme)return null;const t=getThemeData();if(!t)return null;const tier=document.getElementById("tier").value;let prompt="cute chibi character, 2.5-3 head body ratio, original concept design, "+t.style+", "+t.kw.slice(0,5).join(", ")+", color palette: "+t.color;if(refDesc)prompt+=", reference notes: "+refDesc;if(refCount>0)prompt+=", reference images count: "+refCount;if(extraPrompt)prompt+=", "+extraPrompt;prompt+=TIER_SUFFIX[tier]+" --ar 3:4"+(MODEL_SUFFIX[modelKey]||" --niji 6");return{themeName:t.name,tier,keywords:t.kw,style:t.style,colorPalette:t.color,referenceDescription:refDesc||null,referenceImages:refCount+" uploaded",extraPromptInput:document.getElementById("promptExtraInput")?.value.trim()||"",extraPromptEnglish:extraPrompt||null,prompt,modelKey}}async function generatePrompt(){const refCount=getFilledRefCount();if(currentMode==="txt2img"&&!document.getElementById("theme").value){showStatus("genStatus","请先选择赛季主题","warn");goStep(0);return}if(currentMode==="img2img"&&refCount===0){showStatus("genStatus","图生图模式下请至少上传 1 张参考图","warn");goStep(1);return}const payload=await buildPromptPayload();if(!payload)return;document.getElementById("kwsOut").innerHTML=payload.keywords.map(k=>'<span class="kw-chip">'+k+"</span>").join("");document.getElementById("promptCode").textContent=payload.prompt;const json={mode:currentMode,theme:payload.themeName,tier:payload.tier,keywords:payload.keywords,style:payload.style,colorPalette:payload.colorPalette,referenceImages:payload.referenceImages,referenceDescription:payload.referenceDescription,extraPromptInput:payload.extraPromptInput,extraPromptEnglish:payload.extraPromptEnglish,prompt:payload.prompt,config:{count:parseInt(document.getElementById("genCount").value),model:payload.modelKey,aspectRatio:"3:4",quality:2}};document.getElementById("jsonCode").textContent=JSON.stringify(json,null,2);document.getElementById("promptResult").style.display="block";document.getElementById("btnToGen").style.display="inline-flex";updateWorkspaceSummary()}async function editPrompt(){const el=document.getElementById("promptCode");if(!el.textContent){await generatePrompt()}el.contentEditable=el.contentEditable==="true"?"false":"true";el.style.outline=el.contentEditable==="true"?"2px solid var(--accent)":"none";el.style.borderRadius="8px";el.focus()}function copyText(id){const text=document.getElementById(id).textContent;navigator.clipboard.writeText(text).then(()=>{const btn=document.querySelector("#"+id).closest(".code-box").querySelector(".copy-btn");btn.textContent="已复制 ✓";setTimeout(()=>btn.textContent="复制",1500)})}function onEngineChange(){const engine=document.getElementById("genEngine").value;const modelSel=document.getElementById("genModel");const artConfig=document.getElementById("artApiConfig");const countInput=document.getElementById("genCount");const countLabel=document.getElementById("genCountLabel");const countHint=document.getElementById("genCountHint");const manualBtn=document.getElementById("btnManualUpload");if(engine==="art"){modelSel.innerHTML=`
+      <option value="niji6">Niji 6（推荐角色）</option>
+      <option value="niji7">Niji 7（最新动漫）</option>
+      <option value="v7">MJ v7（最新版本）</option>
+      <option value="v6">MJ v6</option>
+    `;artConfig.style.display="block";if(manualBtn)manualBtn.style.display="none";countLabel.textContent="生成批次（一批4张）";countInput.min=1;countInput.max=100;if(parseInt(countInput.value)>100)countInput.value=100;if(!countInput.value||parseInt(countInput.value)<1)countInput.value=1;countInput.placeholder="输入 1-100";countHint.style.display="block";updateBatchHint();countInput.oninput=updateBatchHint}else if(engine==="mj"){modelSel.innerHTML=`
+      <option value="niji6">Niji 6（推荐角色）</option>
+      <option value="niji7">Niji 7（最新动漫）</option>
+      <option value="v7">MJ v7</option>
+      <option value="v6">MJ v6</option>
+    `;artConfig.style.display="none";if(manualBtn)manualBtn.style.display="inline-flex";countLabel.textContent="生成张数（1-100）";countInput.min=1;countInput.max=100;countInput.placeholder="输入 1-100";countHint.style.display="none";countInput.oninput=null}else{modelSel.innerHTML=`<option value="comfy">ComfyUI 默认</option>`;artConfig.style.display="none";if(manualBtn)manualBtn.style.display="inline-flex";countLabel.textContent="生成张数（1-100）";countInput.min=1;countInput.max=100;countInput.placeholder="输入 1-100";countHint.style.display="none";countInput.oninput=null}updateWorkspaceSummary()}function updateBatchHint(){const count=parseInt(document.getElementById("genCount").value)||1;const total=count*4;const suffix=autoDownloadEnabled?"；已勾选自动保存到本地":"；未勾选自动保存（默认不下载）";document.getElementById("genCountHint").textContent="每批生成 4 张图，共 "+total+" 张"+suffix}const MODEL_SUFFIX={"niji6":" --niji 6","niji7":" --niji 7","v7":" --v 7","v6":" --v 6"};function onScheduleChange(){const v=document.getElementById("genSchedule").value;document.getElementById("customTimeGroup").style.display=v==="custom"?"flex":"none";document.getElementById("durationGroup").style.display=v==="overnight"||v==="tonight"?"flex":"none";document.getElementById("overnightInfo").style.display=v==="overnight"||v==="tonight"?"block":"none"}function saveArtApiKey(){const key=document.getElementById("artApiKey").value.trim();if(key){demoStorage.setItem("art_draw_api_key",key);document.getElementById("artApiDot").className="api-status-dot ok";document.getElementById("artApiStatus").textContent="已配置"}else{demoStorage.removeItem("art_draw_api_key");document.getElementById("artApiDot").className="api-status-dot";document.getElementById("artApiStatus").textContent="未配置"}}function loadArtApiKey(){let key=demoStorage.getItem("art_draw_api_key")||"";if(!key){try{const v2Config=JSON.parse(demoStorage.getItem("v2_api_config")||"{}");if(v2Config.key){key=v2Config.key;demoStorage.setItem("art_draw_api_key",key)}}catch(e){}}document.getElementById("artApiKey").value=key;if(key){document.getElementById("artApiDot").className="api-status-dot ok";document.getElementById("artApiStatus").textContent="已配置"}}function getHunyuanApiKey(){return(document.getElementById("hunyuanApiKey")?.value||demoStorage.getItem("hunyuan_api_key")||"").trim()}function saveHunyuanApiKey(){const key=(document.getElementById("hunyuanApiKey")?.value||"").trim();if(key){demoStorage.setItem("hunyuan_api_key",key)}else{demoStorage.removeItem("hunyuan_api_key")}const dot=document.getElementById("hunyuanApiDot");const status=document.getElementById("hunyuanApiStatus");if(dot)dot.className=key?"api-status-dot ok":"api-status-dot";if(status)status.textContent=key?"已配置 · 混元实时翻译已启用":"未配置 · 自动降级为基础翻译";updatePromptTranslateBadge(key?"hunyuan":"fallback")}function loadHunyuanApiKey(){const key=demoStorage.getItem("hunyuan_api_key")||"";const input=document.getElementById("hunyuanApiKey");if(input)input.value=key;const dot=document.getElementById("hunyuanApiDot");const status=document.getElementById("hunyuanApiStatus");if(dot)dot.className=key?"api-status-dot ok":"api-status-dot";if(status)status.textContent=key?"已配置 · 混元实时翻译已启用":"未配置 · 自动降级为基础翻译";updatePromptTranslateBadge(key?"hunyuan":"fallback");return key}let autoDownloadEnabled=false;let localSaveDirectoryHandle=null;const LOCAL_SAVE_DB_NAME="ai-gen-local-save";const LOCAL_SAVE_STORE_NAME="handles";const LOCAL_SAVE_HANDLE_KEY="default";const AUTO_DOWNLOAD_STORAGE_KEY="ai_gen_auto_download";function canChooseLocalSaveFolder(){return typeof window.showDirectoryPicker==="function"}function getLocalSaveDestinationLabel(){return localSaveDirectoryHandle?.name?`本地文件夹：${localSaveDirectoryHandle.name}`:"浏览器默认下载目录"}function openLocalSaveDb(){return new Promise((resolve,reject)=>{if(!window.indexedDB){resolve(null);return}const request=window.indexedDB.open(LOCAL_SAVE_DB_NAME,1);request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(LOCAL_SAVE_STORE_NAME)){db.createObjectStore(LOCAL_SAVE_STORE_NAME)}};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error("indexedDB 打开失败"))})}async function saveLocalSaveDirectoryHandle(handle){const db=await openLocalSaveDb();if(!db)return;await new Promise((resolve,reject)=>{const tx=db.transaction(LOCAL_SAVE_STORE_NAME,"readwrite");tx.objectStore(LOCAL_SAVE_STORE_NAME).put(handle,LOCAL_SAVE_HANDLE_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error("保存目录句柄失败"))});db.close()}async function loadSavedLocalSaveDirectoryHandle(){const db=await openLocalSaveDb();if(!db)return null;const handle=await new Promise((resolve,reject)=>{const tx=db.transaction(LOCAL_SAVE_STORE_NAME,"readonly");const req=tx.objectStore(LOCAL_SAVE_STORE_NAME).get(LOCAL_SAVE_HANDLE_KEY);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error||new Error("读取目录句柄失败"))});db.close();return handle}async function clearSavedLocalSaveDirectoryHandle(){const db=await openLocalSaveDb();if(!db)return;await new Promise((resolve,reject)=>{const tx=db.transaction(LOCAL_SAVE_STORE_NAME,"readwrite");tx.objectStore(LOCAL_SAVE_STORE_NAME).delete(LOCAL_SAVE_HANDLE_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error("清理目录句柄失败"))});db.close()}async function verifyDirectoryPermission(handle,requestWrite=false){if(!handle)return"denied";const options={mode:"readwrite"};if(await handle.queryPermission(options)==="granted")return"granted";if(!requestWrite)return"prompt";return await handle.requestPermission(options)}function updateAutoDownloadUi(){const toggle=document.getElementById("autoDownloadToggle");const button=document.getElementById("btnPickLocalFolder");const note=document.getElementById("autoDownloadNote");const folderStatus=document.getElementById("localSaveFolderStatus");if(toggle)toggle.checked=autoDownloadEnabled;if(button){if(!autoDownloadEnabled){button.style.display="none"}else if(canChooseLocalSaveFolder()){button.style.display="";button.disabled=false;button.textContent=localSaveDirectoryHandle?"📁 更换本地文件夹":"📁 选择本地文件夹"}else{button.style.display="";button.disabled=true;button.textContent="📁 当前浏览器不支持选文件夹"}}if(note){if(!autoDownloadEnabled){note.textContent="默认不会自动下载。勾选上方选项后，生成完成才会自动保存到本地（可选择本地文件夹直存，否则落到浏览器默认下载目录）。"}else if(canChooseLocalSaveFolder()){note.textContent=localSaveDirectoryHandle?"已开启自动本地保存。生成完成后会优先直接写入所选文件夹；若权限失效，会自动回退到浏览器默认下载目录。":"已开启自动本地保存。你可以选择一个本地文件夹做直存；未选择时会自动下载到浏览器默认下载目录。"}else{note.textContent="已开启自动本地保存。当前浏览器不支持直接选择文件夹，将自动下载到浏览器默认下载目录。"}}if(folderStatus){if(!autoDownloadEnabled){folderStatus.style.display="none"}else{folderStatus.style.display="";folderStatus.textContent="当前保存位置："+getLocalSaveDestinationLabel()}}if(typeof updateBatchHint==="function"){try{updateBatchHint()}catch(e){}}}function toggleAutoDownload(checked){autoDownloadEnabled=!!checked;demoStorage.setItem(AUTO_DOWNLOAD_STORAGE_KEY,autoDownloadEnabled?"1":"0");updateAutoDownloadUi();if(autoDownloadEnabled){restoreLocalSaveFolderHandle()}}async function restoreLocalSaveFolderHandle(){try{const savedHandle=await loadSavedLocalSaveDirectoryHandle();if(!savedHandle)return;const permission=await verifyDirectoryPermission(savedHandle,false);if(permission!=="granted"){await clearSavedLocalSaveDirectoryHandle();return}localSaveDirectoryHandle=savedHandle;updateAutoDownloadUi()}catch(error){console.warn("恢复本地文件夹失败:",error)}}async function pickLocalSaveFolder(){if(!canChooseLocalSaveFolder()){updateAutoDownloadUi();showStatus("genStatus","⚠️ 当前浏览器不支持直接选择本地文件夹，将自动保存到浏览器默认下载目录","warn");return}try{const handle=await window.showDirectoryPicker({mode:"readwrite"});const permission=await verifyDirectoryPermission(handle,true);if(permission!=="granted")throw new Error("未获得写入权限");localSaveDirectoryHandle=handle;await saveLocalSaveDirectoryHandle(handle);updateAutoDownloadUi();addLog(`📁 已选择本地文件夹：${handle.name}`,"ok");showStatus("genStatus",`📁 已选择本地文件夹：${handle.name}，后续生成会直接保存到这里`,"success")}catch(error){if(error?.name==="AbortError")return;console.warn("选择本地文件夹失败:",error);showStatus("genStatus","⚠️ 选择本地文件夹失败，将继续使用浏览器默认下载目录","warn")}}function loadAutoDownloadSetting(){const stored=demoStorage.getItem(AUTO_DOWNLOAD_STORAGE_KEY);autoDownloadEnabled=stored==="1";updateAutoDownloadUi();if(autoDownloadEnabled){restoreLocalSaveFolderHandle()}return autoDownloadEnabled}const ART_API_BASE="unavailable.html";async function artCreateTask(promptText,apiKey){const resp=await fetch("/api/",{method:"POST",headers:{"Content-Type":"application/json","Authorization":apiKey},body:JSON.stringify({_target_url:ART_API_BASE+"/diffusion",text:promptText})});if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error||`HTTP ${resp.status}`)}return await resp.json()}async function artQueryTask(taskId,apiKey){const resp=await fetch("/api/",{method:"POST",headers:{"Content-Type":"application/json","Authorization":apiKey},body:JSON.stringify({_target_url:ART_API_BASE+"/job/"+taskId,_method:"GET"})});if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error||`HTTP ${resp.status}`)}return await resp.json()}let isGenerating=false;let shouldStop=false;let genTasks=[];let genStartTime=0;function addLog(msg,type="info"){const log=document.getElementById("taskLog");log.style.display="block";const time=new Date().toLocaleTimeString();const cls=type==="ok"?"log-ok":type==="err"?"log-err":"log-info";log.innerHTML+=`<div class="${cls}">[${time}] ${msg}</div>`;log.scrollTop=log.scrollHeight}function updateProgress(done,total){const wrap=document.getElementById("progressWrap");wrap.style.display="block";const pct=total>0?Math.round(done/total*100):0;document.getElementById("progressFill").style.width=pct+"%";document.getElementById("progressPercent").textContent=pct+"%";document.getElementById("progressDone").textContent=done+" / "+total+" 完成";if(done>0&&genStartTime){const elapsed=(Date.now()-genStartTime)/1e3;const perTask=elapsed/done;const remaining=Math.round(perTask*(total-done));if(remaining>60){document.getElementById("progressEta").textContent="预计剩余 "+Math.ceil(remaining/60)+" 分钟"}else{document.getElementById("progressEta").textContent="预计剩余 "+remaining+" 秒"}}else{document.getElementById("progressEta").textContent="预计剩余 --"}}async function getCurrentPrompt(){const promptCode=document.getElementById("promptCode");if(promptCode&&promptCode.textContent.trim()){return promptCode.textContent.trim()}const payload=await buildPromptPayload();return payload?.prompt||""}function buildFinalPrompt(basePrompt,modelKey){let cleaned=basePrompt.replace(/\s*--niji\s+\d+/gi,"").replace(/\s*--v(?:ersion)?\s+\d+/gi,"").trim();cleaned=cleaned.replace(/--q\s+([\d.]+)/gi,(match,val)=>{const num=parseFloat(val);if(num>1)return"--q 1";if(num<.25)return"--q 0.25";if([.25,.5,1].includes(num))return match;return"--q 1"});cleaned+=MODEL_SUFFIX[modelKey]||" --niji 6";return cleaned}async function startGenerate(){const engine=document.getElementById("genEngine").value;const batchCount=parseInt(document.getElementById("genCount").value)||2;const schedule=document.getElementById("genSchedule").value;const savePath="服务器";const modelKey=document.getElementById("genModel").value;if(currentMode==="img2img"&&getFilledRefCount()===0){showStatus("genStatus","图生图模式下请至少上传 1 张参考图","warn");goStep(1);return}if(engine!=="art"){if(batchCount<1||batchCount>100){showStatus("genStatus","张数请输入 1-100 之间","warn");return}startGenerateLegacy(engine,batchCount,schedule,savePath);return}if(batchCount<1||batchCount>100){showStatus("genStatus","批次请输入 1-100 之间","warn");return}const apiKey=(document.getElementById("artApiKey").value||"").trim();if(!apiKey){showStatus("genStatus","⚠️ 请先在下方配置 DemoDraw API Key","warn");document.getElementById("artApiConfig").open=true;return}let basePrompt=await getCurrentPrompt();if(!basePrompt){showStatus("genStatus","⚠️ 请先在 Step 3 生成 Prompt","warn");return}let delayMs=0;if(schedule!=="now"){const delayMap={"30m":30*60*1e3,"1h":60*60*1e3,"2h":2*60*60*1e3};if(delayMap[schedule]){delayMs=delayMap[schedule]}else if(schedule==="tonight"){const now=new Date;const target=new Date(now);target.setHours(21,30,0,0);if(target<=now)target.setDate(target.getDate()+1);delayMs=target-now}else if(schedule==="custom"){const customVal=document.getElementById("customTime").value;if(!customVal){showStatus("genStatus","⚠️ 请选择自定义时间","warn");return}const target=new Date(customVal);delayMs=target-Date.now();if(delayMs<0){showStatus("genStatus","⚠️ 自定义时间已过，请重新选择","warn");return}}else if(schedule==="overnight"){delayMs=0}}if(delayMs>0){const delayMin=Math.round(delayMs/6e4);const startTime=new Date(Date.now()+delayMs).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});showStatus("genStatus",`⏰ 已设置定时任务: 将在 ${startTime} (${delayMin} 分钟后) 自动开始生图`,"info");addLog(`⏰ 定时任务已设置: ${startTime} 开始, 共 ${batchCount} 批 (${batchCount*4} 张)`);document.getElementById("btnStartGen").style.display="none";document.getElementById("btnStopGen").style.display="inline-flex";document.getElementById("taskLog").style.display="block";const countdownId=setInterval(()=>{const remain=Math.max(0,Math.round((Date.now()+delayMs-Date.now())/1e3))},1e3);shouldStop=false;const timerId=setTimeout(()=>{clearInterval(countdownId);if(shouldStop){showStatus("genStatus","⏹ 定时任务已取消","warn");addLog("⏹ 定时任务已取消","err");document.getElementById("btnStartGen").style.display="inline-flex";document.getElementById("btnStopGen").style.display="none";return}addLog(`🚀 定时到达，开始生图!`,"ok");document.getElementById("genSchedule").value="now";startGenerate()},delayMs);document.getElementById("btnStopGen").onclick=()=>{shouldStop=true;clearTimeout(timerId);clearInterval(countdownId);showStatus("genStatus","⏹ 定时任务已取消","warn");addLog("⏹ 定时任务已取消","err");document.getElementById("btnStartGen").style.display="inline-flex";document.getElementById("btnStopGen").style.display="none";document.getElementById("btnStopGen").onclick=()=>stopGenerate()};return}const finalPrompt=buildFinalPrompt(basePrompt,modelKey);const totalImages=batchCount*4;const pollInterval=5e3;isGenerating=true;shouldStop=false;genTasks=[];genStartTime=Date.now();document.getElementById("btnStartGen").style.display="none";document.getElementById("btnStopGen").style.display="inline-flex";document.getElementById("taskLog").innerHTML="";document.getElementById("taskLog").style.display="block";showStatus("genStatus","🚀 开始使用 DemoDraw API 生图 · 共 "+batchCount+" 批 ("+totalImages+" 张) · 模型: "+modelKey,"info");addLog("🚀 任务开始: 共 "+batchCount+" 批 ("+totalImages+" 张)");addLog(autoDownloadEnabled?'⬇️ 已勾选"自动保存到本地"；如浏览器提示"允许此站点下载多个文件"，请点击允许。':'💡 未勾选"自动保存到本地"，本次不会自动下载；如需自动落本地，请在参数区勾选该选项。');addLog("📝 Prompt: "+finalPrompt.slice(0,100)+(finalPrompt.length>100?"...":""));const preview=document.getElementById("genPreview");const results=document.getElementById("genResults");results.style.display="block";preview.innerHTML="";for(let i=0;i<totalImages;i++){const thumb=document.createElement("div");thumb.className="gen-thumb";thumb.id="gen-thumb-"+i;const batchIdx=Math.floor(i/4)+1;const imgIdx=i%4+1;thumb.innerHTML=`<div class="gen-num">批${batchIdx}-${imgIdx}</div><span style="font-size:28px;color:var(--text3);">⏳</span>`;thumb.style.background="#F8FAFC";preview.appendChild(thumb)}updateProgress(0,batchCount);let completedBatches=0;let failedBatches=0;for(let batch=0;batch<batchCount;batch++){if(shouldStop)break;const baseThumbIdx=batch*4;for(let j=0;j<4;j++){const el=document.getElementById("gen-thumb-"+(baseThumbIdx+j));if(el){el.className="gen-thumb loading";el.innerHTML=`<div class="gen-num">批${batch+1}-${j+1}</div>🖼️`}}try{const createResp=await artCreateTask(finalPrompt,apiKey);if(createResp.status===3){throw new Error(createResp.comment||createResp.message||"创建任务失败")}const taskId=createResp.id;if(!taskId){throw new Error("未获取到任务ID: "+JSON.stringify(createResp).slice(0,200))}genTasks[batch]={taskId,status:"pending",prompt:finalPrompt};let taskDone=false;let pollCount=0;addLog(`⏳ 批次 ${batch+1} 生成中...`);while(!taskDone&&!shouldStop){await sleep(pollInterval);pollCount++;try{const data=await artQueryTask(taskId,apiKey);const status=data.status;if(status===2){const imageUrls=data.urls||[];genTasks[batch].status="done";genTasks[batch].imageUrls=imageUrls;addLog(`🎉 批次 ${batch+1} 完成! 生成 ${imageUrls.length} 张图片`+(data.seed?`, seed: ${data.seed}`:""),"ok");const localUrls=await saveImagesToLocal(imageUrls,batch+1,data.seed);if(autoDownloadEnabled){await autoDownloadImages(localUrls.length?localUrls:imageUrls,batch+1,data.seed)}for(let j=0;j<4;j++){const el=document.getElementById("gen-thumb-"+(baseThumbIdx+j));if(!el)continue;el.classList.remove("loading");const localUrl=localUrls[j]||"";const remoteUrl=imageUrls[j]||"";const displayUrl=localUrl||remoteUrl;if(displayUrl){el.innerHTML=`
+                  <div class="gen-num">批${batch+1}-${j+1}</div>
+                  <a class="gen-dl" onclick="event.stopPropagation();dlImg(this)" data-url="${displayUrl}" data-name="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" title="下载">⬇</a>
+                  <img src="${displayUrl}" alt="批${batch+1}-${j+1}">
+                `;el.style.background=""}else{el.style.background="linear-gradient(135deg,#E0E7FF,#C7D2FE)";el.innerHTML=`<div class="gen-num">批${batch+1}-${j+1}</div><span style="font-size:11px;color:var(--accent);">✅</span>`}}completedBatches++;taskDone=true}else if(status===3){throw new Error(data.comment||"生图失败")}}catch(pollErr){}}if(shouldStop&&!taskDone){addLog(`⏹ 批次 ${batch+1} 已停止`,"err");for(let j=0;j<4;j++){const el=document.getElementById("gen-thumb-"+(baseThumbIdx+j));if(el){el.classList.remove("loading");el.style.background="#FEF9C3";el.innerHTML=`<div class="gen-num">批${batch+1}-${j+1}</div><span style="font-size:11px;color:#92400E;">已停止</span>`}}}}catch(err){addLog(`❌ 批次 ${batch+1} 失败: ${err.message}`,"err");for(let j=0;j<4;j++){const el=document.getElementById("gen-thumb-"+(baseThumbIdx+j));if(el){el.classList.remove("loading");el.className="gen-thumb failed";el.innerHTML=`<div class="gen-num">批${batch+1}-${j+1}</div><span style="font-size:11px;">❌</span>`}}failedBatches++}updateProgress(completedBatches+failedBatches,batchCount)}isGenerating=false;document.getElementById("btnStartGen").style.display="inline-flex";document.getElementById("btnStopGen").style.display="none";const elapsed=Math.round((Date.now()-genStartTime)/1e3);const elapsedStr=elapsed>60?Math.floor(elapsed/60)+"分"+elapsed%60+"秒":elapsed+"秒";const totalSuccess=completedBatches*4;const totalFail=failedBatches*4;if(shouldStop){showStatus("genStatus",`⏹ 已停止 · 完成 ${completedBatches}/${batchCount} 批 (${totalSuccess} 张), 失败 ${failedBatches} 批 · 耗时 ${elapsedStr}`,"warn");addLog(`⏹ 任务已停止: 完成 ${completedBatches} 批, 失败 ${failedBatches} 批, 耗时 ${elapsedStr}`,"err")}else{showStatus("genStatus",`✅ 全部完成! ${completedBatches}/${batchCount} 批成功 (${totalSuccess} 张), ${failedBatches} 批失败 · 耗时 ${elapsedStr}`,"success");addLog(`🎊 全部完成: ${completedBatches} 批成功 (${totalSuccess} 张), ${failedBatches} 批失败, 耗时 ${elapsedStr}`,"ok")}}function stopGenerate(){shouldStop=true;addLog("🛑 用户请求停止...","err");showStatus("genStatus","⏹ 正在停止，等待进行中的任务完成...","warn")}function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}async function saveImagesToLocal(urls,batchNum,seed){if(!urls||urls.length===0)return[];const themeData=getThemeData();const themeName=(themeData?themeData.name:"gen").replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g,"_").slice(0,20);const dateStr=new Date().toISOString().slice(0,10);const seedStr=seed?"_s"+seed:"";const prefix=`${themeName}_b${batchNum}${seedStr}`;addLog(`💾 正在保存批次 ${batchNum} 的图片到服务器...`);try{const resp=await fetch("/api/save-images",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({urls,prefix,subdir:dateStr})});if(!resp.ok){const errData=await resp.json().catch(()=>({}));addLog(`⚠️ 服务器保存失败: ${errData.error||"HTTP "+resp.status}`,"err");return[]}const data=await resp.json();const savedUrls=(data.saved||[]).map(s=>s.url);if(data.count>0){addLog(`✅ 已保存 ${data.count} 张图片到服务器`,"ok")}if(data.errors&&data.errors.length>0){addLog(`⚠️ ${data.errors.length} 张保存失败`,"err")}return savedUrls}catch(e){addLog(`⚠️ 保存到服务器异常: ${e.message}`,"err");return[]}}function handleManualGenImages(e){const files=Array.from(e.target.files||[]);if(!files.length)return;const preview=document.getElementById("genPreview");const results=document.getElementById("genResults");results.style.display="block";preview.innerHTML="";files.forEach((file,i)=>{const reader=new FileReader;reader.onload=function(ev){const thumb=document.createElement("div");thumb.className="gen-thumb";thumb.innerHTML=`
+        <div class="gen-num">#${i+1}</div>
+        <a class="gen-dl" onclick="event.stopPropagation();dlImg(this)" data-url="${ev.target.result}" data-name="${file.name}" title="下载">⬇</a>
+        <img src="${ev.target.result}" alt="${file.name}">
+      `;preview.appendChild(thumb)};reader.readAsDataURL(file)});showStatus("genStatus",`🖼 已回填 ${files.length} 张手动结果，可继续在本页统一查看`,"success");addLog(`🖼 手动上传了 ${files.length} 张结果图`,"ok");e.target.value=""}function startGenerateLegacy(engine,count,schedule,savePath){if(schedule==="tonight"){const hrs=parseInt(document.getElementById("duration").value)||8;showStatus("genStatus","🌙 已设置通宵任务：今晚 21:30 开始，持续 "+hrs+" 小时，预计生成 "+hrs*30+"~"+hrs*50+" 张。图片将保存到："+savePath,"info");return}if(schedule==="overnight"){const hrs=parseInt(document.getElementById("duration").value)||8;showStatus("genStatus","🌙 已设置通宵模式：立即开始，持续 "+hrs+" 小时，预计生成 "+hrs*30+"~"+hrs*50+" 张。图片将保存到："+savePath,"info")}else if(schedule!=="now"){const labels={"30m":"30分钟后","1h":"1小时后","2h":"2小时后","custom":"自定义时间"};showStatus("genStatus","⏰ 已设置定时任务："+labels[schedule]+"开始生成 "+count+" 张图片。保存到："+savePath,"info");return}else{showStatus("genStatus","🚀 正在提交到 "+(engine==="mj"?"Midjourney (图像服务平台 · 手动)":"ComfyUI")+" ... 共 "+count+" 张，保存到："+savePath,"info")}const preview=document.getElementById("genPreview");const results=document.getElementById("genResults");results.style.display="block";preview.innerHTML="";const showCount=Math.min(count,20);for(let i=0;i<showCount;i++){const thumb=document.createElement("div");thumb.className="gen-thumb loading";thumb.innerHTML='<div class="gen-num">#'+(i+1)+"</div>🖼️";preview.appendChild(thumb)}if(count>20){const more=document.createElement("div");more.style.cssText="grid-column:1/-1;text-align:center;font-size:13px;color:var(--text2);padding:12px;";more.textContent="... 还有 "+(count-20)+" 张在后台生成中";preview.appendChild(more)}let done=0;const interval=setInterval(()=>{const thumbs=preview.querySelectorAll(".gen-thumb.loading");if(thumbs.length>0){const t=thumbs[Math.floor(Math.random()*thumbs.length)];t.classList.remove("loading");t.style.background="linear-gradient(135deg,#E0E7FF,#C7D2FE)";done++}if(done>=showCount){clearInterval(interval);showStatus("genStatus","✅ 全部 "+count+" 张图片生成完成！已保存到："+savePath,"success")}},600)}function showStatus(id,msg,type){const el=document.getElementById(id);el.className="status show "+type;el.innerHTML=msg}function openLightbox(url){const lb=document.createElement("div");lb.className="lightbox";lb.onclick=e=>{if(e.target===lb||e.target.className==="lb-close")lb.remove()};lb.innerHTML=`
+    <div class="lb-close">✕</div>
+    <img src="${url}" alt="大图">
+  `;document.body.appendChild(lb);const onKey=e=>{if(e.key==="Escape"){lb.remove();document.removeEventListener("keydown",onKey)}};document.addEventListener("keydown",onKey)}async function triggerBrowserDownload(url,name="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E"){const link=document.createElement("a");link.href=url;link.download=name;link.rel="noopener";document.body.appendChild(link);link.click();link.remove();return"download"}async function fetchImageBlob(url){const resp=await fetch(url);if(!resp.ok)throw new Error("获取图片失败: HTTP "+resp.status);return await resp.blob()}async function writeBlobToLocalFolder(blob,name){if(!localSaveDirectoryHandle)throw new Error("未选择本地文件夹");const permission=await verifyDirectoryPermission(localSaveDirectoryHandle,true);if(permission!=="granted")throw new Error("本地文件夹未授予写入权限");const fileHandle=await localSaveDirectoryHandle.getFileHandle(name,{create:true});const writable=await fileHandle.createWritable();await writable.write(blob);await writable.close();return"directory"}async function downloadUrlToLocal(url,name="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E"){if(!url)return"skip";if(localSaveDirectoryHandle){try{const blob=await fetchImageBlob(url);return await writeBlobToLocalFolder(blob,name)}catch(error){console.warn("写入本地文件夹失败，改为浏览器下载:",error);if(error?.name==="NotAllowedError"){localSaveDirectoryHandle=null;clearSavedLocalSaveDirectoryHandle().catch(()=>{});updateAutoDownloadUi()}}}return await triggerBrowserDownload(url,name)}async function autoDownloadImages(urls,batchIndex=1,seed=""){if(!Array.isArray(urls)||!urls.length)return;let folderSavedCount=0;let downloadSavedCount=0;for(let i=0;i<urls.length;i+=1){const fileName=`batch${batchIndex}_${i+1}${seed?"_"+seed:""}.png`;try{const mode=await downloadUrlToLocal(urls[i],fileName);if(mode==="directory")folderSavedCount+=1;if(mode==="download")downloadSavedCount+=1;await sleep(120)}catch(error){console.warn("自动保存失败:",error)}}if(folderSavedCount>0)addLog(`📁 批次 ${batchIndex} 已写入本地文件夹 ${folderSavedCount} 张`,"ok");if(downloadSavedCount>0)addLog(`⬇️ 批次 ${batchIndex} 已保存到本地下载目录 ${downloadSavedCount} 张`,"ok")}async function dlImg(el){const url=el.dataset.url;const name=el.dataset.name||"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E";try{el.textContent="⏳";el.style.pointerEvents="none";await downloadUrlToLocal(url,name);el.textContent="✓";setTimeout(()=>{el.textContent="⬇";el.style.pointerEvents=""},1500)}catch(e){el.textContent="⬇";el.style.pointerEvents="";console.warn("下载失败:",e)}}document.addEventListener("click",e=>{const thumb=e.target.closest(".gen-thumb");if(!thumb)return;const img=thumb.querySelector("img");if(img&&img.src)openLightbox(img.src)});let historyOpen=false;let historyOffset=0;const HISTORY_PAGE_SIZE=40;let historyLoading=false;function toggleHistory(){const content=document.getElementById("historyContent");const btn=document.getElementById("btnHistory");historyOpen=!historyOpen;if(historyOpen){content.style.display="block";btn.textContent="收起历史";if(historyOffset===0)loadHistory()}else{content.style.display="none";btn.textContent="展开历史"}}async function loadHistory(append=false){if(historyLoading)return;historyLoading=true;const grid=document.getElementById("historyGrid");const oldMore=grid.querySelector(".load-more-btn");if(oldMore)oldMore.remove();if(!append){grid.innerHTML="";historyOffset=0}const loadingEl=document.createElement("div");loadingEl.style.cssText="grid-column:1/-1;text-align:center;padding:20px;color:var(--text3);font-size:13px;";loadingEl.textContent="加载中...";grid.appendChild(loadingEl);try{const resp=await fetch(`/api/list-images?offset=${historyOffset}&limit=${HISTORY_PAGE_SIZE}`);const data=await resp.json();loadingEl.remove();if(!data.images||data.images.length===0){if(historyOffset===0){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-size:14px;">暂无生成历史</div>'}historyLoading=false;return}let currentDate="";const images=data.images;for(let i=0;i<images.length;i++){const img=images[i];const dateStr=img.time.split(" ")[0];if(dateStr!==currentDate){currentDate=dateStr;if(!grid.querySelector(`[data-date="${dateStr}"]`)){const dateLabel=document.createElement("div");dateLabel.className="history-date";dateLabel.dataset.date=dateStr;dateLabel.textContent="📅 "+dateStr;grid.appendChild(dateLabel)}}const thumb=document.createElement("div");thumb.className="gen-thumb";thumb.innerHTML=`
+        <a class="gen-dl" onclick="event.stopPropagation();dlImg(this)" data-url="${img.url}" data-name="${img.name}" title="下载">⬇</a>
+        <img src="${img.url}" alt="${img.name}" loading="lazy">
+      `;grid.appendChild(thumb)}historyOffset+=images.length;if(data.hasMore){const moreBtn=document.createElement("div");moreBtn.className="load-more-btn";moreBtn.innerHTML=`<button onclick="loadHistory(true)">查看更多（已加载 ${historyOffset}/${data.total} 张）</button>`;grid.appendChild(moreBtn)}else if(historyOffset>0){const endEl=document.createElement("div");endEl.style.cssText="grid-column:1/-1;text-align:center;padding:16px;color:var(--text3);font-size:12px;";endEl.textContent=`— 共 ${data.total} 张，已全部加载 —`;grid.appendChild(endEl)}}catch(e){loadingEl.remove();const errEl=document.createElement("div");errEl.style.cssText="grid-column:1/-1;text-align:center;padding:20px;color:#DC2626;font-size:13px;";errEl.textContent="加载失败: "+e.message;grid.appendChild(errEl)}historyLoading=false}document.body.dataset.mode="txt2img";initRefGrid();loadArtApiKey();loadHunyuanApiKey();loadAutoDownloadSetting();bindWorkspaceInputs();bindPromptExtraInput();bindRefPanelToggle();ensureInitialThemeOptions();onScheduleChange();onEngineChange();setGenerateMode("txt2img");updateStepIndicators(0);markCurrentStage(0);updateWorkspaceSummary();
+</script>
+<aside id="demo-disclosure"><a href="index.html">平台首页</a><span>脱敏演示 · 项目素材已遮挡 · 含演示样例数据 · 生成服务未连接</span></aside></body>
+</html>

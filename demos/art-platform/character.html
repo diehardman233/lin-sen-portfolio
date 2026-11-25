@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><script src="demo-guard.js"></script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>示例项目 · 2D角色原画管线</title>
+
+
+<style>
+:root{
+  --bg:#F5F7FB;--surface:#FFFFFF;--text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --border:#E2E8F0;--accent:#2563EB;--accent-light:#EFF6FF;--accent-dark:#1E40AF;
+  --white-tier:#94A3B8;--green-tier:#2563EB;--blue-tier:#2563EB;
+  --purple-tier:#7C3AED;--orange-tier:#D97706;
+  --green:#2563EB;--green-bg:#EFF6FF;--red:#DC2626;--red-bg:#FEF2F2;
+  --purple-bg:#F5F3FF;--cyan:#2563EB;
+  --radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:17px;}
+body{font-family:'DM Sans','Noto Sans SC',sans-serif;background:linear-gradient(to top,#EDF2FE,#F3F7FF 30%,#F9FBFF 60%,#FFFFFF 100%);background-attachment:fixed;color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(90deg,rgba(235,245,255,.95) 0%,rgba(255,255,255,.95) 30%,rgba(255,255,255,.95) 70%,rgba(240,235,255,.95) 100%);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(226,232,240,.6);transition:box-shadow .4s;}
+nav.scrolled{box-shadow:var(--shadow);}
+.nav-inner::-webkit-scrollbar{display:none;}.nav-inner{max-width:1440px;margin:0 auto;padding:0 40px;display:flex;align-items:center;height:56px;gap:20px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;-ms-overflow-style:none;}
+.nav-brand{font-weight:700;font-size:15px;letter-spacing:.5px;color:var(--accent);flex-shrink:0;}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{font-size:14px;color:var(--text2);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .2s;font-weight:500;position:relative;cursor:pointer;}
+.nav-links a:hover{background:var(--accent-light);color:var(--accent);}
+.nav-links a.active{color:var(--accent);font-weight:700;}
+.nav-links a.active::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2px;border-radius:1px;background:var(--accent);}
+
+.hero{width:100%;padding:72px 40px 28px;background:linear-gradient(to bottom,#2563EB 0%,#60A5FA 35%,#93C5FD 60%,#DBEAFE 85%,#EFF6FF 100%);position:relative;overflow:hidden;}
+.hero-inner{max-width:1440px;margin:0 auto;text-align:center;}
+.hero h1{font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;line-height:1.2;letter-spacing:-.02em;color:#FFFFFF;}
+.hero .subtitle{font-size:clamp(1rem,2vw,1.2rem);color:#6B8FCF;margin-left:auto;margin-right:auto;text-align:center;margin-top:14px;max-width:800px;line-height:1.8;}
+.tag-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+.tag{font-size:13px;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid var(--border);color:var(--text2);}
+.tag.accent{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+
+main{max-width:1440px;margin:0 auto;padding:0 40px 120px;}
+section{margin-top:64px;}
+.stag{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+section h2{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;line-height:1.3;margin-bottom:6px;}
+.sdesc{color:var(--text2);font-size:15px;max-width:720px;margin-bottom:20px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:14px;box-shadow:var(--shadow);}
+#dsContent .card{background:linear-gradient(to right,#DBEAFE,#FFFFFF);border:1px solid rgba(219,234,254,.6);}
+.card h3{font-size:22px;font-weight:700;margin-bottom:12px;}
+.card h4{font-size:15px;font-weight:700;margin:14px 0 8px;color:var(--text2);}
+.card ul{list-style:none;padding:0;}.card li{font-size:14px;padding:4px 0 4px 20px;position:relative;line-height:1.7;}.card li::before{content:'›';position:absolute;left:4px;color:var(--accent);font-weight:700;}
+
+/* TOOLBOX */
+.toolbox{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0;}
+.tool-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 22px;border-radius:12px;border:none;background:linear-gradient(135deg,#C7D5F0 0%,#B8C6E8 50%,#A8B5D8 100%);font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .25s;font-family:inherit;text-decoration:none;}
+.tool-btn:hover{box-shadow:0 4px 16px rgba(68,114,196,.2);transform:translateY(-2px);background:linear-gradient(135deg,#B8C6E8 0%,#9BABDA 50%,#8B9AD0 100%);color:#fff;}
+.tool-btn .t-icon{font-size:18px;}
+.tool-btn.primary{background:linear-gradient(135deg,var(--accent),#8BACD9);color:#fff;border:none;}
+.tool-btn.primary:hover{box-shadow:0 4px 20px rgba(68,114,196,.3);}
+.tool-btn.mj{border-color:#2563EB;color:#2563EB;}.tool-btn.mj:hover{background:#EFF6FF;}
+.tool-btn.banana{border-color:#DB2777;color:#DB2777;}.tool-btn.banana:hover{background:#FDF2F8;}
+
+/* PIPELINE TABS */
+.pl-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.pl-tab{padding:8px 18px;border:none;border-radius:8px;background:rgba(255,255,255,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#4B5E80;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-align:center;border:1px solid rgba(255,255,255,.6);}
+.pl-tab:hover{background:rgba(255,255,255,.7);color:#1E3A5F;}
+.pl-tab.active{color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.12);}
+.pl-tab.t-orange{background:rgba(255,251,234,.55);color:#F0A030;border-color:rgba(240,160,48,.2);}.pl-tab.t-orange:hover{background:rgba(255,243,208,.7);}.pl-tab.t-orange.active{background:#F0A030;color:#fff;border-color:#F0A030;}
+.pl-tab.t-purple{background:rgba(243,232,255,.5);color:#9333EA;border-color:rgba(147,51,234,.15);}.pl-tab.t-purple:hover{background:rgba(237,224,253,.7);}.pl-tab.t-purple.active{background:#9333EA;color:#fff;border-color:#9333EA;}
+.pl-tab.t-season-purple{background:rgba(243,232,255,.5);color:#9333EA;border-color:rgba(147,51,234,.15);}.pl-tab.t-season-purple:hover{background:rgba(237,224,253,.7);}.pl-tab.t-season-purple.active{background:#9333EA;color:#fff;border-color:#9333EA;}
+.pl-tab.t-free-orange{background:rgba(255,251,234,.55);color:#E09520;border-color:rgba(224,149,32,.2);}.pl-tab.t-free-orange:hover{background:rgba(255,243,208,.7);}.pl-tab.t-free-orange.active{background:#E09520;color:#fff;border-color:#E09520;}
+.pl-tab.t-blue{background:rgba(235,240,250,.5);color:#3B82F6;border-color:rgba(59,130,246,.15);}.pl-tab.t-blue:hover{background:rgba(214,226,245,.7);}.pl-tab.t-blue.active{background:#3B82F6;color:#fff;border-color:#3B82F6;}
+.pl-tab.t-season-blue{background:rgba(235,240,250,.5);color:#3B82F6;border-color:rgba(59,130,246,.15);}.pl-tab.t-season-blue:hover{background:rgba(214,226,245,.7);}.pl-tab.t-season-blue.active{background:#3B82F6;color:#fff;border-color:#3B82F6;}
+.pl-tab.t-white{background:rgba(241,245,249,.5);color:#94A3B8;border-color:rgba(148,163,184,.15);}.pl-tab.t-white:hover{background:rgba(226,232,240,.7);}.pl-tab.t-white.active{background:#94A3B8;color:#fff;border-color:#94A3B8;}
+.pl-tab .tab-sub{font-size:11px;font-weight:400;display:block;margin-top:2px;opacity:.7;}
+
+/* FLOW — 新版清晰流程图 */
+.flow-wrap{overflow-x:auto;padding:36px 0 16px;}
+.flow-row{display:flex;align-items:flex-start;gap:0;min-width:max-content;}
+.flow-node{position:relative;display:flex;flex-direction:column;align-items:center;min-width:210px;max-width:240px;cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1);margin-top:0;}
+.flow-node:hover{transform:translateY(-4px);}
+.flow-node:hover .fn-box{border-color:var(--accent);box-shadow:0 8px 28px rgba(68,114,196,.16);}
+
+/* 圆形编号 */
+.flow-node .fn-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;z-index:3;margin-bottom:-22px;position:relative;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.18);letter-spacing:0;}
+
+/* 卡片主体 */
+.flow-node .fn-box{background:#FFFFFF;border:2px solid #E8EDF5;border-radius:16px;padding:34px 16px 16px;text-align:center;width:100%;min-height:200px;display:flex;flex-direction:column;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.04);transition:all .3s;}
+.flow-node.active .fn-box{border-color:var(--accent);background:#FFFFFF;box-shadow:0 6px 24px rgba(68,114,196,.15);}
+
+/* 标题区 */
+.flow-node .fn-title{font-size:17px;font-weight:800;margin-bottom:8px;line-height:1.3;color:var(--text);}
+
+/* 类型标签 */
+.flow-node .fn-type-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:10px;white-space:nowrap;}
+.fn-type-tag.t-manual{background:rgba(37,99,235,.08);color:#2563EB;border:1px solid rgba(37,99,235,.2);}
+.fn-type-tag.t-manual .tag-icon{font-size:13px;}
+.fn-type-tag.t-ai-mix{background:rgba(139,92,246,.08);color:#7C3AED;border:1px solid rgba(139,92,246,.2);}
+.fn-type-tag.t-ai-mix .tag-icon{font-size:13px;}
+.fn-type-tag.t-handoff{background:rgba(239,68,68,.08);color:#DC2626;border:1px solid rgba(239,68,68,.2);}
+.fn-type-tag.t-handoff .tag-icon{font-size:13px;}
+
+/* 描述文字 */
+.flow-node .fn-desc{font-size:12px;color:var(--text2);line-height:1.65;flex:1;text-align:center;}
+
+/* AI介入 */
+.flow-node .fn-ai-line{display:flex;align-items:center;gap:5px;margin-top:10px;padding:5px 12px;border-radius:8px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);font-size:11px;font-weight:700;color:#7C3AED;white-space:nowrap;}
+.flow-node .fn-ai-line .ai-icon{font-size:14px;}
+
+/* 工具链接标签 */
+.flow-node .fn-tools{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;justify-content:center;}
+.flow-node .fn-tool-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;}
+.fn-tool-chip:hover{transform:scale(1.06);box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.fn-tool-chip.chip-blue{background:linear-gradient(135deg,#3B82F6,#2563EB);}
+.fn-tool-chip.chip-purple{background:linear-gradient(135deg,#8B5CF6,#7C3AED);}
+.fn-tool-chip.chip-pink{background:linear-gradient(135deg,#EC4899,#DB2777);}
+.fn-tool-chip.chip-cyan{background:linear-gradient(135deg,#06B6D4,#0891B2);}
+.fn-tool-chip.chip-orange{background:linear-gradient(135deg,#F59E0B,#D97706);}
+
+/* 点击提示 */
+.flow-node .fn-click-hint{font-size:10px;color:var(--accent);opacity:.4;margin-top:8px;transition:opacity .2s;}
+.flow-node:hover .fn-click-hint{opacity:1;}
+
+/* 连接箭头 */
+.flow-arrow{display:flex;align-items:center;flex-shrink:0;padding:0 4px;margin-top:80px;}
+.flow-arrow svg{width:40px;height:20px;fill:none;stroke:#CBD5E1;stroke-width:2;stroke-dasharray:6 4;}
+.flow-arrow .arrow-head{fill:#CBD5E1;stroke:none;}
+
+/* 底部图例 */
+.flow-legend{display:flex;gap:24px;justify-content:center;margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);flex-wrap:wrap;}
+.flow-legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);font-weight:500;}
+.flow-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+.step-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:10px;box-shadow:var(--shadow-lg);animation:fadeSlide .3s ease;}
+.step-panel.open{display:block;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:none;}}
+.sp-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--accent-light);}
+.sp-head h4{font-size:22px;font-weight:700;color:var(--accent-dark);}
+.sp-close{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:5px 14px;font-size:13px;font-family:inherit;}
+.sp-close:hover{border-color:var(--accent);color:var(--accent);}
+.sp-body{padding:20px 24px;}
+.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.sp-grid{grid-template-columns:1fr;}}
+.sp-item{font-size:14px;line-height:1.7;}.sp-item .label{color:var(--text2);font-size:12px;font-weight:600;margin-bottom:4px;}
+.sp-ai{margin-top:12px;padding:14px 16px;border-radius:8px;font-size:14px;line-height:1.7;}
+.sp-img{margin-top:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);}
+.sp-img img{width:100%;display:block;object-fit:contain;background:#f5f5f5;}
+.sp-img .sp-img-cap{padding:8px 14px;font-size:11px;color:var(--text2);background:var(--bg);border-top:1px solid var(--border);}
+.sp-footer{padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap;font-size:12px;background:var(--bg);}
+.sp-footer .sf{display:flex;align-items:center;gap:5px;}.sp-footer .sfv{font-weight:700;color:var(--accent);}
+
+/* SPLIT CARD */
+.split-card{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:14px 0;}
+.split-half{padding:20px 24px;}
+.split-half h4{font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.split-half ul{list-style:none;padding:0;}.split-half li{font-size:12px;padding:2px 0 2px 16px;position:relative;line-height:1.6;color:var(--text2);}.split-half li::before{content:'·';position:absolute;left:4px;color:var(--accent);font-weight:700;}
+@media(max-width:640px){.split-card{grid-template-columns:1fr;}}
+
+/* TIERS ETC */
+.tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+.tier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.tier-card .tier-top{position:absolute;top:0;left:0;right:0;height:3px;}
+.tier-card .tier-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:8px;}
+.tier-card h3{font-size:14px;font-weight:700;margin-bottom:6px;}
+.tier-card .detail{font-size:12px;color:var(--text2);line-height:1.6;}
+
+.body-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+.body-card{background:linear-gradient(135deg,#93B8F0,#6B9DE8);border:none;border-radius:var(--radius);padding:20px;box-shadow:0 4px 16px rgba(107,157,232,.2);color:#fff;}
+.body-card .head-ratio{font-size:26px;font-weight:700;color:#fff;margin-bottom:2px;}
+.body-card .body-name{font-size:14px;font-weight:700;margin-bottom:4px;color:#fff;}
+.body-card .body-desc{font-size:12px;color:rgba(255,255,255,.85);line-height:1.6;}
+
+.color-principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+.color-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.color-card .color-num{font-size:26px;font-weight:700;color:var(--accent);opacity:.25;margin-bottom:4px;}
+.color-card .color-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+.color-card .color-desc{font-size:12px;color:var(--text2);line-height:1.7;}
+
+table.data{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+table.data th{background:rgba(255,255,255,.15);color:#fff;font-weight:600;text-align:left;padding:8px 10px;border-bottom:2px solid rgba(255,255,255,.3);}
+table.data td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.2);vertical-align:top;}
+table.data tr:hover td{background:transparent;}
+table.data .check{text-align:center;}.check .dot-y{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--accent);}
+table.data .no{text-align:center;}.no .dot-n{display:inline-block;width:14px;height:14px;border-radius:4px;background:#E5E7EB;}
+
+.alert{padding:14px 18px;border-radius:var(--radius);margin:12px 0;font-size:13px;line-height:1.7;}
+.alert.warn{background:var(--red-bg);border-left:4px solid var(--red);color:#991B1B;}
+.alert.info{background:var(--accent-light);border-left:4px solid var(--accent);color:var(--accent-dark);}
+
+.process-flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+.process-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);text-align:center;}
+.process-card .step-num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;margin-bottom:8px;}
+.process-card .step-title{font-size:14px;font-weight:700;margin-bottom:3px;}
+.process-card .step-owner{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:5px;}
+.process-card .step-desc{font-size:12px;color:var(--text2);line-height:1.5;text-align:left;}
+
+.kb-list{list-style:none;padding:0;}.kb-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}.kb-item:last-child{border-bottom:none;}
+.kb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:14px;}.kb-dot.green{background:#4472C4;}.kb-dot.orange{background:#F0A030;}
+.kb-info{flex:1;}.kb-title{font-size:14px;font-weight:600;}.kb-desc{font-size:12px;color:var(--text2);margin-top:1px;}
+.kb-meta{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:12px;}
+.kb-tag{font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);color:var(--text2);}
+.kb-status{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;}
+.kb-status.done{background:#EBF0FA;color:#4472C4;}.kb-status.wip{background:#FFFBEA;color:#F0A030;}.kb-status.todo{background:#F1F5F9;color:#64748B;}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px;}
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+.skill-card .sk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.skill-card .sk-name{font-size:13px;font-weight:700;}.skill-card .sk-desc{font-size:11px;color:var(--text2);line-height:1.5;}
+
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}.fade-in.visible{opacity:1;transform:translateY(0);}
+.alert.green{background:#EBF0FA;border-left:4px solid #4472C4;color:#2B4C8C;}
+
+/* KB & Skill buttons */
+.kb-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid #4472C4;background:#EBF0FA;color:#4472C4;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;cursor:pointer;font-family:inherit;}
+.kb-btn:hover{background:#D6E2F5;transform:translateY(-1px);box-shadow:0 2px 8px rgba(68,114,196,.12);}
+.kb-btn.wip{border-color:#EA580C;background:#FFF7ED;color:#EA580C;}
+.kb-btn.wip:hover{background:#FFEDD5;}
+.kb-chip{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;}
+.kb-chip.done{background:#D6E2F5;color:#4472C4;}.kb-chip.wip{background:#FFF3D0;color:#F0A030;}.kb-chip.todo{background:#F1F5F9;color:#64748B;}
+.sk-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid #9CA3AF;background:#F9FAFB;color:#6B7280;font-size:12px;font-weight:600;font-family:inherit;}
+.sk-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
+
+/* Gallery */
+.gallery-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.gallery-tab{padding:6px 14px;font-size:12px;font-weight:600;border:none;border-radius:8px;background:#EBF0FA;color:#4472C4;cursor:pointer;transition:all .2s;}
+.gallery-tab:hover{background:#D6E2F5;color:#2B4C8C;}
+.gallery-tab.active{background:#4472C4;color:#fff;}
+.gallery-panel{display:none;}.gallery-panel.active{display:block;}
+.img-showcase{display:grid;gap:12px;}.img-showcase.cols-2{grid-template-columns:1fr 1fr;}.img-showcase.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.img-showcase figure{margin:0;overflow:hidden;border-radius:8px;border:1px solid var(--border);background:#f8f8fc;}
+.img-showcase figure img{width:100%;display:block;cursor:pointer;transition:transform .3s;}
+.img-showcase figure img:hover{transform:scale(1.02);}
+.img-showcase figcaption{padding:8px 10px;font-size:11px;color:var(--text2);line-height:1.5;border-top:1px solid var(--border);}
+.img-full{margin:0;overflow:hidden;border-radius:8px;border:1px solid var(--border);background:#f8f8fc;}
+.img-full img{width:100%;display:block;cursor:pointer;transition:transform .3s;}
+.img-full img:hover{transform:scale(1.01);}
+.img-full figcaption{padding:8px 12px;font-size:11px;color:var(--text2);line-height:1.5;border-top:1px solid var(--border);}
+.img-lightbox{position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out;opacity:0;pointer-events:none;transition:opacity .3s;}
+.img-lightbox.show{opacity:1;pointer-events:auto;}
+.img-lightbox img{max-width:92vw;max-height:90vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+@media(max-width:900px){.img-showcase.cols-2,.img-showcase.cols-3{grid-template-columns:1fr;}}
+footer{text-align:center;padding:24px 0;margin-top:48px;border-top:1px solid var(--border);font-size:13px;color:var(--text3);}
+
+/* ═══════════ WORKFLOW FLOW (场景原画风格) ═══════════ */
+.wf-flow{position:relative;padding:40px 20px 20px;overflow-x:auto;}
+.wf-row{display:flex;align-items:stretch;gap:0;min-width:900px;}
+.wf-node{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;min-width:170px;}
+.wf-node-box{position:relative;width:100%;border:2px solid var(--border);border-radius:16px;background:linear-gradient(180deg,#f8f9fd 0%,#ffffff 100%);padding:20px 14px 16px;text-align:center;transition:all .3s ease;min-height:180px;display:flex;flex-direction:column;align-items:center;box-shadow:0 2px 16px rgba(0,0,0,.06);}
+.wf-node-box:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(68,114,196,.12);transform:translateY(-2px);}
+.wf-node.has-ai .wf-node-box{border-color:rgba(139,92,246,.4);background:linear-gradient(180deg,rgba(139,92,246,.06) 0%,#faf8ff 50%,#fff 100%);}
+.wf-node.has-ai .wf-node-box:hover{border-color:#8B5CF6;box-shadow:0 4px 20px rgba(139,92,246,.15);}
+.wf-num{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;z-index:3;box-shadow:0 3px 10px rgba(0,0,0,.15);}
+.wf-label{font-size:22px;font-weight:700;color:var(--text);margin:12px 0 8px;letter-spacing:.5px;}
+.wf-desc{font-size:12px;color:var(--text2);line-height:1.6;flex:1;}
+.wf-desc strong{color:var(--orange-tier);font-weight:600;}
+.wf-ai-badge{display:flex;align-items:center;gap:5px;margin-top:12px;padding:6px 12px;border-radius:8px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);font-size:12px;font-weight:700;color:#8B5CF6;white-space:nowrap;}
+.wf-type-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:6px;letter-spacing:.3px;}
+.wf-type-tag.manual{background:rgba(68,114,196,.1);color:var(--accent);border:1px solid rgba(68,114,196,.25);}
+.wf-type-tag.ai-mixed{background:rgba(139,92,246,.1);color:#8B5CF6;border:1px solid rgba(139,92,246,.25);}
+.wf-type-tag.handoff{background:rgba(219,39,119,.1);color:#DB2777;border:1px solid rgba(219,39,119,.25);}
+.wf-tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;justify-content:center;}
+.wf-tool-link{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;text-decoration:none;transition:all .2s;cursor:pointer;}
+.wf-tool-link:hover{transform:scale(1.05);box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.wf-tool-link.t-mj{background:linear-gradient(135deg,#2563EB,#1D4ED8);}
+.wf-tool-link.t-banana{background:linear-gradient(135deg,#DB2777,#BE185D);}
+.wf-tool-link.t-prompt{background:linear-gradient(135deg,#8B5CF6,#7C3AED);}
+.wf-tool-link.t-ps{background:linear-gradient(135deg,#0891B2,#0E7490);}
+.wf-conn{flex:0 0 50px;display:flex;align-items:center;justify-content:center;position:relative;}
+.wf-conn svg{width:50px;height:28px;}
+.wf-conn .conn-line{stroke:var(--border);stroke-width:2;fill:none;}
+.wf-conn .conn-arrow{fill:var(--text3);}
+.wf-node.has-ai+.wf-conn .conn-line{stroke:rgba(139,92,246,.35);}
+.wf-node.has-ai+.wf-conn .conn-arrow{fill:#8B5CF6;}
+.wf-legend{display:flex;gap:20px;justify-content:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.wf-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.wf-legend-dot{width:10px;height:10px;border-radius:50%;}
+
+/* ═══════════ AI TOOLS GRID ═══════════ */
+.ai-tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.ai-tool-card{border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all .35s cubic-bezier(.4,0,.2,1);text-decoration:none;color:var(--text);display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+.ai-tool-card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(0,0,0,.14);}
+.ai-tool-cover{position:relative;height:180px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.ai-tool-cover .cover-grid{position:absolute;inset:0;z-index:1;opacity:.06;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:40px 40px;}
+.ai-tool-cover .cover-glow{position:absolute;border-radius:50%;z-index:1;pointer-events:none;}
+.ai-tool-cover .cover-glow.g1{width:160px;height:160px;top:10%;left:5%;opacity:.5;}
+.ai-tool-cover .cover-glow.g2{width:120px;height:120px;bottom:5%;right:8%;opacity:.4;}
+.ai-tool-cover .cover-shine{position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);z-index:3;}
+.ai-tool-cover .cover-icon{font-size:48px;z-index:2;filter:drop-shadow(0 4px 8px rgba(0,0,0,.2));}
+.ai-tool-cover .cover-tag{position:absolute;top:14px;right:14px;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;z-index:3;backdrop-filter:blur(4px);}
+.ai-tool-body{padding:20px 22px;background:var(--surface);flex:1;display:flex;flex-direction:column;}
+.ai-tool-name{font-size:22px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.ai-tool-name .name-badge{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:700;}
+.ai-tool-desc{font-size:12.5px;color:var(--text2);line-height:1.65;margin-bottom:14px;flex:1;}
+.ai-tool-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.ai-tool-feat{font-size:11px;padding:4px 10px;border-radius:8px;background:var(--bg);color:var(--text2);border:1px solid var(--border);font-weight:500;}
+.ai-tool-link{font-size:12.5px;color:var(--accent);display:flex;align-items:center;gap:4px;font-weight:600;}
+@media(max-width:900px){.ai-tools-grid{grid-template-columns:1fr;}}
+
+/* ═══════════ AI GEN PANEL (一键生图) ═══════════ */
+.gen-panel{background:linear-gradient(135deg,rgba(139,92,246,.04),rgba(68,114,196,.04));border:2px solid rgba(139,92,246,.2);border-radius:18px;padding:32px;margin-bottom:14px;box-shadow:0 4px 24px rgba(139,92,246,.08);}
+.gen-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+.gen-header .gen-icon{font-size:36px;}
+.gen-header h3{font-size:20px;font-weight:700;background:linear-gradient(135deg,#8B5CF6,#4472C4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.gen-header .gen-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;}
+.gen-form{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.gen-group{display:flex;flex-direction:column;gap:8px;}
+.gen-group.full{grid-column:1/-1;}
+.gen-group label{font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px;}
+.gen-group select,.gen-group input,.gen-group textarea{padding:12px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-weight:500;color:var(--text);background:var(--surface);outline:none;transition:all .2s;font-family:inherit;}
+.gen-group select:focus,.gen-group input:focus,.gen-group textarea:focus{border-color:#8B5CF6;box-shadow:0 0 0 3px rgba(139,92,246,.1);}
+.gen-group textarea{min-height:80px;resize:vertical;}
+.gen-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.gen-tag{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s;background:var(--surface);user-select:none;}
+.gen-tag:hover{border-color:#8B5CF6;color:#8B5CF6;background:rgba(139,92,246,.05);}
+.gen-tag.active{border-color:#8B5CF6;color:#fff;background:#8B5CF6;}
+.gen-actions{display:flex;gap:12px;margin-top:24px;grid-column:1/-1;align-items:center;}
+.gen-btn{padding:14px 32px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit;display:inline-flex;align-items:center;gap:8px;}
+.gen-btn.primary{background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.3);}
+.gen-btn.primary:hover{box-shadow:0 8px 32px rgba(139,92,246,.4);transform:translateY(-2px);}
+.gen-btn.secondary{background:var(--surface);color:var(--accent);border:1.5px solid var(--border);}
+.gen-btn.secondary:hover{border-color:var(--accent);background:var(--accent-light);}
+.gen-output{grid-column:1/-1;margin-top:16px;}
+.gen-json-box{background:#1E293B;border-radius:14px;padding:20px;overflow-x:auto;position:relative;}
+.gen-json-box pre{color:#E2E8F0;font-size:13px;font-family:'JetBrains Mono',monospace;line-height:1.6;margin:0;white-space:pre-wrap;}
+.gen-json-box .copy-btn{position:absolute;top:12px;right:12px;padding:6px 14px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.1);color:#E2E8F0;font-size:11px;font-weight:600;cursor:pointer;backdrop-filter:blur(4px);transition:all .2s;}
+.gen-json-box .copy-btn:hover{background:rgba(255,255,255,.2);}
+.gen-result{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.gen-result-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow);}
+.gen-result-img{width:100%;aspect-ratio:1;background:#f0f0f5;display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--text3);}
+.gen-result-info{padding:12px;font-size:12px;color:var(--text2);}
+.gen-status{padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;margin-top:12px;display:none;}
+.gen-status.loading{display:flex;align-items:center;gap:10px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);color:#8B5CF6;}
+.gen-status.success{display:flex;align-items:center;gap:10px;background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.2);color:#16A34A;}
+.gen-status.error{display:flex;align-items:center;gap:10px;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);color:#DC2626;}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spinner{width:16px;height:16px;border:2px solid rgba(139,92,246,.2);border-top-color:#8B5CF6;border-radius:50%;animation:spin .8s linear infinite;}
+@media(max-width:900px){.gen-form{grid-template-columns:1fr;}}
+
+/* ═══════════ MANPOWER TABLE ═══════════ */
+.mp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.mp-table thead th{background:var(--bg);color:var(--text2);font-weight:600;padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;}
+.mp-table tbody td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.mp-table tbody tr:hover td{background:rgba(68,114,196,.04);}
+.mp-table .cat-cell{font-weight:600;color:var(--accent);}
+.mp-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;line-height:1.6;}
+.mp-badge.high{background:rgba(220,38,38,.08);color:#DC2626;border:1px solid rgba(220,38,38,.2);}
+.mp-badge.mid{background:rgba(240,160,48,.08);color:var(--orange-tier);border:1px solid rgba(240,160,48,.2);}
+.mp-badge.low{background:rgba(68,114,196,.08);color:var(--accent);border:1px solid rgba(68,114,196,.2);}
+.mp-ai{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);color:#8B5CF6;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.mp-ai .bar{width:50px;height:6px;background:rgba(139,92,246,.12);border-radius:3px;overflow:hidden;display:inline-block;}
+.mp-ai .bar-fill{height:100%;background:#8B5CF6;border-radius:3px;display:block;}
+.mp-people{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px;}
+.mp-people.ren{background:rgba(68,114,196,.08);color:var(--accent);border:1px solid rgba(68,114,196,.18);}
+.mp-people.ai{background:rgba(139,92,246,.08);color:#8B5CF6;border:1px solid rgba(139,92,246,.18);}
+.mp-people.wai{background:rgba(240,160,48,.08);color:var(--orange-tier);border:1px solid rgba(240,160,48,.18);}
+
+@media(max-width:900px){.nav-inner::-webkit-scrollbar{display:none;}.nav-inner{padding:0 16px;}.hero{padding:100px 16px 40px;}main{padding:0 16px 80px;}.card{padding:20px;}section > div[style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr !important;}}
+@media(max-width:1100px){.mat-sub-grid{grid-template-columns:1fr !important;grid-template-rows:auto !important;}}
+
+/* AI宸ヤ綔闆嗘寜閽摑绱笎鍙榟over鍏夋晥 */
+.ai-btn-shimmer{position:absolute;inset:0;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .4s ease;background:linear-gradient(110deg,transparent 20%,rgba(99,102,241,.45) 40%,rgba(139,92,246,.5) 50%,rgba(99,102,241,.45) 60%,transparent 80%);background-size:250% 100%;z-index:1;}
+.ai-btn-shimmer::after{content:'';position:absolute;inset:0;border-radius:20px;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.2) 48%,rgba(255,255,255,.35) 50%,rgba(255,255,255,.2) 52%,transparent 70%);background-size:250% 100%;animation:none;}
+a:hover .ai-btn-shimmer{opacity:1;animation:shimmerSweep 1.5s ease infinite;}
+a:hover .ai-btn-shimmer::after{animation:shimmerSweep 1.5s ease infinite;}
+@keyframes shimmerSweep{0%{background-position:150% center;}100%{background-position:-50% center;}}
+
+.hero::before{content:'';position:absolute;top:-20%;right:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:-30%;left:20%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.2) 0%,transparent 70%);pointer-events:none;}
+.hero-inner{position:relative;z-index:1;}
+</style>
+<style>#demo-disclosure{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);width:max-content;display:flex;gap:18px;align-items:center;padding:10px 18px;background:#232238;color:#fff;box-shadow:0 8px 32px #0003;border-radius:10px;font:12px/1.5 sans-serif}#demo-disclosure a{color:#fff;white-space:nowrap}body{padding-bottom:70px!important}@media(max-width:600px){#demo-disclosure{font-size:11px;gap:10px}}</style></head>
+<body>
+
+<nav id="nav"><div class="nav-inner">
+  <span class="nav-brand">2D 角色原画管线</span>
+  <div class="nav-links">
+    <a href="#overview">总览</a>
+    <a href="#kb">知识库</a>
+    <a href="#tools" style="color:#D97706;font-weight:700;">AI工具集</a>
+    <a href="#pipeline">生产流程</a>
+    <a href="#gallery">作品展示</a>
+    <a href="#tiers">品级</a>
+    <a href="#body">体型</a>
+    <a href="#color">设计规范</a>
+    <a href="#materials">材质</a>
+    <a href="#submission">提交</a>
+    <a href="#manpower">人力投入</a>
+    <a href="#infringement">侵权</a>
+    <a href="unavailable.html" style="color:#D97706;">历届</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="overview"><div class="hero-inner">
+  <h1 style="display:inline-flex;align-items:center;justify-content:center;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例项目" style="height:180px;vertical-align:middle;margin-right:16px;filter:brightness(100);">2D 角色原画管线</h1>
+  <p class="subtitle">覆盖赛季橙装、IP紫装等全品类的完整生产流程。<br>从主题发散到3D交付，每个环节清晰定义人工/AI分工与产出标准。</p>
+  <div class="tag-row">
+    <span class="tag" style="font-size:12px;color:#94A3B8;border-color:#D1D5DB;">2D角色原画</span>
+    <span class="tag" style="font-size:12px;color:#94A3B8;border-color:#D1D5DB;">赛季橙装</span>
+    <span class="tag" style="font-size:12px;color:#94A3B8;border-color:#D1D5DB;">IP紫装</span>
+    <span class="tag" style="font-size:12px;color:#94A3B8;border-color:#D1D5DB;">品级 ×5</span>
+    <span class="tag" style="font-size:12px;color:#94A3B8;border-color:#D1D5DB;">负责人：角色团队</span>
+  </div>
+</div></header>
+
+<main>
+
+
+<section id="kb" class="fade-in" style="margin-top:24px;">
+  <div class="stag">Knowledge &amp; Skills</div>
+  <h2>知识库 &amp; Skill库</h2>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;">
+    <a href="unavailable.html" style="display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,#3B82F6,#6366F1);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:all .25s;text-decoration:none;box-shadow:0 4px 16px rgba(99,102,241,.25);" onmouseover="this.style.boxShadow='0 6px 24px rgba(99,102,241,.35)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 16px rgba(99,102,241,.25)';this.style.transform='none';">角色Avatar设计规范</a>
+    <a href="unavailable.html" style="display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,#3B82F6,#6366F1);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:all .25s;text-decoration:none;box-shadow:0 4px 16px rgba(99,102,241,.25);" onmouseover="this.style.boxShadow='0 6px 24px rgba(99,102,241,.35)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 16px rgba(99,102,241,.25)';this.style.transform='none';">素体标准要求与说明</a>
+    <a href="unavailable.html" style="display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,#93A5CF,#A8B5D8,#C7D5F0);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:all .25s;text-decoration:none;box-shadow:0 4px 16px rgba(147,165,207,.25);" onmouseover="this.style.boxShadow='0 6px 24px rgba(147,165,207,.35)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 16px rgba(147,165,207,.25)';this.style.transform='none';">2D角色资源库</a>
+    <a href="unavailable.html" style="display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,#93A5CF,#A8B5D8,#C7D5F0);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:all .25s;text-decoration:none;box-shadow:0 4px 16px rgba(147,165,207,.25);" onmouseover="this.style.boxShadow='0 6px 24px rgba(147,165,207,.35)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 16px rgba(147,165,207,.25)';this.style.transform='none';">各赛季角色原画效果图</a>
+    <a href="unavailable.html" style="display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,#93A5CF,#A8B5D8,#C7D5F0);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:all .25s;text-decoration:none;box-shadow:0 4px 16px rgba(147,165,207,.25);" onmouseover="this.style.boxShadow='0 6px 24px rgba(147,165,207,.35)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 16px rgba(147,165,207,.25)';this.style.transform='none';">角色材质整理</a>
+    <a href="themes.html" style="display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,#F59E0B,#D97706);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:all .25s;text-decoration:none;box-shadow:0 4px 16px rgba(217,119,6,.25);" onmouseover="this.style.boxShadow='0 6px 24px rgba(217,119,6,.35)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 16px rgba(217,119,6,.25)';this.style.transform='none';">赛季主题趋势采集</a>
+  </div>
+</section>
+
+
+
+
+<section id="tools" class="fade-in">
+  <div class="stag">AI Toolkit</div>
+  <h2>AI 工具集</h2>
+  <div class="sdesc">角色原画AI生图工具与批量生成能力入口。</div>
+
+  <div style="margin-bottom:20px;">
+    
+    <a style="display:flex;align-items:center;gap:20px;padding:46px 32px;border-radius:20px;border:none;background:linear-gradient(135deg,#FCD34D,#F59E0B,#D97706);text-decoration:none;color:#fff;box-shadow:0 4px 16px rgba(217,119,6,.25);transition:all .25s;max-width:640px;position:relative;overflow:hidden;" href="character-tools.html" rel="noopener" onmouseover="this.style.boxShadow='0 8px 32px rgba(217,119,6,.35)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 4px 16px rgba(217,119,6,.25)';this.style.transform='none';">
+      <div class="ai-btn-shimmer"></div><div style="display:flex;flex-direction:column;gap:3px;position:relative;z-index:2;">
+        <div style="font-size:22px;font-weight:700;">角色AI工作集</div>
+        <div style="font-size:15px;color:rgba(255,255,255,.85);">图像服务AI · ART AI · Prompt生成器 · 一键生图</div>
+        <div style="font-size:16px;color:#fff;font-weight:600;margin-top:3px;">进入工作集 →</div>
+      </div>
+    </a>
+  </div>
+
+
+</section>
+
+
+
+<section id="pipeline" class="fade-in">
+  <div class="stag">Production Pipeline</div>
+  <h2>生产流程 <span style="font-size:0.6em;font-weight:500;color:var(--text2);">· 点击环节查看详情</span></h2>
+  <div class="sdesc">选择品类查看对应的完整生产链路。每个环节清晰定义分工、产出和AI介入度。</div>
+
+  <div class="pl-tabs" id="plTabs">
+    <button class="pl-tab t-orange active" onclick="switchPL(0)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#F0A030;margin-right:6px;vertical-align:middle;"></span>赛季橙<span class="tab-sub">隐藏橙 + 基础橙</span></button>
+    <button class="pl-tab t-free-orange" onclick="switchPL(1)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E09520;margin-right:6px;vertical-align:middle;"></span>自由橙<span class="tab-sub">创新 · 无需CE</span></button>
+    <button class="pl-tab t-purple" onclick="switchPL(2)" style="background:#F3E8FF;color:#9333EA;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9333EA;margin-right:6px;vertical-align:middle;"></span>IP紫装<span class="tab-sub">IP联动角色</span></button>
+    <button class="pl-tab t-purple" onclick="switchPL(3)" style="background:#F3E8FF;color:#9333EA;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9333EA;margin-right:6px;vertical-align:middle;"></span>赛季紫装<span class="tab-sub">正视图→三视图→确认→3D</span></button>
+    <button class="pl-tab t-purple" onclick="switchPL(4)" style="background:#F3E8FF;color:#9333EA;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9333EA;margin-right:6px;vertical-align:middle;"></span>紫装<span class="tab-sub">正视图→三视图→确认→3D</span></button>
+    <button class="pl-tab t-season-blue" onclick="switchPL(5)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3B82F6;margin-right:6px;vertical-align:middle;"></span>赛季蓝装<span class="tab-sub">正视图→三视图→确认→3D</span></button>
+    <button class="pl-tab t-blue" onclick="switchPL(6)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3B82F6;margin-right:6px;vertical-align:middle;"></span>蓝装<span class="tab-sub">运营提需 → 三视图</span></button>
+    <button class="pl-tab t-white" onclick="switchPL(7)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#94A3B8;margin-right:6px;vertical-align:middle;border:1px solid #CBD5E1;"></span>白装<span class="tab-sub">三视图 · 1人天</span></button>
+  </div>
+
+  <div class="card" style="padding:20px 20px 14px;background:#FFFFFF;border-radius:18px;">
+    <div id="plSubTabs" style="display:none;margin-bottom:14px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="pl-tab t-orange active" onclick="switchSubPL('flow')" id="subTabFlow" style="padding:6px 16px;font-size:12px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F0A030;margin-right:5px;vertical-align:middle;"></span>生产流程</button>
+        <button class="pl-tab t-orange" onclick="switchSubPL('tiers')" id="subTabTiers" style="padding:6px 16px;font-size:12px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F0A030;margin-right:5px;vertical-align:middle;"></span>品阶强度规则</button>
+      </div>
+    </div>
+    <div id="plFlowContent">
+    <div id="plMeta" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;font-size:13px;color:var(--text2);"></div>
+    <div class="flow-wrap"><div class="flow-row" id="plFlow"></div></div>
+    <div class="step-panel" id="stepPanel">
+      <div class="sp-head"><h4 id="spTitle"></h4><button class="sp-close" onclick="closeStep()">关闭 ×</button></div>
+      <div class="sp-body" id="spBody"></div>
+      <div class="sp-footer" id="spFooter"></div>
+    </div>
+    </div>
+    <div id="plTiersContent" style="display:none;">
+      <h3 style="margin-bottom:14px;font-size:18px;">品级强度区分规则</h3>
+      <div class="tier-grid">
+        <div class="tier-card"><div class="tier-top" style="background:var(--white-tier)"></div><span class="tier-badge" style="background:#F9FAFB;color:var(--white-tier)">白装</span><h3>基础布偶</h3><div class="detail">外轮廓简单·材质统一常规<br>无配饰·无染色·无特效<br>默认眼·通用表情</div></div>
+        <div class="tier-card"><div class="tier-top" style="background:var(--green-tier)"></div><span class="tier-badge" style="background:var(--green-bg);color:var(--green-tier)">绿装</span><h3>穿搭套装</h3><div class="detail">外轮廓＋外围元素贴附<br>三件套：上衣＋下衣＋手套<br>无配饰·无染色</div></div>
+        <div class="tier-card"><div class="tier-top" style="background:var(--blue-tier)"></div><span class="tier-badge" style="background:#EFF6FF;color:var(--blue-tier)">蓝装</span><h3>主题套装</h3><div class="detail">小幅度外轮廓外扩<br>全身一体化设计<br>入场动画道具</div></div>
+        <div class="tier-card"><div class="tier-top" style="background:var(--purple-tier)"></div><span class="tier-badge" style="background:var(--purple-bg);color:var(--purple-tier)">紫装</span><h3>高级套装</h3><div class="detail">复杂外轮廓＋功能性结构<br>华丽材质（1~2母材质）<br>背饰·2染色·定制表情×4<br>关键部位特效材质</div></div>
+        <div class="tier-card"><div class="tier-top" style="background:var(--orange-tier)"></div><span class="tier-badge" style="background:#FFF7ED;color:var(--orange-tier)">橙装</span><h3>顶级套装</h3><div class="detail">复杂外轮廓＋特殊骨骼<br>材质复合定制（≤3母材质）<br>PV动画·定制五官·定制表情×4<br>特效材质＋外围扩展特效</div></div>
+      </div>
+      <div class="split-card" style="margin-top:20px;">
+        <div class="split-half" style="background:#FFF7ED;border-right:1px solid var(--border);">
+          <h4><span style="color:var(--orange-tier);">🔥</span> 隐藏橙</h4>
+          <p style="font-size:12px;color:var(--orange-tier);font-weight:600;margin-bottom:8px;">稀缺性 · "一眼贵"</p>
+          <ul>
+            <li>材质表现力拉满，多种高级材质混合</li>
+            <li>外轮廓有辨识度</li>
+            <li>特效华丽，细节经得起特写</li>
+            <li>定制五官 + 专属PV动画</li>
+            <li>设计资源投入最大</li>
+          </ul>
+        </div>
+        <div class="split-half" style="background:var(--bg);">
+          <h4><span style="color:#D97706;">⭐</span> 基础橙</h4>
+          <p style="font-size:12px;color:#D97706;font-weight:600;margin-bottom:8px;">参与度核心 · 亲和力</p>
+          <ul>
+            <li>材质适度华丽，主次分明</li>
+            <li>外轮廓清晰辨识度高，但不过度复杂</li>
+            <li>目标：让更多玩家愿意参与赛季</li>
+            <li>设计资源投入适中</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="gallery" class="fade-in">
+  <div class="stag">Gallery &amp; References</div>
+  <h2>角色设计作品展示 &amp; 规范参考</h2>
+  <div class="sdesc">角色Avatar设计模板、AI工作流、套装规范到侵权规避的全链路设计示例。点击图片可放大查看。</div>
+
+  <div class="gallery-tabs">
+    <button class="gallery-tab active" onclick="switchGallery(0)">Avatar设计模板</button>
+    <button class="gallery-tab" onclick="switchGallery(1)">设计规范与标准</button>
+    <button class="gallery-tab" onclick="switchGallery(2)">角色渲染与宠物</button>
+    <button class="gallery-tab" onclick="switchGallery(3)">套装设计规范</button>
+    <button class="gallery-tab" onclick="switchGallery(4)">侵权规避案例</button>
+    <button class="gallery-tab" onclick="switchGallery(5)">AI工作流</button>
+  </div>
+
+  
+  <div class="gallery-panel active" id="gp0">
+    <div class="card">
+      <h3>Avatar 设计模板</h3>
+      <div class="img-showcase cols-2">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="猫系少女" loading="lazy" onclick="lightbox(this)"><figcaption>示例期 猫系少女 — 效果图/三视图/表情集/配色方案/材质参考</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="玫瑰少年" loading="lazy" onclick="lightbox(this)"><figcaption>示例期 玫瑰少年 — 多视角/表情/配色/入场动作概念</figcaption></figure>
+      </div>
+      <div class="img-showcase cols-2" style="margin-top:12px;">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="红丝绒" loading="lazy" onclick="lightbox(this)"><figcaption>示例期 红丝绒 — 表情集(常态/眨眼/胜利/失败)/材质参考/配件分解</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="菠萝女孩" loading="lazy" onclick="lightbox(this)"><figcaption>示例期 菠萝女孩 — 三视图 + 实物材质参考标注</figcaption></figure>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="gallery-panel" id="gp1">
+    <div class="card">
+      <h3>设计规范与标准</h3>
+      <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="设计注意事项" loading="lazy" onclick="lightbox(this)"><figcaption>新增注意事项 — 体型检查/三视图/性格五角图/表情匹配/材质说明/避免PVC</figcaption></figure>
+      <div class="img-showcase cols-3" style="margin-top:12px;">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="白模比例" loading="lazy" onclick="lightbox(this)"><figcaption>白模参考 — 面部/发际线/身体比例多视图</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="眼线对齐" loading="lazy" onclick="lightbox(this)"><figcaption>头部眼线对齐标准 — 4角色一致性校验</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="材质参考" loading="lazy" onclick="lightbox(this)"><figcaption>材质参考板 — 水母/虹彩面料/珍珠妆映射</figcaption></figure>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="gallery-panel" id="gp2">
+    <div class="card">
+      <h3>角色渲染与宠物</h3>
+      <div class="img-showcase cols-2">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="蘑菇角色" loading="lazy" onclick="lightbox(this)"><figcaption>蘑菇雨衣 — 高品质角色插画渲染目标</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="宠物设计" loading="lazy" onclick="lightbox(this)"><figcaption>宠物设计模板 — 菜狗 &amp; 莲藕狐</figcaption></figure>
+      </div>
+      <figure class="img-full" style="margin-top:12px;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="骨骼绑定" loading="lazy" onclick="lightbox(this)"><figcaption>3D 骨骼绑定展示 — Q版体型关节结构标准</figcaption></figure>
+    </div>
+  </div>
+
+  
+  <div class="gallery-panel" id="gp3">
+    <div class="card">
+      <h3>套装设计规范</h3>
+      <div class="img-showcase cols-2">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="套装组件" loading="lazy" onclick="lightbox(this)"><figcaption>套装组件 — 37+ 挂点分解(头发/耳朵/肩甲/披风/缎带/吊坠)</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="配饰分级" loading="lazy" onclick="lightbox(this)"><figcaption>配饰分级 — 小翅膀(¥300)/标准翅膀(¥600)/高级翅膀(¥900)</figcaption></figure>
+      </div>
+      <div class="img-showcase cols-2" style="margin-top:12px;">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="三视图" loading="lazy" onclick="lightbox(this)"><figcaption>天使风三视图 — 正/侧/背 高品质目标</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="IP联名" loading="lazy" onclick="lightbox(this)"><figcaption>IP联名 — TOBY / 蜡笔小新 Q版风格适配</figcaption></figure>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="gallery-panel" id="gp4">
+    <div class="card">
+      <h3>侵权规避案例</h3>
+      <div class="img-showcase cols-2">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="冰雪精灵" loading="lazy" onclick="lightbox(this)"><figcaption>⚠️ 冰雪精灵(妮薇) vs 迪士尼艾莎 — 相似度过高</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="原神对比" loading="lazy" onclick="lightbox(this)"><figcaption>⚠️ Q版角色 vs 原神原型 — 设计元素借鉴风险</figcaption></figure>
+      </div>
+      <div class="img-showcase cols-2" style="margin-top:12px;">
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="元素分析" loading="lazy" onclick="lightbox(this)"><figcaption>⚠️ 设计元素标注 — 红框标记越线借鉴特征</figcaption></figure>
+        <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="并排对比" loading="lazy" onclick="lightbox(this)"><figcaption>⚠️ 多面板并排对比 — 圈注相似点</figcaption></figure>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="gallery-panel" id="gp5">
+    <div class="card">
+      <h3>AI + 概念美术工作流</h3>
+      <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="AI工作流" loading="lazy" onclick="lightbox(this)"><figcaption>商品原画环节AI应用 · 时装设计流程全览</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<span id="tiers"></span>
+
+
+<section id="body" class="fade-in">
+  <div class="stag">Body Types</div>
+  <h2>体型系统</h2>
+  <div class="body-cards">
+    <div class="body-card"><div class="head-ratio">2.5</div><div class="body-name">基础体型</div><div class="body-desc">全品级通用。绿装三件套必须严格对照此素体。</div></div>
+    <div class="body-card"><div class="head-ratio">3</div><div class="body-name">偏瘦美型</div><div class="body-desc">紫/橙以上高级套装。手臂短，腿长，肩骨点内收。</div></div>
+    <div class="body-card"><div class="head-ratio">3.5</div><div class="body-name">高价值橙装</div><div class="body-desc">商业化价值最高。投放量少，目前2次迭代。</div></div>
+    <div class="body-card"><div class="head-ratio">2</div><div class="body-name">IP/原创特殊</div><div class="body-desc">完全还原IP定制化体型。下游开发成本较大。</div></div>
+  </div>
+</section>
+
+
+<section id="color" class="fade-in">
+  <div class="stag">Design Standards</div>
+  <h2>设计规范</h2>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 16px;" id="dsTabs">
+    <button class="pl-tab t-orange active" onclick="switchDS(0)" style="padding:8px 18px;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#F0A030;margin-right:6px;vertical-align:middle;"></span>色彩原则</button>
+    <button class="pl-tab t-season-purple" onclick="switchDS(1)" style="padding:8px 18px;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8B7FC8;margin-right:6px;vertical-align:middle;"></span>设计原则</button>
+    <button class="pl-tab t-purple" onclick="switchDS(2)" style="padding:8px 18px;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#7B7FB5;margin-right:6px;vertical-align:middle;"></span>IP联动规范</button>
+    <button class="pl-tab t-blue" onclick="switchDS(3)" style="padding:8px 18px;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3B82F6;margin-right:6px;vertical-align:middle;"></span>配饰规范</button>
+  </div>
+  <div id="dsContent">
+    
+  </div>
+</section>
+
+<span id="design"></span>
+<span id="ip"></span>
+<span id="accessory"></span>
+
+
+<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto auto 1fr;gap:0 24px;margin-top:64px;align-items:start;" class="fade-in mat-sub-grid">
+
+  
+  <div class="stag" id="materials">Materials</div>
+  <div class="stag" id="submission">Submission</div>
+
+  
+  <h2 style="margin-bottom:6px;">材质按品级配备</h2>
+  <h2 style="margin-bottom:6px;">提交规范</h2>
+
+  
+  <div class="sdesc" style="margin-bottom:12px;">点击品级查看可用材质清单。如需新材质可找TA开发。</div>
+  <div class="sdesc" style="margin-bottom:12px;">各品级需要提交的内容清单，按模板规范执行。</div>
+
+  
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;" id="matTierTabs">
+    <button class="pl-tab t-orange active" onclick="showMatTier('orange')" style="padding:8px 18px;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#F0A030;margin-right:6px;vertical-align:middle;"></span>橙装 · 全部23种</button>
+    <button class="pl-tab t-season-purple" onclick="showMatTier('purple')" style="padding:8px 18px;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8B7FC8;margin-right:6px;vertical-align:middle;"></span>紫装 · 12种</button>
+    <button class="pl-tab t-white" onclick="showMatTier('white')" style="padding:8px 18px;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#94A3B8;margin-right:6px;vertical-align:middle;border:1px solid #CBD5E1;"></span>白/绿/蓝</button>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+    <a href="unavailable.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,#F59E0B,#D97706);font-size:13px;font-weight:600;color:#fff;text-decoration:none;cursor:pointer;transition:all .25s;box-shadow:0 2px 8px rgba(217,119,6,.25);" onmouseover="this.style.boxShadow='0 4px 16px rgba(217,119,6,.35)';this.style.transform='translateY(-1px)';" onmouseout="this.style.boxShadow='0 2px 8px rgba(217,119,6,.25)';this.style.transform='none';">三视图模版自取</a>
+  </div>
+
+  
+  <div class="card" id="matContent" style="margin-bottom:0;align-self:stretch;">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;" id="matChips"></div>
+    <div class="alert info" style="margin-top:14px;margin-bottom:0;"><strong>品级材质总则：</strong>白/绿/蓝 = 1母材质 ｜ 紫 = 1~2母材质 ｜ 橙 = ≤3母材质<br><strong>需要新材质？</strong>联系TA团队评估开发可行性。</div>
+  </div>
+  <div class="card" style="overflow-x:auto;margin-bottom:0;align-self:stretch;background:linear-gradient(135deg,#93B8F0,#6B9DE8);color:#fff;border:none;"><table class="data"><thead><tr><th>品级</th><th>提交内容</th></tr></thead><tbody>
+    <tr><td><span class="tier-badge" style="background:transparent;color:#fff;font-size:11px;font-weight:700;padding:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F59E0B;margin-right:5px;vertical-align:middle;"></span>隐藏橙</span></td><td>三视图、性格五维、表情、材质指定详细</td></tr>
+    <tr><td><span class="tier-badge" style="background:transparent;color:#fff;font-size:11px;font-weight:700;padding:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F59E0B;margin-right:5px;vertical-align:middle;"></span>基础橙</span></td><td>三视图、染色×2、性格五维、表情、材质指定详细</td></tr>
+    <tr><td><span class="tier-badge" style="background:transparent;color:#fff;font-size:11px;font-weight:700;padding:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#A855F7;margin-right:5px;vertical-align:middle;"></span>紫装</span></td><td>局内背视角、三视图、染色×2、性格五维、人物原型、表情、入场动作、体型比对、材质指定</td></tr>
+    <tr><td><span class="tier-badge" style="background:transparent;color:#fff;font-size:11px;font-weight:700;padding:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#60A5FA;margin-right:5px;vertical-align:middle;"></span>蓝装</span></td><td>三视图、脚底花纹、染色×1、材质指定详细、体型比对</td></tr>
+    <tr><td><span class="tier-badge" style="background:transparent;color:#fff;font-size:11px;font-weight:700;padding:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ADE80;margin-right:5px;vertical-align:middle;"></span>绿装</span></td><td>三视图、脚底花纹、切线拆分、材质指定、动物换装</td></tr>
+    <tr><td><span class="tier-badge" style="background:transparent;color:#fff;font-size:11px;font-weight:700;padding:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:5px;vertical-align:middle;"></span>白装</span></td><td>三视图</td></tr>
+  </tbody></table></div>
+
+</div>
+
+
+
+
+<section id="manpower"><p>团队业务数据已隐去。</p></section><section id="infringement" class="fade-in">
+  <div class="stag">Infringement</div>
+  <h2>侵权规避</h2>
+  <div class="alert warn"><strong>核心：</strong>单一元素相似通常不构成侵权。多元素叠加组合形成整体相似 = 高风险。维度：剪影+造型+服饰+配色+人设。</div>
+  <div class="process-flow">
+    <div class="process-card"><div class="step-num">1</div><div class="step-title">需求确认</div><div class="step-owner">Owner</div><div class="step-desc">及时提出风险，确认后再设计</div></div>
+    <div class="process-card"><div class="step-num">2</div><div class="step-title">参考附注</div><div class="step-owner">设计师</div><div class="step-desc">附上参考，明确出处</div></div>
+    <div class="process-card"><div class="step-num">3</div><div class="step-title">组合检查</div><div class="step-owner">设计师/Owner</div><div class="step-desc">A圈/二次元/竞品版权关注</div></div>
+    <div class="process-card"><div class="step-num">4</div><div class="step-title">法务提审</div><div class="step-owner">运营</div><div class="step-desc">提交风控法务审核</div></div>
+  </div>
+</section>
+
+
+<div class="img-lightbox" id="imgLightbox" onclick="this.classList.remove('show')">
+  <img id="lbImg" src="" alt="放大查看">
+</div>
+
+
+</main>
+<footer>负责人：角色团队 · 示例项目 2D角色原画管线 · 2026.04</footer>
+
+<script>const PIPELINES=[{name:"🔥 赛季橙",desc:"演示说明（业务数据已隐去）",steps:[{step:"STEP 1",title:"主题发散",who:"👤 运营+策划+原画",desc:"8个候选主题方向",tools:"趋势采集系统 / 竞品分析 / 头脑风暴",ai:"主题趋势自动采集（小红书+竞品+KM），输出热度评分排名。",human:"运营、策划、原画负责人共同发散，收敛到约<strong>8个候选主题</strong>方向。每个主题带有关键词列表，用于后续AI生图。",output:"8个主题方向清单 + 关键词表",aiPct:30},{step:"STEP 2",title:"AI批量出图",who:"🤖 AI + 👤 原画",desc:"每主题5~6张概念图",tools:"Midjourney / Banana + Prompt生成器",ai:"使用<strong>Prompt生成器</strong>按品级规范约束组装prompt，每主题批量生成5~6张概念图。",human:"原画负责人从生成结果中初筛，确保风格和品级感达标。",output:"40~48张筛选后的AI概念图",aiPct:80,img:"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E",imgCap:"AI批量生成概念图示例（多角色概念图排列）"},{step:"STEP 3",title:"大众玩家CE",who:"👤 运营",desc:"示例项目大众玩家投票调研",tools:"CE调研平台",ai:"—（纯人工调研环节）",human:"运营将40~48张图投放给<strong>偏示例项目的大众玩家</strong>做CE调研，收集投票数据和赛季分。",output:"1~2个确定主题 + 高分概念图",aiPct:0},{step:"STEP 4",title:"体型适配设计",who:"👤 原画 + 🤖 AI辅助",desc:"高分图适配示例项目体型",tools:"Photoshop / Prompt生成器（体型参考生成）",ai:"AI可辅助生成符合示例项目体型比例（2.5~3.5头身比）的参考图，用于体型适配方向探索。Prompt生成器内置体型约束参数，可生成目标体型的变体参考。",human:"原画基于高分图做符合<strong>示例项目游戏体型</strong>的设计适配。目前以人工调优为主，AI提供参考辅助。",output:"体型适配后的角色设计稿",aiPct:25,img:"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E",imgCap:"体型适配设计（概念图→示例项目体型正视图）"},{step:"STEP 5",title:"超核玩家调研",who:"👤 运营专项",desc:"高付费玩家一对一深度访谈",tools:"一对一访谈 / 调研平台",ai:"—（纯人工调研环节）",human:"演示说明（业务数据已隐去）",output:"演示说明（业务数据已隐去）",aiPct:0},{step:"STEP 6",title:"正视图细化",who:"👤 原画",desc:"前2名分流：隐藏橙 + 基础橙",tools:"Photoshop / Procreate",ai:"AI可辅助材质参考和配色微调。",human:"演示说明（业务数据已隐去）",output:"隐藏橙精细正视图 + 基础橙精细正视图",aiPct:15,img:"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E",imgCap:"隐藏橙正视图细化示例",extra:'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;"><div style="padding:12px;background:#FFF7ED;border-radius:8px;border:1px solid #FED7AA;"><div style="font-size:12px;font-weight:700;color:var(--orange-tier);margin-bottom:4px;">🔥 隐藏橙方向</div><div style="font-size:11px;color:#92400E;line-height:1.6;">稀缺性 · "一眼贵" · 材质拉满 · 外轮廓有辨识度 · 特效华丽</div></div><div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);"><div style="font-size:12px;font-weight:700;color:#D97706;margin-bottom:4px;">⭐ 基础橙方向</div><div style="font-size:11px;color:var(--text2);line-height:1.6;">参与度核心 · 亲和力 · 材质适度华丽 · 辨识度高 · 不过度复杂</div></div></div>'},{step:"STEP 7",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent可辅助品级合规检查（待搭建）。",human:"内部评审确定最终方案：品级匹配度、材质可行性、色彩规范、侵权风险检查。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 8",title:"三视图制作",who:"👤 原画",desc:"制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助生成（待搭建）。",human:"按品级三视图模板制作正/侧/背视图，附染色方案、材质指定、性格五维等。",output:"完整三视图交付包",aiPct:20,extra:'<div style="margin-top:12px;"><a href="unavailable.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(124,58,237,.2);">📐 三视图PSD模板自取 →</a></div>'},{step:"STEP 9",title:"3D验收交付",who:"👤 3D + 原画",desc:"材质和面数验收后流转下游",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收材质可行性、面数预算、骨骼兼容性。通过后流转到下游3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"🎯 自由橙",desc:"主题发散 → 体型适配设计 → 三视图细化 → 内部确认 → 转到下游",steps:[{step:"STEP 1",title:"主题发散",who:"👤 运营+策划+原画",desc:"创新+参考竞品顶奢方向",tools:"竞品分析 / 趋势采集 / 头脑风暴",ai:"趋势自动采集辅助。",human:"自由橙的主题定位是<strong>创新+参考竞品的顶奢</strong>方向。不受赛季主题约束，追求设计创新和市场差异化。",output:"自由橙主题方向",aiPct:30},{step:"STEP 2",title:"体型适配设计",who:"👤 原画 + 🤖 AI辅助",desc:"细调设计/多阶级设计",tools:"Photoshop / Prompt生成器",ai:"AI辅助体型参考生成和变体探索。",human:"原画做符合示例项目体型的设计适配，同时进行<strong>细调设计/多阶级设计</strong>（如有相关机制）。",output:"体型适配后的设计稿",aiPct:25},{step:"STEP 3",title:"三视图细化",who:"👤 原画",desc:"制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"按橙装品级模板制作三视图，明确材质表现、配色方案和细节。",output:"完整三视图交付包",aiPct:20,extra:'<div style="margin-top:12px;"><a href="unavailable.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(124,58,237,.2);">📐 三视图PSD模板自取 →</a></div>'},{step:"STEP 4",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent（待搭建）。",human:"内部评审确定最终方案：品级匹配度、材质可行性、色彩规范。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 5",title:"转到下游",who:"👤 3D + 原画",desc:"材质面数验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收后流转到下游3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"💎 IP紫装",desc:"商务立项 → 商品选型 → 技术预判 → 概念设计 → IP监修 → 三视图联调 → 3D制作",steps:[{step:"STEP 1",title:"IP联动立项",who:"👤 商务 + 运营",desc:"确认IP授权范围和素材交接",tools:"商务合同 / IP素材包",ai:"—",human:"确认联动IP的<strong>授权范围、合作周期、权益边界</strong>；同步完成IP官方素材包交接（立绘/三视图/色值/品牌Guideline），明确IP方的<strong>禁止事项清单与红线要求</strong>。",output:"IP授权文件 + 素材包 + 禁忌清单",aiPct:0},{step:"STEP 2",title:"商品选型定档",who:"👤 运营主导 + 美术参与",desc:"确定商品品类、数量、排期",tools:"项目管理工具",ai:"—",human:"确定商品品类与数量（<strong>紫装套数、还原IP已有设计 vs 二创方向</strong>）、品质分级（A/B级）、排期窗口；美术同步评估设计体量是否匹配产能与周期。",output:"商品选型方案 + 排期表",aiPct:0},{step:"STEP 2.5",title:"技术可行性预判",who:"👤 TA + 3D美术",desc:"体型/材质/性能可行性评估",tools:"UE4 / 骨骼系统",ai:"—",human:"提前确认：目标体型的<strong>骨骼挂点限制</strong>、材质插槽规则是否支持设计的材质表现需求、<strong>性能预算</strong>（面数/DrawCall/贴图张数）是否合规；同时基于IP禁忌清单做一轮<strong>设计禁区预扫</strong>，避免概念方向踩红线。",output:"技术可行性报告 + 设计禁区清单",aiPct:0,extra:'<div class="alert info" style="margin-top:12px;"><strong>★ 关键卡点：</strong>这一步在出概念稿之前介入，能避免后续大量返工。必须确认骨骼、材质、性能三个维度全部可行。</div>'},{step:"STEP 3",title:"概念设计与内部对齐",who:"👤 美术主导",desc:"输出概念稿，多职能内审",tools:"Photoshop / Prompt生成器 / 内审会议",ai:"AI可辅助生成概念方向的参考图和变体探索。",human:"输出概念设计稿（<strong>适配示例项目已有体型骨架 或 IP特征融合的二创服饰方案</strong>），组织多职能内审——策划确认玩法适配、程序确认特效可实现性、运营确认商业卖点视觉表达；达成统一结论后<strong>锁定版本</strong>。",output:"锁定版概念设计稿",aiPct:25},{step:"STEP 4",title:"IP监修审核",who:"👤 美术对接IP方",desc:"IP方审核，迭代≤3轮",tools:"IP监修流程",ai:"—",human:"提交概念方案至IP方监修审核，按反馈迭代修改。约定<strong>监修轮次上限（≤3轮）</strong>、单轮反馈SLA（X工作日内返回），明确催促机制与升级escalation对口人，直至IP方正式通过。",output:"IP方正式通过的概念方案",aiPct:0,extra:'<div class="alert warn" style="margin-top:12px;"><strong>⚠ 注意：</strong>超过3轮监修需升级处理。每轮变更需留存记录。</div>'},{step:"STEP 5",title:"三视图与IP联调",who:"👤 原画主导",desc:"三视图制作 + 持续IP联调",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"概念通过后推进正式三视图制作，期间持续与IP方联调，平衡<strong>「IP还原度」与「内部设计方案」</strong>的效果一致性；每轮联调变更需留存记录。",output:"IP方确认的最终三视图",aiPct:15,extra:'<div style="margin-top:12px;"><a href="unavailable.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(124,58,237,.2);">📐 三视图PSD模板自取 →</a></div>'},{step:"STEP 5.5",title:"进入3D制作",who:"👤 3D团队",desc:"三视图最终通过后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"三视图最终通过后，进入3D制作阶段。",output:"进入3D制作流程",aiPct:0}]},{name:"✨ 赛季紫装",desc:"演示说明（业务数据已隐去）",steps:[{step:"STEP 1",title:"紫装正视图设计",who:"👤 原画",desc:"基于赛季主题做紫装正视图",tools:"Photoshop / Procreate",ai:"AI可辅助材质参考和配色探索。",human:"原画基于赛季橙装已确定的主题方向，直接进行<strong>紫装正视图设计</strong>。紫装不单独走主题发散、AI批量出图、大众CE和超核调研流程，直接从设计环节开始。",output:"紫装正视图设计稿",aiPct:15,extra:"演示说明（业务数据已隐去）"},{step:"STEP 2",title:"紫装三视图制作",who:"👤 原画",desc:"按紫装模板制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"按紫色品级三视图模板制作正/侧/背视图，附<strong>染色方案、材质指定</strong>等。紫装允许特效表现+背部背饰。",output:"紫装完整三视图交付包",aiPct:20,extra:'<div style="margin-top:12px;"><a href="unavailable.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(124,58,237,.2);">📐 三视图PSD模板自取 →</a></div>'},{step:"STEP 3",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent可辅助品级合规检查（待搭建）。",human:"内部评审确认最终方案：品级匹配度、材质可行性、色彩规范。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 4",title:"3D验收交付",who:"👤 3D + 原画",desc:"材质面数验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收材质可行性、面数预算后流转到下游3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"💜 紫装",desc:"紫装正视图设计 → 三视图制作 → 内部确认 → 3D验收（流程同赛季紫装）",steps:[{step:"STEP 1",title:"紫装正视图设计",who:"👤 原画",desc:"基于需求做紫装正视图",tools:"Photoshop / Procreate",ai:"AI可辅助材质参考和配色探索。",human:"原画基于运营/策划需求，进行<strong>紫装正视图设计</strong>。直接从设计环节开始，不走主题发散和调研流程。",output:"紫装正视图设计稿",aiPct:15,extra:"演示说明（业务数据已隐去）"},{step:"STEP 2",title:"紫装三视图制作",who:"👤 原画",desc:"按紫装模板制作完整三视图",tools:"Photoshop / 三视图PSD模板",ai:"AI三视图辅助（待搭建）。",human:"按紫色品级三视图模板制作正/侧/背视图，附<strong>染色方案、材质指定</strong>等。紫装允许特效表现+背部背饰。",output:"紫装完整三视图交付包",aiPct:20,extra:'<div style="margin-top:12px;"><a href="unavailable.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(124,58,237,.2);">📐 三视图PSD模板自取 →</a></div>'},{step:"STEP 3",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"设计评审Agent可辅助品级合规检查（待搭建）。",human:"内部评审确认最终方案：品级匹配度、材质可行性、色彩规范。",output:"确认的最终设计方案",aiPct:10},{step:"STEP 4",title:"3D验收交付",who:"👤 3D + 原画",desc:"材质面数验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收材质可行性、面数预算后流转到下游3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"💙 赛季蓝装",desc:"赛季蓝装正视图设计 → 三视图与染色 → 内部确认 → 3D验收",steps:[{step:"STEP 1",title:"蓝装正视图设计",who:"👤 原画",desc:"基于赛季主题做蓝装正视图",tools:"Photoshop / Procreate",ai:"AI可辅助方案探索和配色参考。",human:"原画基于赛季已确定的主题方向，直接进行<strong>蓝装正视图设计</strong>。蓝装不单独走主题发散/AI批量出图/CE/超核流程。",output:"蓝装正视图设计稿",aiPct:15,extra:'<div class="alert info" style="margin-top:12px;"><strong>★ 赛季蓝装特点：</strong>跟随赛季主题方向，跳过前期调研环节，直接从正视图设计开始。蓝色品级允许额外2个染色方案，无特效表现。</div>'},{step:"STEP 2",title:"三视图与染色",who:"👤 原画 / 供应商",desc:"制作三视图+2个额外染色方案",tools:"Photoshop / 三视图PSD模板",ai:"供应商利用AI辅助三视图生成。",human:"按蓝色品级三视图模板制作正/侧/背视图，附<strong>2个额外染色方案</strong>。可发包CP制作。",output:"蓝装三视图 + 染色方案",aiPct:15,extra:'<div style="margin-top:12px;"><a href="unavailable.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(124,58,237,.2);">📐 三视图PSD模板自取 →</a></div>'},{step:"STEP 3",title:"内部确认",who:"👤 内部团队",desc:"内部评审定稿",tools:"评审会议",ai:"—",human:"内部评审确认最终方案和染色方案。",output:"确认的最终设计方案",aiPct:0},{step:"STEP 4",title:"3D验收交付",who:"👤 3D + 原画",desc:"验收后流转",tools:"UE4 / 3D制作工具",ai:"—",human:"3D团队验收后流转到下游3D制作。",output:"进入3D制作流程",aiPct:0}]},{name:"🌊 蓝装",desc:"演示说明（业务数据已隐去）",steps:[{step:"STEP 1",title:"运营-策划提需",who:"👤 运营 + 策划",desc:"赛季投放/活跃投放/付费投放",tools:"需求文档",ai:"—",human:"运营和策划提出蓝装需求，明确投放类型（赛季投放、活跃投放、付费投放）和主题方向。",output:"蓝装需求单",aiPct:0},{step:"STEP 2",title:"AI脑暴方案",who:"🤖 AI + 👤 美术",desc:"AI拼接素材，美术主导",tools:"Midjourney / Banana / Prompt生成器",ai:"AI批量生成方案参考图，辅助拼接素材。<strong>AI约20%介入</strong>。设计师创意丰富、潮流审美，2天可出多个方案并调整出最佳。AI工具：1天抽盲盒、筛选最佳，后精修与调整1天。",human:"美术主导创意方向，AI作为效率工具。<strong>缺陷：风格把控不准，设计美观度不太高</strong>，需人工调优。",output:"多个候选设计方案",aiPct:20},{step:"STEP 3",title:"设计效果图",who:"👤 原画",desc:"原画出方案，内部品质对齐",tools:"Photoshop",ai:"—",human:"演示说明（业务数据已隐去）",output:"确认的设计效果图",aiPct:0},{step:"STEP 4",title:"三视图与染色",who:"👤 原画 / 供应商",desc:"发包CP制作，原画监修",tools:"Photoshop / 三视图PSD模板",ai:"供应商利用AI生成三视图，调整创作。<strong>供应商AI约15%。</strong>",human:"演示说明（业务数据已隐去）",output:"三视图 + 染色方案",aiPct:15,extra:'<div style="margin-top:12px;"><a href="unavailable.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(124,58,237,.2);">📐 三视图PSD模板自取 →</a></div>'}]},{name:"⚪ 白装",desc:"演示说明（业务数据已隐去）",steps:[{step:"STEP 1",title:"运营-策划提需",who:"👤 运营 + 策划",desc:"需求类型同蓝装",tools:"需求文档",ai:"—",human:"运营和策划提出白装需求。流程与蓝装相同，但设计复杂度更低。",output:"白装需求单",aiPct:0},{step:"STEP 2",title:"AI脑暴方案",who:"🤖 AI + 👤 美术",desc:"AI辅助方案，美术主导",tools:"Midjourney / Banana / Prompt生成器",ai:"AI批量生成参考方案。白装设计简洁，AI辅助效率更高。",human:"美术快速确定方向。",output:"候选设计方案",aiPct:25},{step:"STEP 3",title:"设计效果图",who:"👤 原画",desc:"简洁设计，快速出图",tools:"Photoshop",ai:"—",human:"白装设计相对简洁，快速出效果图并内部确认。",output:"确认的设计效果图",aiPct:0},{step:"STEP 4",title:"三视图",who:"👤 原画",desc:"演示说明（业务数据已隐去）",tools:"Photoshop / 三视图PSD模板",ai:"—",human:"演示说明（业务数据已隐去）",output:"三视图交付",aiPct:0,extra:"演示说明（业务数据已隐去）"}]}];let curPL=0;function switchPL(i){curPL=i;document.querySelectorAll("#plTabs .pl-tab").forEach((t,j)=>t.classList.toggle("active",j===i));const p=PIPELINES[i];document.getElementById("plMeta").innerHTML=`<span style="font-size:12px;color:var(--text2);">${p.desc}</span>`;renderFlow(p.steps);closeStep();const subTabs=document.getElementById("plSubTabs");if(i===0){subTabs.style.display="block";switchSubPL("flow")}else{subTabs.style.display="none";document.getElementById("plFlowContent").style.display="block";document.getElementById("plTiersContent").style.display="none"}}function switchSubPL(tab){const flowEl=document.getElementById("plFlowContent");const tiersEl=document.getElementById("plTiersContent");const btnFlow=document.getElementById("subTabFlow");const btnTiers=document.getElementById("subTabTiers");if(tab==="flow"){flowEl.style.display="block";tiersEl.style.display="none";btnFlow.classList.add("active");btnTiers.classList.remove("active")}else{flowEl.style.display="none";tiersEl.style.display="block";btnFlow.classList.remove("active");btnTiers.classList.add("active")}}function renderFlow(steps){const el=document.getElementById("plFlow");const numColors=["linear-gradient(135deg,#22C55E,#16A34A)","linear-gradient(135deg,#3B82F6,#2563EB)","linear-gradient(135deg,#8B5CF6,#7C3AED)","linear-gradient(135deg,#F59E0B,#D97706)","linear-gradient(135deg,#EF4444,#DC2626)","linear-gradient(135deg,#06B6D4,#0891B2)","linear-gradient(135deg,#EC4899,#DB2777)","linear-gradient(135deg,#10B981,#059669)","linear-gradient(135deg,#6366F1,#4F46E5)","linear-gradient(135deg,#14B8A6,#0D9488)"];function getTypeTag(s){if(s.aiPct===0)return{cls:"t-manual",icon:"",label:"纯人工"};if(s.aiPct>=60)return{cls:"t-ai-mix",icon:"",label:"AI主导"};if(s.aiPct>0)return{cls:"t-ai-mix",icon:"",label:"人机协作"};return{cls:"t-manual",icon:"",label:"纯人工"}}function isHandoff(s){return s.title.includes("交付")||s.title.includes("下游")||s.title.includes("转到")||s.title.includes("3D验收")||s.title.includes("进入3D")}function parseTools(toolStr){if(!toolStr||toolStr==="—")return[];const chips=[];const items=toolStr.split("/").map(t=>t.trim()).filter(Boolean);const colorMap={"midjourney":"chip-blue","mj":"chip-blue","banana":"chip-pink","nano banana":"chip-pink","prompt":"chip-purple","prompt生成器":"chip-purple","photoshop":"chip-cyan","ps":"chip-cyan","procreate":"chip-cyan","ue4":"chip-orange","3d":"chip-orange","comfyui":"chip-blue"};items.forEach(item=>{const lower=item.toLowerCase();let chipCls="chip-blue";for(const[k,v]of Object.entries(colorMap)){if(lower.includes(k)){chipCls=v;break}}const emoji="";chips.push({label:item.replace(/\s+/g," ").substring(0,18),cls:chipCls,emoji})});return chips.slice(0,3)}el.innerHTML=steps.map((s,i)=>{const arrow=i>0?`<span class="flow-arrow"><svg viewBox="0 0 40 20"><line x1="0" y1="10" x2="32" y2="10" stroke-dasharray="5 3"/><polygon class="arrow-head" points="30,5 40,10 30,15"/></svg></span>`:"";const numBg=numColors[i%numColors.length];const handoff=isHandoff(s);const tag=handoff?{cls:"t-handoff",icon:"",label:"交付节点"}:getTypeTag(s);const tools=parseTools(s.tools);const toolHtml=tools.length>0?`<div class="fn-tools">${tools.map(t=>`<span class="fn-tool-chip ${t.cls}">${t.label}</span>`).join("")}</div>`:"";const aiHtml=s.aiPct>0?`<div class="fn-ai-line"><span class="ai-icon"></span> AI 介入 — ${s.aiPct<=30?s.desc:s.aiPct<=60?"效率提升":"AI主导"}</div>`:"";return`${arrow}<div class="flow-node${handoff?" handoff":""}" onclick="openStep(${i})">
+      <div class="fn-num" style="background:${numBg};">${i+1}</div>
+      <div class="fn-box">
+        <div class="fn-title">${s.title}</div>
+        <div class="fn-type-tag ${tag.cls}">${tag.label}</div>
+        <div class="fn-desc">${s.desc}</div>
+        ${aiHtml}
+        ${toolHtml}
+        <div class="fn-click-hint">点击查看详情</div>
+      </div>
+    </div>`}).join("");const legendEl=document.querySelector(".flow-legend");if(!legendEl){const wrap=document.querySelector(".flow-wrap");const leg=document.createElement("div");leg.className="flow-legend";leg.innerHTML=`
+      <div class="flow-legend-item"><div class="flow-legend-dot" style="background:#2563EB;"></div> 纯人工步骤</div>
+      <div class="flow-legend-item"><div class="flow-legend-dot" style="background:#7C3AED;"></div> AI + 人工协作</div>
+      <div class="flow-legend-item"><div class="flow-legend-dot" style="background:#DC2626;"></div> 交付节点</div>
+      <div class="flow-legend-item" style="margin-left:16px;"><span style="font-size:12px;color:var(--text2);">👆</span> 可点击跳转 AI 工具平台</div>
+    `;wrap.parentNode.insertBefore(leg,wrap.nextSibling)}}function openStep(i){const steps=PIPELINES[curPL].steps;const s=steps[i];document.querySelectorAll(".flow-node").forEach((n,j)=>n.classList.toggle("active",j===i));const d=document.getElementById("stepPanel");d.classList.add("open");document.getElementById("spTitle").textContent=`${s.step} — ${s.title}`;const bc=s.aiPct>=60?"var(--accent)":s.aiPct>=25?"#F0A030":s.aiPct>0?"var(--green-tier)":"#ddd";document.getElementById("spBody").innerHTML=`
+    <div class="sp-grid"><div class="sp-item"><div class="label">🤖 AI 做什么</div><div class="value">${s.ai}</div></div><div class="sp-item"><div class="label">👤 人工做什么</div><div class="value">${s.human}</div></div></div>
+    <div class="sp-ai" style="background:var(--accent-light);border:1px solid #DDD6FE;margin-top:14px;"><strong style="color:var(--accent);">使用工具：</strong>${s.tools}</div>
+    <div class="sp-ai" style="background:#EBF0FA;border:1px solid #D6E2F5;"><strong style="color:var(--accent);">产出物：</strong>${s.output}</div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text2);font-weight:600;">AI 介入度</span><div style="flex:1;height:7px;background:#E5E7EB;border-radius:4px;overflow:hidden;"><div style="width:${s.aiPct}%;height:100%;background:${bc};border-radius:4px;"></div></div><span style="font-size:12px;font-weight:700;color:${bc};">${s.aiPct}%</span></div>
+    
+    ${s.extra||""}`;document.getElementById("spFooter").innerHTML=`<div class="sf"><span style="color:var(--text2);">环节</span><span class="sfv">${s.title}</span></div><div class="sf"><span style="color:var(--text2);">分工</span><span class="sfv">${s.who}</span></div><div class="sf" style="margin-left:auto;"><span style="color:var(--text2);">产出</span><span class="sfv">${s.output}</span></div>`;d.scrollIntoView({behavior:"smooth",block:"nearest"})}function closeStep(){document.getElementById("stepPanel").classList.remove("open");document.querySelectorAll(".flow-node").forEach(n=>n.classList.remove("active"))}const ALL_MATS=[{name:"基础材质",desc:"PBR通道图+菲涅尔",w:1,p:1,o:1},{name:"硬边透明",desc:"Alpha控制全透明",w:0,p:1,o:1},{name:"半透明",desc:"Alpha控制半透明",w:0,p:1,o:1},{name:"半透明胶衣",desc:"半透+特殊高光",w:0,p:1,o:1},{name:"半透明自发光",desc:"半透+自发光",w:0,p:1,o:1},{name:"自发光",desc:"Mask区域自发光",w:0,p:1,o:1},{name:"镭射",desc:"可调强度/颜色/方向",w:0,p:1,o:1},{name:"闪点",desc:"可调图样/大小",w:0,p:1,o:1},{name:"玻璃",desc:"光泽度/反射/轮廓光",w:0,p:1,o:1},{name:"云朵",desc:"区域云朵效果",w:0,p:0,o:1},{name:"丝绸",desc:"光色+轻反射+颗粒感",w:0,p:0,o:1},{name:"绒毛",desc:"表面短绒毛",w:0,p:0,o:1},{name:"晶粉",desc:"可调密度/大小",w:0,p:1,o:1},{name:"水晶",desc:"水晶基础色",w:0,p:0,o:1},{name:"模拟SSS",desc:"SSS属性",w:0,p:0,o:1},{name:"珍珠漆",desc:"Matcap模拟",w:0,p:0,o:1},{name:"UV流光",desc:"UV动画",w:0,p:0,o:1},{name:"UV复合",desc:"复合UV动画",w:0,p:0,o:1},{name:"漆皮",desc:"强化高光漆面",w:0,p:0,o:1},{name:"视差",desc:"内部视差效果",w:0,p:0,o:1},{name:"磨砂半透",desc:"可控透明清晰度",w:0,p:1,o:1},{name:"幻彩",desc:"半透+镭射+闪点组合",w:0,p:0,o:1},{name:"闪光粉",desc:"高密度金属闪粉",w:0,p:1,o:1}];let curMatTier="orange";function showMatTier(t){curMatTier=t;document.querySelectorAll("#matTierTabs .pl-tab").forEach(b=>b.classList.remove("active"));document.querySelector(`#matTierTabs .pl-tab.t-${t==="white"?"white":t==="purple"?"season-purple":"orange"}`).classList.add("active");const el=document.getElementById("matChips");el.innerHTML=ALL_MATS.map(m=>{const avail=t==="orange"?m.o:t==="purple"?m.p:m.w;const bg=avail?"background:var(--accent-light);border-color:var(--accent);color:var(--accent);":"background:#F3F4F6;border-color:#E5E7EB;color:#9CA3AF;opacity:.5;";return`<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:10px;border:1px solid;font-size:13px;font-weight:500;${bg}" title="${m.desc}">${avail?'<span style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>':'<span style="width:8px;height:8px;border-radius:50%;background:#D1D5DB;flex-shrink:0;"></span>'}${m.name}</span>`}).join("")}showMatTier("orange");const DS_TABS=[{title:"🎨 色彩设计六原则",html:`
+    <div class="card" style="margin:0;">
+      <ul>
+        <li><strong>01 整体色彩感受</strong> — 大色块区分，减少颜色切割。缩略图检查</li>
+        <li><strong>02 大面积纯色处理</strong> — 纯色需渐变。<strong>不从固有色渐变过白</strong></li>
+        <li><strong>03 色彩占比与切割</strong> — 切割连续性和面积控制</li>
+        <li><strong>04 视觉重心分布</strong> — 上半身饱和度高，下半身弱对比。三七原则</li>
+        <li><strong>05 背部辨识度</strong> — 背视角辨识度和统一性</li>
+        <li><strong>06 正背面区分</strong> — 颜色/明度/结构/繁复程度区分</li>
+      </ul>
+      <div class="alert warn" style="margin-top:12px;margin-bottom:0;font-size:13px;"><strong>绝对避免：</strong>大面积纯白/纯黑、高曝光用色、颜色过重、细碎颜色切割。</div>
+    </div>`},{title:"📐 设计原则 & 设计禁区",html:`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="card" style="margin:0;">
+        <h3>核心设计原则</h3>
+        <ul>
+          <li><strong>核心元素放本体上</strong>，占比放大，一目了然</li>
+          <li><strong>避免元素平行或等分</strong>，主次对比明确</li>
+          <li><strong>三维度强度</strong>：概念·职业·文化，横向纵向对照品级</li>
+          <li><strong>外轮廓性价比 > 内部细节</strong></li>
+          <li><strong>体量感统一</strong>（皮带扣、拉链等大小粗细一致）</li>
+        </ul>
+      </div>
+      <div class="card" style="margin:0;border-left:3px solid var(--red);">
+        <h3>🚫 设计禁区</h3>
+        <ul>
+          <li>本体不允许遮挡面部饰品（由配饰系统处理）</li>
+          <li>白绿蓝装面部位置大小不能改变</li>
+          <li>避开肩关节和肘关节处设计</li>
+          <li>后发最长过肩（再长穿插背饰）</li>
+        </ul>
+      </div>
+    </div>`},{title:"💎 IP联动设计规范",html:`
+    <div class="card" style="margin:0;">
+      <h3>通用原则</h3>
+      <ul>
+        <li>体型微调在最大/最小区间内，可调<strong>粗细</strong>不可调<strong>长度</strong></li>
+        <li>相同IP保持一样的绘画风格和表现手法</li>
+        <li>角色同框时协调统一，便于IP方监修</li>
+        <li>IP方不允许改体型 → 采用「时装联动」方式</li>
+      </ul>
+    </div>`},{title:"👑 配饰设计规范",html:`
+    <div class="tier-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="tier-card"><div class="tier-top" style="background:var(--blue-tier)"></div><span class="tier-badge" style="background:#EFF6FF;color:var(--blue-tier)">蓝色</span><h3>基础配饰</h3><div class="detail">精简·单一材质·无染色·无特效·无骨骼</div></div>
+      <div class="tier-card"><div class="tier-top" style="background:var(--purple-tier)"></div><span class="tier-badge" style="background:var(--purple-bg);color:var(--purple-tier)">紫色</span><h3>进阶配饰</h3><div class="detail">可扩展·材质融合·2染色·可附加设计</div></div>
+      <div class="tier-card"><div class="tier-top" style="background:var(--orange-tier)"></div><span class="tier-badge" style="background:#FFF7ED;color:var(--orange-tier)">橙色</span><h3>顶级配饰</h3><div class="detail">复合材质·2染色·有特效·允许骨骼动画</div></div>
+    </div>`}];function switchDS(i){document.querySelectorAll("#dsTabs .pl-tab").forEach((t,j)=>t.classList.toggle("active",j===i));document.getElementById("dsContent").innerHTML=DS_TABS[i].html}switchDS(0);window.addEventListener("scroll",()=>{document.getElementById("nav").classList.toggle("scrolled",window.scrollY>10);const links=document.querySelectorAll(".nav-links a");const secs=document.querySelectorAll("section[id]");let cur="";secs.forEach(s=>{if(s.offsetTop-120<=scrollY)cur=s.id});links.forEach(a=>a.classList.toggle("active",a.getAttribute("href")==="#"+cur))});const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add("visible")}),{threshold:.08});document.querySelectorAll(".fade-in").forEach(el=>obs.observe(el));function switchGallery(i){document.querySelectorAll(".gallery-tab").forEach((t,j)=>t.classList.toggle("active",j===i));document.querySelectorAll(".gallery-panel").forEach((p,j)=>p.classList.toggle("active",j===i))}function lightbox(el){const lb=document.getElementById("imgLightbox");document.getElementById("lbImg").src=el.src;lb.classList.add("show")}switchPL(0);
+</script>
+<aside id="demo-disclosure"><a href="index.html">平台首页</a><span>脱敏演示 · 项目素材已遮挡 · 含演示样例数据 · 生成服务未连接</span></aside></body>
+</html>

@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><script src="demo-guard.js"></script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Scene Production Standards — 示例项目场景制作规范</title>
+
+
+<style>
+:root {
+  --bg: #FAFAF9;
+  --surface: #FFFFFF;
+  --text: #1A1A1A;
+  --text-secondary: #6B7280;
+  --border: #E5E5E4;
+  --accent: #7C3AED;
+  --accent-light: #F5F3FF;
+  --ss: #DC2626; --ss-bg: #FEF2F2;
+  --s: #EA580C;  --s-bg: #FFF7ED;
+  --a: #D97706;  --a-bg: #FFFBEB;
+  --b: #2563EB;  --b-bg: #EFF6FF;
+  --c: #6B7280;  --c-bg: #F9FAFB;
+  --d: #9CA3AF;  --d-bg: #F9FAFB;
+  --green: #059669;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:'DM Sans','Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;}
+.skip-link{position:absolute;top:-100px;left:8px;padding:8px 16px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border-radius:0 0 8px 8px;z-index:200;transition:top .2s;text-decoration:none;}
+.skip-link:focus{top:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,250,249,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:background .4s,box-shadow .4s;}
+nav.scrolled{box-shadow:var(--shadow);}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;align-items:center;height:56px;gap:32px;overflow-x:auto;white-space:nowrap;}
+.nav-brand{font-weight:700;font-size:14px;letter-spacing:.5px;color:var(--accent);flex-shrink:0;}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{font-size:13px;color:var(--text-secondary);text-decoration:none;padding:6px 12px;border-radius:6px;transition:background .2s,color .2s;font-weight:500;cursor:pointer;position:relative;}
+.nav-links a:hover{background:var(--accent-light);color:var(--accent);}
+.nav-links a.active{color:var(--accent);font-weight:700;}
+.nav-links a.active::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2px;border-radius:1px;background:var(--accent);}
+header.hero{max-width:1200px;margin:0 auto;padding:120px 32px 64px;}
+header.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.2;letter-spacing:-.02em;background:linear-gradient(135deg,var(--text) 0%,#374151 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+header.hero .subtitle{font-size:clamp(1rem,2.5vw,1.25rem);color:var(--text-secondary);margin-top:16px;max-width:720px;line-height:1.8;}
+header.hero .en{font-size:14px;color:var(--text-secondary);margin-top:8px;font-weight:400;opacity:.7;}
+.tag-row{display:flex;gap:8px;margin-top:24px;flex-wrap:wrap;}
+.tag{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text-secondary);}
+.tag.accent{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+main{max-width:1200px;margin:0 auto;padding:0 32px 120px;}
+section{margin-top:80px;}
+section>.section-label{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+section>h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;line-height:1.3;margin-bottom:8px;}
+section>.section-desc{color:var(--text-secondary);font-size:15px;max-width:640px;margin-bottom:32px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;margin-bottom:16px;box-shadow:var(--shadow);}
+.card h3{font-size:18px;font-weight:700;margin-bottom:16px;}
+.card h4{font-size:15px;font-weight:700;margin:20px 0 10px;color:var(--text-secondary);}
+.steps-flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:40px;}
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);position:relative;transition:transform .2s ease,box-shadow .2s ease;}
+.step-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;margin-bottom:12px;}
+.step-card .step-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+.step-card .step-desc{font-size:13px;color:var(--text-secondary);line-height:1.6;}
+.matrix-wrap{overflow-x:auto;margin:20px 0;}
+table.matrix{width:100%;border-collapse:collapse;font-size:14px;}
+table.matrix th,table.matrix td{padding:10px 14px;text-align:center;border-bottom:1px solid var(--border);}
+table.matrix th{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);background:var(--bg);}
+table.matrix td:first-child{text-align:left;font-weight:600;}
+table.matrix .highlight{color:var(--accent);font-weight:700;}
+.type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);transition:transform .2s ease,box-shadow .2s ease;}
+.type-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.type-card .type-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:12px;}
+.type-card h3{font-size:16px;font-weight:700;margin-bottom:4px;}
+.type-card .type-en{font-size:12px;color:var(--text-secondary);margin-bottom:12px;}
+.type-card ul{list-style:none;}
+.type-card li{font-size:13px;color:var(--text-secondary);padding:3px 0;padding-left:16px;position:relative;}
+.type-card li::before{content:'·';position:absolute;left:4px;color:var(--text-secondary);font-weight:700;}
+.img-showcase{margin:20px 0;display:grid;gap:12px;}
+.img-showcase.cols-2{grid-template-columns:1fr 1fr;}
+.img-showcase.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.img-showcase.cols-4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.img-showcase figure{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.img-showcase figure img{width:100%;display:block;object-fit:contain;background:#f0f0f0;}
+.img-showcase figcaption{padding:10px 16px;font-size:12px;color:var(--text-secondary);font-weight:500;text-align:center;border-top:1px solid var(--border);}
+.img-full{margin:20px 0;}
+.img-full img{width:100%;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);display:block;background:#f0f0f0;}
+.img-full figcaption{padding:8px 0;font-size:12px;color:var(--text-secondary);font-weight:500;}
+@media(max-width:768px){.img-showcase.cols-2,.img-showcase.cols-3,.img-showcase.cols-4{grid-template-columns:1fr;}}
+.naming-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:24px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2.2;overflow-x:auto;margin:16px 0;}
+.naming-block .nm-prefix{color:var(--accent);font-weight:600;}
+.naming-block .nm-sep{color:var(--text-secondary);}
+.naming-block .nm-part{color:var(--b);font-weight:600;}
+.naming-block .nm-desc{color:var(--text-secondary);font-style:italic;margin-left:16px;}
+.abbr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin:16px 0;}
+.abbr-item{padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center;font-size:13px;}
+.abbr-item .ab-code{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);}
+.abbr-item .ab-en{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+.abbr-item .ab-cn{font-size:12px;font-weight:600;margin-top:2px;}
+.spec-bar{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;}
+.spec-chip{display:flex;flex-direction:column;align-items:center;padding:16px 20px;border-radius:var(--radius);min-width:100px;flex:1;border:1px solid var(--border);background:var(--surface);text-align:center;}
+.spec-chip .sc-val{font-size:24px;font-weight:700;color:var(--accent);}
+.spec-chip .sc-label{font-size:11px;color:var(--text-secondary);margin-top:4px;font-weight:600;}
+.channel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:16px 0;}
+.ch-item{padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center;}
+.ch-item .ch-name{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--accent);}
+.ch-item .ch-channel{font-size:12px;font-weight:600;margin-top:4px;}
+.ch-item .ch-desc{font-size:11px;color:var(--text-secondary);margin-top:4px;}
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:16px 0;}
+.mat-item{padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;}
+.mat-item .mt-type{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;}
+.mat-item .mt-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;margin-top:4px;word-break:break-all;}
+.mat-item .mt-desc{font-size:12px;color:var(--text-secondary);margin-top:4px;}
+.warn-box{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:24px;margin:24px 0;}
+.warn-box .wb-title{font-size:15px;font-weight:700;color:var(--ss);margin-bottom:8px;}
+.warn-box p{font-size:13px;color:var(--text-secondary);line-height:1.7;}
+.info-box{background:var(--accent-light);border:1px solid #DDD6FE;border-radius:var(--radius);padding:24px;margin:24px 0;}
+.info-box .ib-title{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:8px;}
+.info-box p{font-size:13px;color:var(--text-secondary);line-height:1.7;}
+.pipeline-header{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;}
+.pipeline-header .count{font-size:14px;color:var(--accent);font-weight:700;}
+.kb-list{list-style:none;padding:0;}
+.kb-item{display:flex;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);}
+.kb-item:last-child{border-bottom:none;}
+.kb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:16px;}
+.kb-dot.green{background:#059669;}.kb-dot.orange{background:#EA580C;}.kb-dot.blue{background:#2563EB;}.kb-dot.purple{background:var(--accent);}
+.kb-info{flex:1;min-width:0;}
+.kb-title{font-size:15px;font-weight:600;}
+.kb-title a{color:var(--accent);text-decoration:none;}
+.kb-title a:hover{text-decoration:underline;}
+.kb-title a::after{content:' ↗';font-size:11px;}
+.kb-desc{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+.kb-meta{display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px;}
+.kb-tag{font-size:11px;padding:2px 10px;border-radius:6px;border:1px solid var(--border);color:var(--text-secondary);white-space:nowrap;}
+.kb-status{font-size:11px;padding:2px 10px;border-radius:6px;font-weight:600;white-space:nowrap;}
+.kb-status.done{background:#ECFDF5;color:#059669;}.kb-status.wip{background:#FFF7ED;color:#EA580C;}.kb-status.todo{background:#F3F4F6;color:#6B7280;}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:16px;}
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.skill-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.skill-card .sk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.skill-card .sk-name{font-size:15px;font-weight:700;}
+.skill-card .sk-desc{font-size:12px;color:var(--text-secondary);line-height:1.6;}
+.ai-demo-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px;box-shadow:var(--shadow);}
+.ai-demo-grid{display:grid;grid-template-columns:300px 1fr;gap:40px;}
+.ai-config .cfg-title{font-size:15px;font-weight:700;margin-bottom:20px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-secondary);}
+.field select{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;}
+.field select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+.slider-wrap{display:flex;align-items:center;gap:12px;}
+.slider-wrap input[type=range]{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--border);outline:none;}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.slider-wrap .sv{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;min-width:28px;text-align:center;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-row span{font-size:13px;}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle .sl{position:absolute;inset:0;background:var(--border);border-radius:11px;transition:.3s;}
+.toggle .sl::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle input:checked+.sl{background:var(--accent);}
+.toggle input:checked+.sl::before{transform:translateX(18px);}
+.ai-results .res-title{font-size:15px;font-weight:700;margin-bottom:20px;}
+.rbadges{display:flex;gap:16px;flex-wrap:wrap;}
+.rbadge{text-align:center;padding:20px 28px;border-radius:12px;min-width:120px;}
+.rbadge .rv{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.rbadge .rl{font-size:12px;margin-top:4px;color:var(--text-secondary);}
+.ai-tags{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0;}
+.ai-tag{font-size:12px;padding:4px 12px;border-radius:16px;border:1px solid var(--border);color:var(--text-secondary);background:var(--bg);}
+.breakdown{font-size:13px;line-height:2.2;margin-top:16px;}
+.breakdown .bg{display:inline-block;width:20px;height:20px;border-radius:4px;text-align:center;line-height:20px;font-weight:700;font-size:11px;color:#fff;margin-right:6px;vertical-align:middle;}
+.bd-label{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);}
+@media(max-width:768px){.ai-demo-grid{grid-template-columns:1fr;}}
+footer{max-width:1200px;margin:0 auto;padding:40px 32px;border-top:1px solid var(--border);margin-top:40px;display:flex;justify-content:space-between;align-items:center;color:var(--text-secondary);font-size:13px;flex-wrap:wrap;gap:16px;}
+*:focus{outline:none;}*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+@media(max-width:640px){header.hero{padding:100px 20px 40px;}main{padding:0 20px 80px;}.spec-bar{flex-direction:column;}.type-grid{grid-template-columns:1fr;}}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease;}
+.fade-in.visible{opacity:1;transform:translateY(0);}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;scroll-behavior:auto!important;}}
+</style>
+<style>#demo-disclosure{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);width:max-content;display:flex;gap:18px;align-items:center;padding:10px 18px;background:#232238;color:#fff;box-shadow:0 8px 32px #0003;border-radius:10px;font:12px/1.5 sans-serif}#demo-disclosure a{color:#fff;white-space:nowrap}body{padding-bottom:70px!important}@media(max-width:600px){#demo-disclosure{font-size:11px;gap:10px}}</style></head>
+<body>
+
+<a href="#overview" class="skip-link">跳到主要内容</a>
+<nav id="nav"><div class="nav-inner">
+  <div class="nav-brand">3D SCENE STANDARDS</div>
+  <div class="nav-links">
+    <a href="#overview">Overview</a>
+    <a href="#ai-demo">AI演示</a>
+    <a href="#style">美术风格</a>
+    <a href="#env">环境设置</a>
+    <a href="#flow">制作流程</a>
+    <a href="#naming">命名规范</a>
+    <a href="#model">模型规范</a>
+    <a href="#sculpt">高模雕刻</a>
+    <a href="#lowpoly">低模</a>
+    <a href="#uv">UV</a>
+    <a href="#collision">碰撞</a>
+    <a href="#lod">LOD</a>
+    <a href="#texture">贴图</a>
+    <a href="#engine">引擎</a>
+    <a href="#material">材质</a>
+    <a href="#kb">知识库</a>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <h1>示例项目 3D 场景制作规范</h1>
+  <p class="en">3D Scene Production Standards (Internal)</p>
+  <p class="subtitle">
+    轻度风格化、半写实半卡通的 PBR 标准流程。<br>
+    赛道内模块化设计、赛道外自由装饰，从高模到引擎的全链路制作规范。
+  </p>
+  <div class="tag-row">
+    <span class="tag accent">#3D场景</span>
+    <span class="tag">#PBR</span>
+    <span class="tag">#模块化</span>
+    <span class="tag">#Unreal Engine</span>
+    <span class="tag">#制作规范</span>
+    <span class="tag accent">负责人：环境团队</span>
+  </div>
+</header>
+
+<main>
+
+
+<section id="overview" class="fade-in">
+  <div class="section-label">Overview</div>
+  <h2>全流程制作规范概览</h2>
+  <p class="section-desc">涵盖从美术风格、模型制作、贴图规范到引擎导入的全链路标准，确保团队产出一致、品质可控。</p>
+  <div class="steps-flow">
+    <div class="step-card"><div class="step-num">1</div><div class="step-title">美术风格</div><div class="step-desc">轻度风格化 + PBR<br>模块化组件设计<br>多主题系统支撑</div></div>
+    <div class="step-card"><div class="step-num">2</div><div class="step-title">模型制作</div><div class="step-desc">高模 → 低模 → UV<br>按尺寸分级面数上限<br>碰撞 + LOD 制作</div></div>
+    <div class="step-card"><div class="step-num">3</div><div class="step-title">贴图制作</div><div class="step-desc">D / N / RAME / M 通道<br>不可换色 / 可换色 / 可缩放<br>精度按物件尺寸定</div></div>
+    <div class="step-card"><div class="step-num">4</div><div class="step-title">引擎设置</div><div class="step-desc">导入设置 + LOD 距离<br>碰撞配置 + 材质分配<br>BP 换色系统接入</div></div>
+  </div>
+  <div class="card">
+    <h3>基本工效（人天）</h3>
+    <div class="matrix-wrap"><table class="matrix">
+      <tr><th>类型</th><th>中高模</th><th>低模+UV+烘焙+碰撞</th><th>贴图</th><th>LOD</th><th>总计</th></tr>
+      <tr><td>无需雕刻</td><td>1</td><td>1</td><td>1.5</td><td>0.5</td><td class="highlight">4</td></tr>
+      <tr><td>需要雕刻</td><td>2.5</td><td>1</td><td>2</td><td>0.5</td><td class="highlight">6</td></tr>
+    </table></div>
+  </div>
+</section>
+
+
+<section id="ai-demo" class="fade-in">
+  <div class="section-label">AI Configuration</div>
+  <h2>AI 配置化演示（3D 场景管线）</h2>
+  <p class="section-desc">输入物件参数，AI 自动判定面数限制、LOD 级数、贴图尺寸、材质类型等规范。</p>
+  <div class="ai-demo-box"><div class="ai-demo-grid">
+    <div class="ai-config">
+      <div class="cfg-title">配置参数</div>
+      <div class="field"><label>模型分类</label><select id="cfgCategory"><option value="deco_in">装饰物（赛道内）</option><option value="deco_out">装饰物（赛道外）</option><option value="gear">机关</option><option value="ground">地块</option><option value="plant">植物</option><option value="building">建筑/雕塑</option><option value="prop">道具</option></select></div>
+      <div class="field"><label>物件尺寸 (米)</label><div class="slider-wrap"><input type="range" id="cfgSize" min="1" max="30" value="8"><span class="sv" id="sizeVal">8</span></div></div>
+      <div class="field"><label>设计复杂度</label><div class="slider-wrap"><span style="font-size:12px;color:var(--text-secondary)">简单</span><input type="range" id="cfgComplexity" min="1" max="10" value="5"><span style="font-size:12px;color:var(--text-secondary)">复杂</span></div></div>
+      <div class="field"><label>换色需求</label><select id="cfgColor"><option value="none">不可换色</option><option value="full">全换色</option><option value="partial">部分换色</option><option value="scalable">可缩放换色</option></select></div>
+      <div style="margin-top:24px;">
+        <div class="toggle-row"><span>需要雕刻</span><label class="toggle"><input type="checkbox" id="cfgSculpt"><span class="sl"></span></label></div>
+        <div class="toggle-row"><span>UGC 物件</span><label class="toggle"><input type="checkbox" id="cfgUGC"><span class="sl"></span></label></div>
+        <div class="toggle-row"><span>夜晚关卡</span><label class="toggle"><input type="checkbox" id="cfgNight"><span class="sl"></span></label></div>
+      </div>
+    </div>
+    <div class="ai-results">
+      <div class="res-title">AI 规范推荐</div>
+      <div class="rbadges">
+        <div class="rbadge" style="background:var(--accent-light);"><div class="rv" id="rTris" style="color:var(--accent);">1,000</div><div class="rl">面数上限</div></div>
+        <div class="rbadge" style="background:#ECFDF5;"><div class="rv" id="rLod" style="color:#059669;">2级</div><div class="rl">LOD 级数</div></div>
+        <div class="rbadge" style="background:var(--a-bg);"><div class="rv" id="rTex" style="color:var(--a);">256</div><div class="rl">贴图尺寸</div></div>
+        <div class="rbadge" style="background:var(--b-bg);"><div class="rv" id="rDays" style="color:var(--b);">4.0d</div><div class="rl">预估人天</div></div>
+      </div>
+      <div class="bd-label" style="margin-top:24px;">推荐贴图类型</div>
+      <div class="ai-tags" id="rTexTags"></div>
+      <div class="bd-label">规范细则</div>
+      <div class="breakdown" id="rDetails"></div>
+    </div>
+  </div></div>
+</section>
+
+
+<section id="style" class="fade-in">
+  <div class="section-label">Art Style</div>
+  <h2>美术风格与规则</h2>
+  <p class="section-desc">半写实半卡通的轻度风格化，PBR 标准材质表现，模块化思维贯穿设计全程。</p>
+
+  <div class="card">
+    <h3>通用风格</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">整体颜色明快鲜艳，材质表现符合 PBR 标准。赛道内建筑为模块化组件，考虑复用性和组合性。</p>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="通用风格参考" loading="lazy"><figcaption>通用风格 — 轻度风格化、半写实半卡通的美术调性</figcaption></figure>
+  </div>
+
+  <div class="img-showcase cols-2">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="森林风格" loading="lazy"><figcaption>森林风格</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="中国风格" loading="lazy"><figcaption>中国风格</figcaption></figure>
+  </div>
+
+  <div class="info-box">
+    <div class="ib-title">风格参考</div>
+    <p>疯兔 (Rabbids)、马里奥派对 (Mario Party)、动物森友会 (Animal Crossing) 等卡通类产品。<br>外部资产导入时须放大 <strong>2.25 倍</strong>以适配示例项目角色比例。</p>
+  </div>
+</section>
+
+
+<section id="env" class="fade-in">
+  <div class="section-label">Environment</div>
+  <h2>环境设置</h2>
+  <p class="section-desc">3ds Max / Maya 环境配置、单位轴向、导出设置。</p>
+
+  <div class="card">
+    <h3>软件版本</h3>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="软件版本" loading="lazy"><figcaption>主要制作软件列表（不限制使用其他三维软件）</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>系统设置</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">单位设置成厘米，轴向设置成 Y 轴向上。</p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="3dmax系统设置" loading="lazy"><figcaption>3ds Max 系统设置</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="maya系统设置" loading="lazy"><figcaption>Maya 系统设置</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>导出设置</h3>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="3dmax导出设置" loading="lazy"><figcaption>3ds Max 导出设置</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="maya导出设置" loading="lazy"><figcaption>Maya 导出设置</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+
+<section id="flow" class="fade-in">
+  <div class="section-label">Production Flow</div>
+  <h2>制作流程</h2>
+  <p class="section-desc">标准 PBR 流程，每步提交经审核后方可继续。</p>
+
+  <div class="card">
+    <h3>基本流程图</h3>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="PBR制作流程" loading="lazy"><figcaption>原画 → 高模 → 低模+UV+碰撞 → 贴图 → LOD → 引擎调试 → 最终打包提交</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="naming" class="fade-in">
+  <div class="section-label">Naming Convention</div>
+  <h2>命名规范</h2>
+  <p class="section-desc">统一的前缀 + 类型 + 名称 + 编号 + 风格 + 后缀命名体系。</p>
+
+  
+  <div class="card">
+    <h3>命名结构解析</h3>
+    <div class="naming-block">
+      <span class="nm-prefix">SM</span><span class="nm-sep">_</span><span class="nm-part">DE</span><span class="nm-sep">_</span><span class="nm-part">Cliff</span><span class="nm-sep">_</span><span class="nm-part">001</span><span class="nm-desc">← 模型命名</span><br>
+      <span class="nm-prefix">MI</span><span class="nm-sep">_</span><span class="nm-part">DE</span><span class="nm-sep">_</span><span class="nm-part">Cliff</span><span class="nm-sep">_</span><span class="nm-part">001</span><span class="nm-sep">_</span><span class="nm-part">A</span><span class="nm-sep">_</span><span class="nm-part">1</span><span class="nm-desc">← 材质球命名</span><br>
+      <span class="nm-prefix">T</span><span class="nm-sep">_</span><span class="nm-part">DE</span><span class="nm-sep">_</span><span class="nm-part">Cliff</span><span class="nm-sep">_</span><span class="nm-part">001</span><span class="nm-sep">_</span><span class="nm-part">A</span><span class="nm-sep">_</span><span class="nm-part">1</span><span class="nm-sep">_</span><span class="nm-part">D</span><span class="nm-desc">← 贴图命名</span><br>
+      <span class="nm-prefix">BP</span><span class="nm-sep">_</span><span class="nm-part">PA</span><span class="nm-sep">_</span><span class="nm-part">DE</span><span class="nm-sep">_</span><span class="nm-part">Cliff</span><span class="nm-sep">_</span><span class="nm-part">001</span><span class="nm-sep">_</span><span class="nm-part">A</span><span class="nm-desc">← 蓝图命名</span><br>
+      <span class="nm-prefix">UCX</span><span class="nm-sep">_</span><span class="nm-part">SM_DE_Name_002</span><span class="nm-sep">_</span><span class="nm-part">001</span><span class="nm-desc">← 碰撞命名</span>
+    </div>
+  </div>
+
+  
+  <div class="card">
+    <h3>1. 命名规则</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">各类型资源命名规则及描述如下（逻辑组件和玩法道具除外）：</p>
+    <table class="data">
+      <thead><tr><th>资源类型</th><th>命名规则</th><th>描述</th></tr></thead>
+      <tbody>
+        <tr><td>模型</td><td><code>SM_DE_Name_001</code></td><td>静态模型缩写_大类型装饰物缩写_模型名_模型编号</td></tr>
+        <tr><td>材质</td><td><code>MI_DE_Name_001_A_1</code></td><td>材质缩写_大类型装饰物缩写_模型名_模型编号_风格编号_材质球编号</td></tr>
+        <tr><td>D贴图</td><td><code>T_DE_Name_001_A_1_D</code></td><td>贴图缩写_大类型装饰物缩写_模型名_模型编号_风格编号_材质球编号_D贴图后缀</td></tr>
+        <tr><td>M贴图</td><td><code>T_DE_Name_001_A_1_M</code></td><td>同上，_M 贴图后缀</td></tr>
+        <tr><td>N贴图</td><td><code>T_DE_Name_001_A_1_N</code></td><td>同上，_N 贴图后缀</td></tr>
+        <tr><td>RAME贴图</td><td><code>T_DE_Name_001_A_1_RAME</code></td><td>同上，_RAME 贴图后缀</td></tr>
+        <tr><td>蓝图</td><td><code>BP_PA_DE_Name_001_A</code></td><td>蓝图缩写_放置物缩写_大类型装饰物缩写_模型命_模型编号_风格编号</td></tr>
+      </tbody>
+    </table>
+    <div class="alert info" style="margin-top:16px;"><strong>注：</strong>逻辑组件和玩法道具没有换肤需求，不同模型会有对应名称，所以没有"_001_A"的后缀。</div>
+  </div>
+
+  
+  <div class="card">
+    <h3>2. 实例解析</h3>
+
+    <h4 style="font-size:15px;font-weight:700;margin:20px 0 12px;color:var(--accent);">模型命名：<code>SM_DE_Cliff_001</code></h4>
+    <ul style="list-style:none;padding:0;font-size:14px;line-height:2;">
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>构成：<strong>静态模型缩写_大类型装饰物缩写_模型名_模型编号</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>前缀 <code>SM</code>：为 StaticMesh 的缩写，是统一格式，<strong>不可更改</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span><code>DE</code>：为放置物里的大类型，装饰物 Decorate 的缩写（还有其它大类型用不同的缩写）</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span><code>Cliff</code>：为物件名，尽量使用简洁的词汇，但要和已有的物件名区分开</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>后缀 <code>_001</code>：为统一格式，001 为不同的模型。只要模型有差别，就要有序号的区分</li>
+    </ul>
+    <div class="alert info" style="margin-top:8px;"><strong>⚠️ 注意：</strong>如果模型带有不同的变化阶段，则在模型编号后面再加上 _1, _2, _3 等阶段序号。例如：<code>SM_DE_Cliff_001_1</code>, <code>SM_DE_Cliff_001_2</code></div>
+
+    <h4 style="font-size:15px;font-weight:700;margin:28px 0 12px;color:var(--accent);">材质球命名：<code>MI_DE_Cliff_001_A_1</code></h4>
+    <ul style="list-style:none;padding:0;font-size:14px;line-height:2;">
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>构成：<strong>材质缩写_大类型装饰物缩写_模型名_模型编号_风格编号_材质球编号</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>前缀 <code>MI</code>：为材质球 MaterialInst 缩写，是统一格式，<strong>不可更改</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>中间部分与模型部分的描述相同</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span><code>_A</code>：为风格的 A 方案（有些物件会是同一个模型的不同换肤）</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span><code>_1</code>：表示此方案的第一个材质球（有的物件会有多个材质球多套贴图）</li>
+    </ul>
+
+    <h4 style="font-size:15px;font-weight:700;margin:28px 0 12px;color:var(--accent);">贴图命名：<code>T_DE_Cliff_001_A_1_D</code></h4>
+    <ul style="list-style:none;padding:0;font-size:14px;line-height:2;">
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>构成：<strong>贴图缩写_大类型装饰物缩写_模型名_模型编号_风格编号_材质球编号_贴图后缀</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>前缀 <code>T</code>：为贴图 Texture 缩写，是统一格式，<strong>不可更改</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>中间部分与材质球部分的描述相同</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>后缀 <code>_D</code>：为漫反射贴图后缀，树叶等由透明通道的放在 D 贴图的 alpha 里</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>后缀 <code>_N</code>：法线贴图</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>后缀 <code>_RAME</code>（NRM 贴图）：R 通道为 roughness，G 通道为 metalmask，B 通道为自发光</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>后缀 <code>_M</code>：M 贴图后缀</li>
+    </ul>
+
+    <h4 style="font-size:15px;font-weight:700;margin:28px 0 12px;color:var(--accent);">BP 命名：<code>BP_PA_DE_Cliff_001_A</code></h4>
+    <ul style="list-style:none;padding:0;font-size:14px;line-height:2;">
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>构成：<strong>蓝图缩写_放置物缩写_大类型装饰物缩写_模型命_模型编号_风格编号</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>前缀 <code>BP</code>：为蓝图 Blueprint 的缩写，统一格式，<strong>不可更改</strong></li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span><code>PA</code>：为可放置物 PlaceableActor 缩写（只有 BP 加 PA，模型、材质和贴图都不要加）</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span><code>DE</code>：为放置物里的大类型，装饰物 Decorate 的缩写（还有其它大类型用不同的缩写）</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>后缀 <code>_001</code>：为统一格式，001 为不同的模型</li>
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span><code>_A</code>：为风格的 A 方案（有些物件会是同一个模型的不同换肤）</li>
+    </ul>
+
+    <h4 style="font-size:15px;font-weight:700;margin:28px 0 12px;color:var(--accent);">碰撞命名：<code>UCX_SM_DE_Name_002_001</code></h4>
+    <ul style="list-style:none;padding:0;font-size:14px;line-height:2;">
+      <li style="padding:4px 0 4px 20px;position:relative;"><span style="position:absolute;left:4px;color:var(--accent);font-weight:700;">›</span>构成：<strong>碰撞前缀_模型命名_碰撞编号</strong></li>
+    </ul>
+  </div>
+
+  
+  <div class="card">
+    <h3>3. 前缀缩写速查</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">前缀缩写规则如下：</p>
+    <div class="abbr-grid">
+      <div class="abbr-item"><div class="ab-code">SM</div><div class="ab-en">StaticMesh</div><div class="ab-cn">静态模型</div></div>
+      <div class="abbr-item"><div class="ab-code">MI</div><div class="ab-en">MaterialInst</div><div class="ab-cn">材质实例</div></div>
+      <div class="abbr-item"><div class="ab-code">T</div><div class="ab-en">Texture</div><div class="ab-cn">贴图</div></div>
+      <div class="abbr-item"><div class="ab-code">BP</div><div class="ab-en">Blueprint</div><div class="ab-cn">蓝图</div></div>
+      <div class="abbr-item"><div class="ab-code">PA</div><div class="ab-en">PlaceableActor</div><div class="ab-cn">可放置物</div></div>
+      <div class="abbr-item"><div class="ab-code">DE</div><div class="ab-en">Decorates</div><div class="ab-cn">装饰物</div></div>
+      <div class="abbr-item"><div class="ab-code">GR</div><div class="ab-en">Ground</div><div class="ab-cn">地块</div></div>
+      <div class="abbr-item"><div class="ab-code">GE</div><div class="ab-en">Gear</div><div class="ab-cn">机关</div></div>
+      <div class="abbr-item"><div class="ab-code">IT</div><div class="ab-en">Item</div><div class="ab-cn">物理道具</div></div>
+      <div class="abbr-item"><div class="ab-code">LG</div><div class="ab-en">Logic</div><div class="ab-cn">逻辑组件</div></div>
+      <div class="abbr-item"><div class="ab-code">PP</div><div class="ab-en">Prop</div><div class="ab-cn">玩法道具</div></div>
+      <div class="abbr-item"><div class="ab-code">FU</div><div class="ab-en">Furniture</div><div class="ab-cn">家具</div></div>
+      <div class="abbr-item"><div class="ab-code">TE</div><div class="ab-en">Terrain</div><div class="ab-cn">地表</div></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="model" class="fade-in">
+  <div class="section-label">Model Specification</div>
+  <h2>模型规范</h2>
+  <p class="section-desc">按分类、尺寸、段数分级管控面数，确保性能与品质平衡。</p>
+
+  <div class="card">
+    <h3>模型分类 — 装饰物</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">赛道内：掩体、贴花、包边、栅栏、立柱（模块化，碰撞规整）。赛道外：远景装饰、植物（设计自由，碰撞概括）。</p>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="赛道内装饰物" loading="lazy"><figcaption>赛道内装饰物示例 — 掩体、栅栏、立柱等模块化组件</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>模型分类 — 地块</h3>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="UGC基础地块" loading="lazy"><figcaption>UGC 基础地块</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="装饰性地块" loading="lazy"><figcaption>装饰性地块</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>模型分类 — 道具</h3>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="物理道具" loading="lazy"><figcaption>带物理属性的道具</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="玩法道具" loading="lazy"><figcaption>玩法道具</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>模型尺寸</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">OGC 局内物件尺寸为现实尺寸 × 2.5 倍。外部导入资源也要放大 2.5 倍。</p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="尺寸规格" loading="lazy"><figcaption>物件尺寸标准</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="UGC尺寸" loading="lazy"><figcaption>UGC 地形尺寸标准</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>外部模型导入规则</h3>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="外部模型导入" loading="lazy"><figcaption>示例项目规范_家园 / 示例项目规范_动物派对 / 示例项目规范_副玩法 三套导入规范</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>OGC 低模面数上限（三角面）</h3>
+    <div class="matrix-wrap"><table class="matrix">
+      <tr><th>类型</th><th>&lt;5M</th><th>5–10M</th><th>10–20M</th><th>&gt;20M</th></tr>
+      <tr><td>装饰物</td><td>300</td><td>1,000</td><td>1,500</td><td>4,000</td></tr>
+      <tr><td>机关</td><td>800</td><td>1,500</td><td>2,500</td><td>4,000</td></tr>
+      <tr><td>植物</td><td>500</td><td>1,000</td><td>2,000</td><td>4,000</td></tr>
+      <tr><td>建筑 / 雕塑</td><td>1,000</td><td>2,000</td><td>3,000</td><td>5,000</td></tr>
+      <tr><td>道具</td><td colspan="2">1,500（&lt;2M）/ 3,000（&gt;2M）</td><td colspan="2">—</td></tr>
+      <tr><td>枪械</td><td colspan="2">1,000（简单）/ 3,000（复杂）</td><td colspan="2">—</td></tr>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>段数上限 &amp; 导角</h3>
+    <div class="spec-bar">
+      <div class="spec-chip"><div class="sc-val">16</div><div class="sc-label">5 米 段数</div></div>
+      <div class="spec-chip"><div class="sc-val">32</div><div class="sc-label">10 米 段数</div></div>
+      <div class="spec-chip"><div class="sc-val">48</div><div class="sc-label">20 米 段数</div></div>
+    </div>
+    <div class="spec-bar">
+      <div class="spec-chip"><div class="sc-val">10cm</div><div class="sc-label">小导角</div></div>
+      <div class="spec-chip"><div class="sc-val">15cm</div><div class="sc-label">中导角</div></div>
+      <div class="spec-chip"><div class="sc-val">20cm</div><div class="sc-label">大导角</div></div>
+    </div>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="段数示意" loading="lazy"><figcaption>段数上限示意</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="sculpt" class="fade-in">
+  <div class="section-label">High-Poly Sculpting</div>
+  <h2>高模制作</h2>
+  <p class="section-desc">去除写实细节，简单概括。倒角比例和谐，大小统一。褶皱后期叠加。</p>
+
+  <div class="card">
+    <h3>高模制作流程</h3>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="高模制作流程" loading="lazy"><figcaption>高模制作流程</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>雕刻实例分析</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">去除写实化细节，简单概括。倒角比例和谐，大小统一。细小褶皱在后期 SP 贴图中使用褶皱笔刷叠加。</p>
+    <div class="img-showcase cols-3">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="雕刻对比1" loading="lazy"><figcaption>去除写实细节，简单概括</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="雕刻对比2" loading="lazy"><figcaption>倒角比例和谐，大小统一</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="雕刻对比3" loading="lazy"><figcaption>褶皱后期叠加，节约时间成本</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+
+<section id="lowpoly" class="fade-in">
+  <div class="section-label">Low-Poly</div>
+  <h2>低模制作</h2>
+  <p class="section-desc">造型准确，面数合理，不要有费点费面。轴心点与正面朝向需统一。</p>
+
+  <div class="card">
+    <h3>轴心点与朝向</h3>
+    <div class="info-box" style="margin:0;">
+      <p><strong>装饰物轴心点</strong>：物件中心底部 ｜ <strong>道具轴心点</strong>：物件中心<br>
+      <strong>正面朝向</strong>：X 轴正方向（引擎内）<br>
+      <strong>要求</strong>：所有模型不能有漏面，底部要封口。</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="uv" class="fade-in">
+  <div class="section-label">UV Production</div>
+  <h2>UV 制作规范</h2>
+
+  <div class="card">
+    <div class="spec-bar">
+      <div class="spec-chip"><div class="sc-val">1 套</div><div class="sc-label">标准 UV</div></div>
+      <div class="spec-chip"><div class="sc-val">2 套</div><div class="sc-label">夜晚关卡（灯光 UV）</div></div>
+      <div class="spec-chip"><div class="sc-val">256px</div><div class="sc-label">10 米物件贴图</div></div>
+      <div class="spec-chip"><div class="sc-val">512px</div><div class="sc-label">源文件制作</div></div>
+    </div>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="UV间距" loading="lazy"><figcaption>UV 间距保持一致</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="collision" class="fade-in">
+  <div class="section-label">Collision</div>
+  <h2>碰撞制作</h2>
+  <p class="section-desc">简单 BOX 概括为主，地面机关贴合为辅，UGC 超 4 个 BOX 采用 mesh。</p>
+
+  <div class="card">
+    <h3>OGC 碰撞制作实例</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">物件类用简单 BOX 概括；地面/机关需贴合碰撞；有树干植物只需根部 BOX；纯装饰植物设 NoCollision。</p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="碰撞实例1" loading="lazy"><figcaption>栏杆碰撞 — BOX 概括物件形态</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="碰撞实例2" loading="lazy"><figcaption>地面碰撞 — 贴合度高</figcaption></figure>
+    </div>
+    <div class="img-showcase cols-3" style="margin-top:12px;">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="碰撞实例3" loading="lazy"><figcaption>树木碰撞 — 根部 BOX</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="碰撞实例4" loading="lazy"><figcaption>树丛碰撞 — 几何体概括</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="UGC碰撞" loading="lazy"><figcaption>UGC 碰撞规则</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="wb-title">⚠️ UGC 碰撞特殊规则</div>
+    <p>碰撞个数超过 <strong>4 个 BOX</strong> 时需采用 mesh 制作，但碰撞<strong>不能有凹角</strong>。<br>植物叶子无碰撞 → 蓝图内加不可见 cube 用于编辑器选择。</p>
+  </div>
+</section>
+
+
+<section id="lod" class="fade-in">
+  <div class="section-label">LOD</div>
+  <h2>LOD 制作规范</h2>
+  <p class="section-desc">面数依次减半，最后一级作为低端机 LOD0 使用。</p>
+
+  <div class="card">
+    <h3>LOD 级数规则</h3>
+    <div class="matrix-wrap"><table class="matrix">
+      <tr><th>面数范围（三角面）</th><th>LOD 级数</th><th>说明</th></tr>
+      <tr><td>≤ 100</td><td>0 级</td><td>无需减 LOD</td></tr>
+      <tr><td>150 – 300</td><td>1 级</td><td>Lod1</td></tr>
+      <tr><td>300 – 1,000</td><td>2 级</td><td>Lod1 + Lod2</td></tr>
+      <tr><td>&gt; 1,000</td><td class="highlight">3 级</td><td>Lod1 + Lod2 + Lod3（最高）</td></tr>
+    </table></div>
+    <div class="spec-bar" style="margin-top:20px;">
+      <div class="spec-chip"><div class="sc-val">100%</div><div class="sc-label">Lod0 原始</div></div>
+      <div class="spec-chip"><div class="sc-val">50–60%</div><div class="sc-label">Lod1</div></div>
+      <div class="spec-chip"><div class="sc-val">~25%</div><div class="sc-label">Lod2</div></div>
+      <div class="spec-chip"><div class="sc-val">~12%</div><div class="sc-label">Lod3</div></div>
+    </div>
+    <div class="warn-box"><div class="wb-title">⚠️ 最后一级 LOD</div>
+    <p>面数尽量节省，但<strong>不能有漏面、UV 拉伸及视觉 bug</strong>，因为会当作低端机的 LOD0 使用。</p></div>
+  </div>
+</section>
+
+
+<section id="texture" class="fade-in">
+  <div class="section-label">Texture Specification</div>
+  <h2>贴图规范</h2>
+  <p class="section-desc">三种换色模式 × 精确通道设置，覆盖不可换色、可换色、可缩放三类需求。</p>
+
+  <div class="card">
+    <h3>贴图尺寸标准</h3>
+    <div class="matrix-wrap"><table class="matrix">
+      <tr><th>物件尺寸</th><th>贴图尺寸</th><th>源文件制作</th></tr>
+      <tr><td>&lt; 10 米</td><td>256</td><td>512</td></tr>
+      <tr><td>&gt; 10 米</td><td>512</td><td>1024</td></tr>
+      <tr><td>特殊高精度</td><td class="highlight">1024</td><td class="highlight">2048</td></tr>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>贴图命名范例</h3>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="贴图命名范例" loading="lazy"><figcaption>贴图命名范例 — 按物件分类对应正确后缀</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>不可换色 — D / N / RAME 贴图</h3>
+    <div class="channel-grid">
+      <div class="ch-item"><div class="ch-name">D</div><div class="ch-channel">RGB</div><div class="ch-desc">Color 颜色</div></div>
+      <div class="ch-item"><div class="ch-name">N</div><div class="ch-channel">RGB</div><div class="ch-desc">DirectX 法线</div></div>
+      <div class="ch-item"><div class="ch-name">RAME-R</div><div class="ch-channel">R</div><div class="ch-desc">Roughness</div></div>
+      <div class="ch-item"><div class="ch-name">RAME-G</div><div class="ch-channel">G</div><div class="ch-desc">AO</div></div>
+      <div class="ch-item"><div class="ch-name">RAME-B</div><div class="ch-channel">B</div><div class="ch-desc">MetalMask</div></div>
+      <div class="ch-item"><div class="ch-name">RAME-A</div><div class="ch-channel">A</div><div class="ch-desc">自发光</div></div>
+    </div>
+    <h4 style="font-size:15px;font-weight:700;margin:20px 0 10px;color:var(--text-secondary);">贴图范例</h4>
+    <div class="img-showcase cols-3">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="D贴图范例" loading="lazy"><figcaption>D 贴图</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="RAME贴图范例" loading="lazy"><figcaption>RAME 贴图</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="roughness参照" loading="lazy"><figcaption>不同材质 Roughness 值参照</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>全换色 M 贴图通道</h3>
+    <div class="channel-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="ch-item"><div class="ch-name">M-R</div><div class="ch-channel">R</div><div class="ch-desc">换色 1</div></div>
+      <div class="ch-item"><div class="ch-name">M-G</div><div class="ch-channel">G</div><div class="ch-desc">换色 2</div></div>
+      <div class="ch-item"><div class="ch-name">M-B</div><div class="ch-channel">B</div><div class="ch-desc">换色 3</div></div>
+      <div class="ch-item" style="border-color:var(--ss);"><div class="ch-name" style="color:var(--ss);">M-A</div><div class="ch-channel">A</div><div class="ch-desc">换色 4（独立 UV）</div></div>
+    </div>
+    <figure class="img-full" style="margin-top:16px;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="换色黑边案例" loading="lazy"><figcaption>⚠️ 换色 4 黑边案例 — 尽量放在有独立拆分 UV 的部分</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>部分换色 M 贴图</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">不换色部分 RGB 为 D 贴图正常颜色，Alpha 填白；换色部分对应通道填白。</p>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="部分换色M贴图范例" loading="lazy"><figcaption>部分换色 M 贴图范例</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>可缩放物件贴图（D + M + NRM）</h3>
+    <div class="channel-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+      <div class="ch-item"><div class="ch-name">D-RGB</div><div class="ch-channel">RGB</div><div class="ch-desc">AO</div></div>
+      <div class="ch-item"><div class="ch-name">M-RGBA</div><div class="ch-channel">RGBA</div><div class="ch-desc">换色 1–4</div></div>
+      <div class="ch-item"><div class="ch-name">NRM-RG</div><div class="ch-channel">RG</div><div class="ch-desc">Normal</div></div>
+      <div class="ch-item"><div class="ch-name">NRM-B</div><div class="ch-channel">B</div><div class="ch-desc">Roughness</div></div>
+      <div class="ch-item"><div class="ch-name">NRM-A</div><div class="ch-channel">A</div><div class="ch-desc">MetalMask</div></div>
+    </div>
+    <figure class="img-full" style="margin-top:16px;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="可缩放贴图范例" loading="lazy"><figcaption>可缩放贴图范例</figcaption></figure>
+    <div class="img-showcase cols-2" style="margin-top:12px;">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="引擎效果1" loading="lazy"><figcaption>引擎效果对照 1</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="引擎效果2" loading="lazy"><figcaption>引擎效果对照 2</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+
+<section id="engine" class="fade-in">
+  <div class="section-label">Engine Settings</div>
+  <h2>引擎规范</h2>
+  <p class="section-desc">Unreal Engine 导入设置、LOD 配置、碰撞处理、材质分配全流程。</p>
+
+  <div class="card">
+    <h3>工程结构</h3>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="工程结构" loading="lazy"><figcaption>资产路径规划 — 4 个基础文件夹：蓝图、材质实例、模型、贴图</figcaption></figure>
+  </div>
+
+  <div class="card">
+    <h3>模型导入设置</h3>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="目录结构" loading="lazy"><figcaption>物件资产目录结构</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="FBX导入设置" loading="lazy"><figcaption>FBX 导入设置 — 确保不要导入材质和贴图</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>LOD 导入设置</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">勾选"导入网格体 LOD"选项，并设置好 LOD 切换距离。</p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LOD导入" loading="lazy"><figcaption>导入网格体 LOD 选项</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LOD切换距离" loading="lazy"><figcaption>LOD 切换距离设置</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>2U 设置</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">关掉"生成光照贴图 UV"选项。已生成的 2U 需手动去掉。</p>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="关掉生成光照UV" loading="lazy"><figcaption>关掉生成光照贴图 UV 选项</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="手动去掉2U" loading="lazy"><figcaption>手动去掉已生成的 2U</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>碰撞设置</h3>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="碰撞设置" loading="lazy"><figcaption>碰撞设置成简单碰撞</figcaption></figure>
+    <div class="warn-box"><div class="wb-title">⚠️ 碰撞导出导入陷阱</div>
+    <p>导出引擎再导入时，多个 BOX 碰撞会被自动合并成 mesh。<br><strong>解决办法</strong>：导出后无论做了什么修改，都要把碰撞重新拆散成简单几何体并正确命名再导入。</p></div>
+  </div>
+
+  <div class="card">
+    <h3>贴图设置</h3>
+    <div class="img-showcase cols-3">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="DM贴图设置" loading="lazy"><figcaption>D / M 贴图设置</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="N贴图设置" loading="lazy"><figcaption>N 贴图设置</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="RAME贴图设置" loading="lazy"><figcaption>RAME / NRM 贴图设置</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>换色系统</h3>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="BP Custom Color" loading="lazy"><figcaption>BP → Custom Color 设置初始颜色</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Color Changer Config" loading="lazy"><figcaption>Color Changer Config 参数设置</figcaption></figure>
+    </div>
+    <div class="img-showcase cols-2" style="margin-top:12px;">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="配色方案" loading="lazy"><figcaption>Default Colors Configs 配色方案</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="关卡颜色提示" loading="lazy"><figcaption>⚠️ 严禁在 BP 中修改初始颜色，关卡颜色保存在关卡内</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>BP Tick 设置</h3>
+    <div class="spec-bar">
+      <div class="spec-chip" style="border-color:var(--green);background:#ECFDF5;"><div class="sc-val" style="color:var(--green);">关闭 Tick</div><div class="sc-label">装饰物 / OGC 地块</div></div>
+      <div class="spec-chip" style="border-color:var(--ss);background:#FEF2F2;"><div class="sc-val" style="color:var(--ss);">保留 Tick</div><div class="sc-label">机关 / 道具</div></div>
+    </div>
+    <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="BP Tick设置" loading="lazy"><figcaption>BP Tick 设置示例</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="material" class="fade-in">
+  <div class="section-label">Material System</div>
+  <h2>材质规范</h2>
+  <p class="section-desc">禁止创建母材质，只能使用现有材质创建实例。优先可换色材质球。</p>
+
+  <div class="card">
+    <h3>材质目录</h3>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="材质目录1" loading="lazy"><figcaption>材质目录 — 现有母材质</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="材质目录2" loading="lazy"><figcaption>右键创建材质实例</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>不可换色材质</h3>
+    <div class="mat-grid">
+      <div class="mat-item"><div class="mt-type">物件 · 不透明</div><div class="mt-name">M_Prop_ym_Opacity_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">物件 · Mask 透贴</div><div class="mt-name">M_Prop_ym_Mask_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">物件 · 全透明</div><div class="mt-name">M_Prop_ym_Translucent_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">植物 · 树叶</div><div class="mt-name">M_Foliage_ym_Mask_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">植物 · 树干</div><div class="mt-name">M_Foliage_ym_Opacity_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">植物 · 3S</div><div class="mt-name">M_UnrealSSS_ym_Mask</div></div>
+      <div class="mat-item"><div class="mt-type">山石</div><div class="mt-name">M_WP_ym_Opacity</div></div>
+      <div class="mat-item"><div class="mt-type">地面 · UV 映射</div><div class="mt-name">M_Floor_ym_Opacity_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">地面 · 1 方向投射</div><div class="mt-name">M_RG_Sample_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">地面 · 2 方向投射</div><div class="mt-name">M_GBRB_Sample_Mask</div></div>
+      <div class="mat-item"><div class="mt-type">地面 · 3 方向投射</div><div class="mt-name">M_WPCH_ym_Opacity_Inst</div></div>
+      <div class="mat-item"><div class="mt-type">道具 · 轮廓光</div><div class="mt-name">M_Rim_ym_Opacity</div></div>
+      <div class="mat-item"><div class="mt-type">可缩放</div><div class="mt-name">M_Y_XY_Cube_None</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>可换色材质</h3>
+    <div class="mat-grid">
+      <div class="mat-item"><div class="mt-type">可缩放可换色</div><div class="mt-name">M_Y_Z_XY_Cube_None_Inst1</div><div class="mt-desc">可各轴向缩放 + tiling + 变色</div></div>
+      <div class="mat-item"><div class="mt-type">4 色 · 可 tiling</div><div class="mt-name">MI_UGC_Base_4_Scale</div></div>
+      <div class="mat-item"><div class="mt-type">4 色 · 不可 tiling</div><div class="mt-name">MI_UGC_Base_4_NoScale</div></div>
+      <div class="mat-item"><div class="mt-type">3 色 · 可 tiling</div><div class="mt-name">MI_UGC_Base_3_Scale</div></div>
+      <div class="mat-item"><div class="mt-type">3 色 · 不可 tiling</div><div class="mt-name">MI_UGC_Base_3_NoScale</div></div>
+      <div class="mat-item"><div class="mt-type">3 色 · 带透贴</div><div class="mt-name">MI_UGC_Base_3_Opacity</div></div>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="wb-title">⚠️ 资产引用规则</div>
+    <p>其他玩法<strong>可以</strong>直接引用主玩法资产。<br>
+    主玩法<strong>不能</strong>直接引用其他玩法资产。<br>
+    各玩法之间<strong>不能</strong>直接引用对方的资产。</p>
+  </div>
+</section>
+
+
+<section id="kb" class="fade-in">
+  <div class="section-label">Knowledge Base</div>
+  <h2>知识库</h2>
+  <div class="card">
+    <div class="pipeline-header"><h3>核心文档</h3><span class="count">5 篇</span></div>
+    <ul class="kb-list">
+      <li class="kb-item"><div class="kb-dot purple"></div><div class="kb-info"><div class="kb-title"><a href="unavailable.html">示例项目场景制作规范（内部版）</a></div><div class="kb-desc">完整的 3D 场景制作规范，包含美术风格、命名规范、模型/贴图/碰撞/LOD/引擎全流程标准</div></div><div class="kb-meta"><span class="kb-tag">规范</span><span class="kb-status done">已完成</span></div></li>
+      <li class="kb-item"><div class="kb-dot orange"></div><div class="kb-info"><div class="kb-title"><a href="unavailable.html">换色材质参数使用规则</a></div><div class="kb-desc">BP 内颜色接口参数设置规则及 Color Changer 配置详解</div></div><div class="kb-meta"><span class="kb-tag">材质</span><span class="kb-status wip">进行中</span></div></li>
+      <li class="kb-item"><div class="kb-dot blue"></div><div class="kb-info"><div class="kb-title">示例项目资产路径规划</div><div class="kb-desc">UE 工程内资产目录结构与路径管理规范</div></div><div class="kb-meta"><span class="kb-tag">工程</span><span class="kb-status wip">进行中</span></div></li>
+      <li class="kb-item"><div class="kb-dot green"></div><div class="kb-info"><div class="kb-title">外部模型导入规则</div><div class="kb-desc">家园 / 动物派对 / 副玩法三套外部资源导入规范</div></div><div class="kb-meta"><span class="kb-tag">导入</span><span class="kb-status todo">待整理</span></div></li>
+      <li class="kb-item"><div class="kb-dot green"></div><div class="kb-info"><div class="kb-title">Icon 前置输出流程</div><div class="kb-desc">物件 Icon 制作与输出的标准流程文档</div></div><div class="kb-meta"><span class="kb-tag">Icon</span><span class="kb-status todo">待整理</span></div></li>
+    </ul>
+  </div>
+</section>
+
+
+<section id="skill" class="fade-in">
+  <div class="section-label">Skill Library</div>
+  <h2>Skill 库</h2>
+  <div class="card">
+    <div class="pipeline-header"><h3>场景制作技能</h3><span class="count">8 项</span></div>
+    <div class="skill-grid">
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">命名规范校验</span><span class="kb-status done">已完成</span></div><div class="sk-desc">AI 自动校验资产命名是否符合 SM/MI/T/BP 前缀规则和编号规范</div></div>
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">面数自动检查</span><span class="kb-status done">已完成</span></div><div class="sk-desc">按模型分类和尺寸自动判定面数是否超标，输出告警报告</div></div>
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">LOD 自动生成</span><span class="kb-status wip">进行中</span></div><div class="sk-desc">根据面数区间自动生成对应级数 LOD，面数逐级递减</div></div>
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">贴图通道校验</span><span class="kb-status wip">进行中</span></div><div class="sk-desc">自动检测 D/N/RAME/M/NRM 通道设置是否符合规范</div></div>
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">碰撞自动概括</span><span class="kb-status todo">待开发</span></div><div class="sk-desc">自动为模型生成 BOX 概括碰撞，支持 OGC/UGC 两种规则</div></div>
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">换色方案生成</span><span class="kb-status todo">待开发</span></div><div class="sk-desc">基于换色 M 贴图参数化生成多种配色方案预览</div></div>
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">模块化组合摆放</span><span class="kb-status todo">待开发</span></div><div class="sk-desc">AI 自动识别模块化组件并进行赛道内场景组合搭建</div></div>
+      <div class="skill-card"><div class="sk-head"><span class="sk-name">资产引用检查</span><span class="kb-status todo">待开发</span></div><div class="sk-desc">自动检测玩法间资产引用关系是否违反引用隔离规则</div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>示例项目 · 3D 场景制作规范 v1.0 · 负责人：环境团队</span>
+  <span>Auto-generated 2026-04-07 · 发送时请打包整个 3D-Scene 文件夹</span>
+</footer>
+
+<script>const nav=document.getElementById("nav");window.addEventListener("scroll",()=>nav.classList.toggle("scrolled",window.scrollY>10));const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add("visible")})},{threshold:.1});document.querySelectorAll(".fade-in").forEach(el=>obs.observe(el));const sections=document.querySelectorAll("section[id]");const navLinks=document.querySelectorAll(".nav-links a");window.addEventListener("scroll",()=>{let c="";sections.forEach(s=>{if(window.scrollY>=s.offsetTop-120)c=s.id});navLinks.forEach(a=>{a.classList.remove("active");if(a.getAttribute("href")==="#"+c)a.classList.add("active")})});const POLY={deco_in:[300,1e3,1500,4e3],deco_out:[300,1e3,1500,4e3],gear:[800,1500,2500,4e3],ground:[800,1500,2500,4e3],plant:[500,1e3,2e3,4e3],building:[1e3,2e3,3e3,5e3],prop:[1500,3e3,3e3,3e3]};const CN={deco_in:"装饰物（赛道内）",deco_out:"装饰物（赛道外）",gear:"机关",ground:"地块",plant:"植物",building:"建筑/雕塑",prop:"道具"};function si(s){return s<5?0:s<10?1:s<20?2:3}function cfgUpd(){const cat=document.getElementById("cfgCategory").value,sz=+document.getElementById("cfgSize").value,cx=+document.getElementById("cfgComplexity").value,color=document.getElementById("cfgColor").value,sculpt=document.getElementById("cfgSculpt").checked,ugc=document.getElementById("cfgUGC").checked,night=document.getElementById("cfgNight").checked;document.getElementById("sizeVal").textContent=sz;const mx=POLY[cat][si(sz)];document.getElementById("rTris").textContent=mx.toLocaleString();let ll=mx<=100?0:mx<=300?1:mx<=1e3?2:3;document.getElementById("rLod").textContent=ll+"级";document.getElementById("rTex").textContent=sz<10?256:512;let d=sculpt?6:4;d*=.6+cx*.08;if(ugc)d*=1.1;document.getElementById("rDays").textContent=d.toFixed(1)+"d";const t=[];if(color==="none")t.push("D 贴图","N 贴图","RAME 贴图");else if(color==="full")t.push("M 贴图(全换色)","N 贴图","RAME 贴图");else if(color==="partial")t.push("M 贴图(部分换色)","N 贴图","RAME 贴图");else t.push("D 贴图","M 贴图","NRM 贴图");if(night)t.push("2U 灯光贴图");if(sculpt)t.push("ZBrush 雕刻");t.push(CN[cat]);document.getElementById("rTexTags").innerHTML=t.map(x=>'<span class="ai-tag">'+x+"</span>").join("");const r=[];const tx=sz<10?256:512;r.push('<span class="bg" style="background:var(--accent)">尺</span> 物件尺寸 '+sz+" 米 → 贴图 "+tx+"×"+tx);r.push('<span class="bg" style="background:var(--b)">面</span> '+CN[cat]+" "+["<5M","5-10M","10-20M",">20M"][si(sz)]+" → 上限 "+mx.toLocaleString()+" 三角面");r.push('<span class="bg" style="background:var(--green)">L</span> LOD 级数：'+ll+" 级，面数依次减半");const sg=sz<=5?16:sz<=10?32:48;r.push('<span class="bg" style="background:var(--a)">段</span> 段数上限 '+sg+" 段 ｜ 导角 "+(sz<5?"10cm":sz<15?"15cm":"20cm"));if(ugc)r.push('<span class="bg" style="background:var(--s)">U</span> UGC 规则：碰撞超4个BOX需用mesh，不能有凹角');if(cat==="gear"||cat==="prop")r.push('<span class="bg" style="background:var(--ss)">T</span> 机关/道具类：不能关闭 Tick');else r.push('<span class="bg" style="background:var(--green)">T</span> '+CN[cat]+"：建议关闭 Tick 节省性能");document.getElementById("rDetails").innerHTML=r.join("<br>")}["cfgCategory","cfgSize","cfgComplexity","cfgColor"].forEach(id=>document.getElementById(id).addEventListener("input",cfgUpd));["cfgSculpt","cfgUGC","cfgNight"].forEach(id=>document.getElementById(id).addEventListener("change",cfgUpd));cfgUpd();
+</script>
+<aside id="demo-disclosure"><a href="index.html">平台首页</a><span>脱敏演示 · 项目素材已遮挡 · 含演示样例数据 · 生成服务未连接</span></aside></body>
+</html>

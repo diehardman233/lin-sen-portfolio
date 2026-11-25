@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><script src="demo-guard.js"></script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>示例项目 · 农场美术设计规范</title>
+
+
+<style>
+:root{--bg:#FAFAF7;--surface:#FFFFFF;--text:#1A1D1A;--text-secondary:#6B7280;--border:#E0E4DD;--accent:#D97706;--accent-light:#FFFBEB;--accent-dark:#92400E;--green:#059669;--green-bg:#ECFDF5;--blue:#2563EB;--blue-bg:#EFF6FF;--purple:#7C3AED;--purple-bg:#F5F3FF;--orange:#EA580C;--orange-bg:#FFF7ED;--red:#DC2626;--red-bg:#FEF2F2;--rainbow:linear-gradient(90deg,#059669,#2563EB,#7C3AED,#EA580C,#DC2626,#EC4899);--radius:12px;--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);--shadow-lg:0 10px 40px rgba(0,0,0,.08);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:'DM Sans','Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+.skip-link{position:absolute;top:-100px;left:8px;padding:8px 16px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border-radius:0 0 8px 8px;z-index:200;transition:top .2s;text-decoration:none;}
+.skip-link:focus{top:0;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,250,247,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:background .4s,box-shadow .4s;}
+nav.scrolled{box-shadow:var(--shadow);}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;align-items:center;height:56px;gap:24px;overflow-x:auto;white-space:nowrap;}
+.nav-brand{font-weight:700;font-size:14px;letter-spacing:.5px;color:var(--accent);flex-shrink:0;}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{font-size:13px;color:var(--text-secondary);text-decoration:none;padding:6px 12px;border-radius:6px;transition:background .2s,color .2s;font-weight:500;cursor:pointer;position:relative;}
+.nav-links a:hover{background:var(--accent-light);color:var(--accent);}
+.nav-links a.active{color:var(--accent);font-weight:700;}
+.nav-links a.active::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2px;border-radius:1px;background:var(--accent);}
+
+header.hero{max-width:1200px;margin:0 auto;padding:120px 32px 64px;}
+header.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.2;letter-spacing:-.02em;background:linear-gradient(135deg,var(--accent-dark) 0%,var(--accent) 50%,#FBBF24 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+header.hero .subtitle{font-size:clamp(1rem,2.5vw,1.25rem);color:var(--text-secondary);margin-top:16px;max-width:720px;line-height:1.8;}
+.tag-row{display:flex;gap:8px;margin-top:24px;flex-wrap:wrap;}
+.tag{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text-secondary);}
+.tag.accent{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+
+main{max-width:1200px;margin:0 auto;padding:0 32px 120px;}
+section{margin-top:80px;}
+section>.section-label{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+section>h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;line-height:1.3;margin-bottom:8px;}
+section>.section-desc{color:var(--text-secondary);font-size:15px;max-width:640px;margin-bottom:32px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;margin-bottom:16px;box-shadow:var(--shadow);}
+.card h3{font-size:18px;font-weight:700;margin-bottom:16px;}
+.card h4{font-size:15px;font-weight:700;margin:20px 0 10px;color:var(--text-secondary);}
+.card p,.card li{font-size:14px;line-height:1.8;}
+.card ul{list-style:none;padding:0;}
+.card li{padding:4px 0 4px 20px;position:relative;}
+.card li::before{content:'›';position:absolute;left:4px;color:var(--accent);font-weight:700;}
+
+table.data{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+table.data th{background:#FAF8F2;font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);white-space:nowrap;}
+table.data td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+table.data tr:hover td{background:var(--accent-light);}
+
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.info-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.info-card .icon{font-size:32px;margin-bottom:12px;}
+.info-card h3{font-size:16px;font-weight:700;margin-bottom:8px;}
+.info-card .detail{font-size:13px;color:var(--text-secondary);line-height:1.7;}
+
+.size-bar{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap;}
+.size-chip{flex:1;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--shadow);}
+.size-chip .size-letter{font-size:36px;font-weight:700;color:var(--accent);}
+.size-chip .size-label{font-size:14px;font-weight:600;margin:4px 0;}
+.size-chip .size-detail{font-size:12px;color:var(--text-secondary);}
+
+.alert{padding:20px 24px;border-radius:var(--radius);margin:16px 0;font-size:14px;line-height:1.7;}
+.alert.info{background:var(--accent-light);border-left:4px solid var(--accent);color:var(--accent-dark);}
+.alert.green{background:var(--green-bg);border-left:4px solid var(--green);color:#065F46;}
+
+.flow-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.flow-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);position:relative;}
+.flow-card .flow-num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;margin-bottom:12px;}
+.flow-card .flow-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+.flow-card .flow-desc{font-size:13px;color:var(--text-secondary);line-height:1.6;}
+
+.tier-row{display:flex;gap:2px;margin:12px 0;flex-wrap:wrap;}
+.tier-dot{padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;color:#fff;}
+
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
+.fade-in.visible{opacity:1;transform:translateY(0);}
+
+@media(max-width:768px){
+  .nav-inner{padding:0 16px;gap:16px;}
+  header.hero{padding:100px 16px 48px;}
+  main{padding:0 16px 80px;}
+  .card{padding:20px;}
+  .grid-3,.flow-steps{grid-template-columns:1fr;}
+}
+
+.ai-demo-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px;box-shadow:var(--shadow);}
+.ai-demo-grid{display:grid;grid-template-columns:300px 1fr;gap:40px;}
+.ai-config .cfg-title{font-size:15px;font-weight:700;margin-bottom:20px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-secondary);}
+.field select{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;}
+.field select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(217,119,6,.15);}
+.slider-wrap{display:flex;align-items:center;gap:12px;}
+.slider-wrap input[type=range]{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--border);outline:none;}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.slider-wrap .sv{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;min-width:28px;text-align:center;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-row span{font-size:13px;}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle .sl{position:absolute;inset:0;background:var(--border);border-radius:11px;transition:.3s;}
+.toggle .sl::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle input:checked+.sl{background:var(--accent);}
+.toggle input:checked+.sl::before{transform:translateX(18px);}
+.ai-results .res-title{font-size:15px;font-weight:700;margin-bottom:20px;}
+.rbadges{display:flex;gap:16px;flex-wrap:wrap;}
+.rbadge{text-align:center;padding:20px 28px;border-radius:12px;min-width:120px;}
+.rbadge .rv{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.rbadge .rl{font-size:12px;margin-top:4px;color:var(--text-secondary);}
+.ai-tags{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0;}
+.ai-tag{font-size:12px;padding:4px 12px;border-radius:16px;border:1px solid var(--border);color:var(--text-secondary);background:var(--bg);}
+.breakdown{font-size:13px;line-height:2.2;margin-top:16px;}
+.breakdown .bg{display:inline-block;width:20px;height:20px;border-radius:4px;text-align:center;line-height:20px;font-weight:700;font-size:11px;color:#fff;margin-right:6px;vertical-align:middle;}
+.bd-label{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);}
+@media(max-width:768px){.ai-demo-grid{grid-template-columns:1fr;}}
+
+/* ===== Image Showcase ===== */
+.img-showcase{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:24px 0;}
+.img-showcase.cols-2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr));}
+.img-showcase.cols-3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
+.img-showcase figure{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.img-showcase figure:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.img-showcase img{width:100%;height:auto;display:block;}
+.img-showcase figcaption{padding:10px 14px;font-size:12px;color:var(--text-secondary);text-align:center;border-top:1px solid var(--border);}
+.img-full{margin:20px 0;}
+.img-full img{width:100%;height:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);}
+.img-full figcaption{font-size:12px;color:var(--text-secondary);text-align:center;margin-top:8px;}
+.gallery-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px;box-shadow:var(--shadow);}
+.gallery-card h3{font-size:17px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.gallery-card h3 .g-icon{font-size:24px;}
+
+/* KB & SKILL */
+.pipeline-header{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;}
+.pipeline-header .count{font-size:14px;color:var(--accent);font-weight:700;}
+.kb-list{list-style:none;padding:0;}
+.kb-item{display:flex;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);}
+.kb-item:last-child{border-bottom:none;}
+.kb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:16px;}
+.kb-dot.green{background:#059669;}.kb-dot.orange{background:#EA580C;}.kb-dot.blue{background:#2563EB;}
+.kb-info{flex:1;min-width:0;}
+.kb-title{font-size:15px;font-weight:600;}
+.kb-title a{color:var(--accent);text-decoration:none;}
+.kb-title a:hover{text-decoration:underline;}
+.kb-title a::after{content:' ↗';font-size:11px;}
+.kb-desc{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+.kb-meta{display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px;}
+.kb-tag{font-size:11px;padding:2px 10px;border-radius:6px;border:1px solid var(--border);color:var(--text-secondary);white-space:nowrap;}
+.kb-status{font-size:11px;padding:2px 10px;border-radius:6px;font-weight:600;white-space:nowrap;}
+.kb-status.done{background:#ECFDF5;color:#059669;}.kb-status.wip{background:#FFF7ED;color:#EA580C;}.kb-status.todo{background:#F3F4F6;color:#6B7280;}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:16px;}
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.skill-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.skill-card .sk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.skill-card .sk-name{font-size:15px;font-weight:700;}
+.skill-card .sk-desc{font-size:12px;color:var(--text-secondary);line-height:1.6;}
+</style>
+<style>#demo-disclosure{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);width:max-content;display:flex;gap:18px;align-items:center;padding:10px 18px;background:#232238;color:#fff;box-shadow:0 8px 32px #0003;border-radius:10px;font:12px/1.5 sans-serif}#demo-disclosure a{color:#fff;white-space:nowrap}body{padding-bottom:70px!important}@media(max-width:600px){#demo-disclosure{font-size:11px;gap:10px}}</style></head>
+<body>
+<a href="#overview" class="skip-link">跳到主要内容</a>
+
+<nav id="nav" role="navigation" aria-label="主导航">
+  <div class="nav-inner">
+    <span class="nav-brand">🌾 农场美术</span>
+    <div class="nav-links">
+      <a href="#overview">总览</a>
+      <a href="#ai-demo">AI演示</a>
+      <a href="#livestock">畜牧</a>
+      <a href="#pets">宠物</a>
+      <a href="#miracle">奇迹动物</a>
+      <a href="#collectibles">藏品</a>
+      <a href="#fish-coral">鱼·珊瑚</a>
+      <a href="#accessories">配饰管线</a>
+      <a href="#gallery">作品展示</a>
+      <a href="#kb">知识库</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="overview">
+  <h1>农场美术设计规范<br>生物 · 资产 · 配饰管线</h1>
+  <p class="subtitle">示例农场 + 示例农场 B的完整美术设计体系。覆盖畜牧动物、宠物及套装、示例农场 B动物、藏品、鱼类珊瑚和配饰管线流程。</p>
+  <div class="tag-row">
+    <span class="tag accent">农场</span>
+    <span class="tag accent">示例农场</span>
+    <span class="tag accent">示例农场 B</span>
+    <span class="tag">畜牧</span>
+    <span class="tag">宠物</span>
+    <span class="tag">藏品</span>
+    <span class="tag">鱼·珊瑚</span>
+    <span class="tag">配饰管线</span>
+    <span class="tag">提供人：综合团队</span>
+    <span class="tag accent">负责人：综合团队</span>
+  </div>
+</header>
+
+<main>
+
+
+<section id="ai-demo" class="fade-in" style="margin-top:80px;">
+  <div class="section-label">AI Configuration</div>
+  <h2>AI 配置化演示（农场美术管线）</h2>
+  <p class="section-desc">AI 根据资产类型、品级和复杂度推荐设计幅度、AI 辅助工具和工时预估。</p>
+  <div class="ai-demo-box">
+    <div class="ai-demo-grid">
+      <div class="ai-config">
+        <div class="cfg-title">配置参数</div>
+        <div class="field"><label>资产类型</label><select id="assetType"><option value="livestock">畜牧动物</option><option value="pet">宠物</option><option value="miracle">示例农场 B动物</option><option value="collect">藏品</option><option value="fish">鱼/珊瑚</option><option value="accessory">配饰</option></select></div>
+        <div class="field"><label>品级</label><select id="tier"><option value="green">绿</option><option value="blue">蓝</option><option value="purple" selected>紫</option><option value="orange">橙</option><option value="red">红</option><option value="rainbow">彩</option></select></div>
+        <div class="field"><label>设计复杂度</label><div class="slider-wrap"><span style="font-size:12px;color:var(--text-secondary)">简单</span><input type="range" id="complexity" min="1" max="10" value="5"><span style="font-size:12px;color:var(--text-secondary)">复杂</span></div></div>
+        <div style="margin-top:24px;">
+          <div class="toggle-row"><span>换色方案生成</span><label class="toggle"><input type="checkbox" checked><span class="sl"></span></label></div>
+          <div class="toggle-row"><span>三视图生成</span><label class="toggle"><input type="checkbox" checked><span class="sl"></span></label></div>
+          <div class="toggle-row"><span>批量设计辅助</span><label class="toggle"><input type="checkbox" checked><span class="sl"></span></label></div>
+        </div>
+      </div>
+      <div class="ai-results">
+        <div class="res-title">AI 分析结果</div>
+        <div class="rbadges">
+          <div class="rbadge" style="background:var(--green-bg);"><div class="rv" id="rVariation" style="color:var(--green);">20~50%</div><div class="rl">推荐变化幅度</div></div>
+          <div class="rbadge" style="background:#EFF6FF;"><div class="rv" id="rAI" style="color:#2563EB;">35%</div><div class="rl">AI 辅助率</div></div>
+          <div class="rbadge" style="background:var(--orange-bg);"><div class="rv" id="rDays" style="color:var(--orange);">5.0d</div><div class="rl">预估人天</div></div>
+        </div>
+        <div class="bd-label" style="margin-top:24px;">推荐 AI 工具</div>
+        <div class="ai-tags" id="rTags"></div>
+        <div class="bd-label">设计拆解预览</div>
+        <div class="breakdown" id="rBreakdown"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="livestock" class="fade-in">
+  <div class="section-label">01 — Livestock</div>
+  <h2>示例农场 · 畜牧动物</h2>
+  <p class="section-desc">每 10 级更新 5 个动物，原画储备约到 示例期。风格定位：卡通度高、结构概括、颜色明快。</p>
+
+  <div class="img-showcase cols-3">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="畜牧动物总览" loading="lazy"><figcaption>畜牧动物设计总览</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="畜牧模型规范" loading="lazy"><figcaption>模型与尺寸规范</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="畜牧设计细节" loading="lazy"><figcaption>设计细节参考</figcaption></figure>
+  </div>
+
+  <h3 style="font-size:18px;margin-bottom:16px;">动物尺寸体系</h3>
+  <div class="size-bar">
+    <div class="size-chip"><div class="size-letter">S</div><div class="size-label">小型动物</div><div class="size-detail">体长 &lt; 100cm · 8H 为主</div></div>
+    <div class="size-chip"><div class="size-letter">M</div><div class="size-label">中型动物</div><div class="size-detail">100~180cm · 16H 为主</div></div>
+    <div class="size-chip"><div class="size-letter">L</div><div class="size-label">大型动物</div><div class="size-detail">体长 &gt; 180cm · 32H 为主</div></div>
+  </div>
+
+  <div class="card">
+    <h3>设计风格要点</h3>
+    <ul>
+      <li><strong>豆豆眼 + 弱化嘴部</strong>，保留关键结构不失真</li>
+      <li>可爱的动物应符合<strong>女性玩家审美</strong></li>
+      <li>高大强壮的动物也可以可爱化，但<strong>千万不要写实</strong></li>
+      <li>异色动物变化 10~20%，不偏离原始动物属性</li>
+      <li><strong>AI 辅助</strong>：颜色替换尝试、三视图生成、2D 转 3D 参考</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>赛季规划</h3>
+    <table class="data">
+      <thead><tr><th>类型</th><th>饲养时间</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>均衡型</td><td>8H</td><td rowspan="2">玩家常规先养 16H，再养 8H</td></tr>
+        <tr><td>经验型</td><td>8H</td></tr>
+        <tr><td>均衡型</td><td>16H</td><td rowspan="2">首要养殖目标，美术表现可做突破</td></tr>
+        <tr><td>经验型</td><td>16H</td></tr>
+        <tr><td>均衡型</td><td>32H</td><td>大型动物</td></tr>
+      </tbody>
+    </table>
+    <div class="alert info"><strong>每期至少 2 个</strong>在玩家中有话题性 / 运营能宣传的动物。</div>
+  </div>
+</section>
+
+
+<section id="pets" class="fade-in">
+  <div class="section-label">02 — Pets &amp; Outfits</div>
+  <h2>示例农场 · 宠物及套装</h2>
+  <p class="section-desc">拟人感稍强，拉开与畜牧动物的差距。每赛季 2 套装 + 1 散件套装 + 各 1 散件。</p>
+
+  <div class="grid-3">
+    <div class="info-card">
+      <div class="icon">🐕</div>
+      <h3>狗狗 · S/M/L</h3>
+      <div class="detail">小/中/大型犬三种体型，目前都是不同模。腿部位置和耳根位置有些相同。代表：金毛/萨摩耶/柴犬。</div>
+    </div>
+    <div class="info-card">
+      <div class="icon">🐈</div>
+      <h3>猫猫 · 单体型</h3>
+      <div class="detail">猫猫基本为一个体型。商业化猫猫会进行特殊设计。</div>
+    </div>
+    <div class="info-card">
+      <div class="icon">👗</div>
+      <h3>宠物套装 · 紫色品质</h3>
+      <div class="detail">每赛季：2 套装 + 1 散件套装 + 头/颈/背各 1 散件。多为卡池填充物。原画储备约到 示例期。</div>
+    </div>
+  </div>
+
+  <div class="img-showcase cols-3">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="宠物设计总览" loading="lazy"><figcaption>宠物设计总览</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="宠物配饰细节" loading="lazy"><figcaption>宠物配饰设计细节</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="宠物设计示例" loading="lazy"><figcaption>宠物设计示例</figcaption></figure>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>宠物服装分类</h3>
+    <table class="data">
+      <thead><tr><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>套装</strong></td><td>有主题性，不考虑拆件。颈/头可适当和背部装饰链接</td></tr>
+        <tr><td><strong>散件套装</strong></td><td>有主题性，头/颈/背关联设计，<strong>三件可拆</strong></td></tr>
+        <tr><td><strong>散件</strong></td><td>头/颈/背不关联设计</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>设计注意事项</h3>
+    <h4>头部</h4>
+    <ul>
+      <li>全包/半包裹头饰有匹配问题 → 推荐接触面积少的头饰</li>
+      <li>帽子细节放帽子上面而非两侧（耳朵穿插问题）</li>
+      <li>帽子和面饰不能共存</li>
+      <li>避免单耳斜带帽子（模型会改成两耳中间）</li>
+    </ul>
+    <h4>身体</h4>
+    <ul>
+      <li><strong>腹部避免复杂细节</strong>（不同宠物腿间距不同，会穿模）→ 推荐纯色或留空</li>
+      <li>小型宠物避免收口/长袖设计 → 建议<strong>无袖</strong></li>
+      <li>衣服长度<strong>不超过屁股位置</strong>（长尾狗穿插问题）</li>
+    </ul>
+    <div class="alert green"><strong>AI 提效：</strong>宠物满好感度照片多用 AI 生成，节省设计量。</div>
+  </div>
+</section>
+
+
+<section id="miracle" class="fade-in">
+  <div class="section-label">03 — Miracle Farm</div>
+  <h2>示例农场 B · 动物</h2>
+  <p class="section-desc">从示例农场挑选基础动物，变化幅度扩大到 20~50%。品级体系 6 级：绿→蓝→紫→橙→红→彩。</p>
+
+  <div class="tier-row">
+    <span class="tier-dot" style="background:var(--green)">绿</span>
+    <span class="tier-dot" style="background:var(--blue)">蓝</span>
+    <span class="tier-dot" style="background:var(--purple)">紫</span>
+    <span class="tier-dot" style="background:var(--orange)">橙</span>
+    <span class="tier-dot" style="background:var(--red)">红</span>
+    <span class="tier-dot" style="background:linear-gradient(90deg,#EC4899,#8B5CF6,#3B82F6,#10B981)">彩</span>
+  </div>
+
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="info-card">
+      <div class="icon">🔄</div>
+      <h3>与示例的关系</h3>
+      <div class="detail">绿蓝紫橙品级从示例农场挑选，不需要重新设计。可换色。不能超过示例的赛季更新。</div>
+    </div>
+    <div><p>内部商业化规划已隐去。</p></div><div class="info-card">
+      <div class="icon">🎨</div>
+      <h3>设计幅度</h3>
+      <div class="detail">普通农场异色 10~20%，示例农场 B可扩大到 <strong>20~50%</strong>。找到锚定动物再发散。</div>
+    </div>
+  </div>
+
+  <div class="img-showcase cols-2" style="margin-top:16px;">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例农场 B动物总览" loading="lazy"><figcaption>示例农场 B动物设计总览</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例农场 B动物细节" loading="lazy"><figcaption>示例农场 B动物变化幅度示例</figcaption></figure>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>卡池大奖 · 红/彩动物</h3>
+    <table class="data">
+      <thead><tr><th>阶段</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><strong>一阶段</strong></td><td>动物给到材质或好看的设计</td></tr>
+        <tr><td><strong>专武</strong></td><td>只在 PV 中出现，游戏内为 ICON</td></tr>
+        <tr><td><strong>二阶段</strong></td><td>A 动物结合 B 动物/载具特点，造型进化</td></tr>
+      </tbody>
+    </table>
+    <div class="alert info">面数限制较高，往<strong>整体性</strong>考虑。用颜色/材质/造型区分。<strong>不要过度复杂，不要加太多装饰。</strong></div>
+  </div>
+</section>
+
+
+<section id="collectibles" class="fade-in">
+  <div class="section-label">04 — Collectibles</div>
+  <h2>农场藏品</h2>
+  <p class="section-desc">室外展示 + 室内家具双形态，品质从绿到橙，主题组设计利于玩家搜集。</p>
+
+  <div class="card">
+    <h3>设计注意事项</h3>
+    <ul>
+      <li><strong>大小</strong>：室外展示控制在 1×1 / 2×2 m 范围内（人物能托举展示全貌）</li>
+      <li><strong>组合</strong>：主题组设计（昆虫系列-农田、动物摆件系列-牧场），有延续性利于搜集</li>
+      <li><strong>主题</strong>：有趣味性，<strong>避免政治和社会敏感话题</strong></li>
+      <li><strong>室内</strong>：展示类家具为主，带专属 LOGO，模拟不同藏品特性；单体摆件高度 ≤ 4m</li>
+      <li><strong>化繁为简</strong>：提炼物体特征，保证<strong>瞬间辨识度</strong></li>
+    </ul>
+  </div>
+</section>
+
+
+<section id="fish-coral" class="fade-in">
+  <div class="section-label">05 — Fish &amp; Coral</div>
+  <h2>鱼类 &amp; 珊瑚</h2>
+
+  <div class="img-showcase cols-3">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="金冠鱼集合与设计思路" loading="lazy"><figcaption>金冠鱼集合 &amp; 设计思路</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="鱼原画制作规范" loading="lazy"><figcaption>鱼原画制作规范</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例农场鱼总览" loading="lazy"><figcaption>示例农场鱼总览</figcaption></figure>
+  </div>
+  <div class="img-showcase cols-3">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="鱼一期反馈示例" loading="lazy"><figcaption>一期反馈示例</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="农场鱼摆放" loading="lazy"><figcaption>农场鱼摆放参考</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="珊瑚制作规范" loading="lazy"><figcaption>珊瑚制作规范</figcaption></figure>
+  </div>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="card" style="margin:0;">
+      <h3>鱼类设计</h3>
+      <p style="font-size:14px;color:var(--text-secondary);">示例农场鱼类是重要装饰资产。含金冠鱼系列、常规鱼类、鱼摆放方式。</p>
+      <h4>设计原则</h4>
+      <ul>
+        <li>鱼原画制作规范</li>
+        <li>金冠鱼集合 &amp; 设计思路</li>
+        <li>示例农场鱼总览</li>
+        <li>一期反馈示例</li>
+        <li>农场鱼摆放参考</li>
+      </ul>
+    </div>
+    <div class="card" style="margin:0;">
+      <h3>珊瑚制作规范</h3>
+      <p style="font-size:14px;color:var(--text-secondary);">珊瑚外观随等级变化，每 10 级变一次。已覆盖 100~250 级。</p>
+      <h4>设计原则</h4>
+      <ul>
+        <li>每隔 50 级整体外观要高级化</li>
+        <li>50 级内差异可不太明显</li>
+        <li>设计语言<strong>简单明了</strong></li>
+        <li><strong>不要密恐 / 不适品种</strong></li>
+        <li>可附着在其他生物/物件上</li>
+      </ul>
+    </div>
+    <div class="card" style="margin:0;">
+      <h3>NPC &amp; 植物</h3>
+      <p style="font-size:14px;color:var(--text-secondary);">农场 NPC 和植物参考。</p>
+      <h4>参考资料</h4>
+      <ul>
+        <li>NPC 小红狐</li>
+        <li>示例餐厅-厨师+服务商</li>
+        <li>示例农场 B植物</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<section id="accessories" class="fade-in">
+  <div class="section-label">06 — Accessory Pipeline</div>
+  <h2>配饰管线（头饰/背饰）</h2>
+  <p class="section-desc">一个赛季大量紫色（11~15 个）、少量蓝色（4 个）、橙色极少（1~2 个）。</p>
+
+  <div class="size-bar">
+    <div class="size-chip" style="border-color:var(--purple);"><div class="size-letter" style="color:var(--purple);">11~15</div><div class="size-label">紫色/赛季</div><div class="size-detail">大量</div></div>
+    <div class="size-chip" style="border-color:var(--blue);"><div class="size-letter" style="color:var(--blue);">4</div><div class="size-label">蓝色/赛季</div><div class="size-detail">少量</div></div>
+    <div class="size-chip" style="border-color:var(--orange);"><div class="size-letter" style="color:var(--orange);">1~2</div><div class="size-label">橙色/赛季</div><div class="size-detail">极少</div></div>
+  </div>
+
+  <figure class="img-full"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="头背饰设计流程简述" loading="lazy"><figcaption>头背饰设计流程简述</figcaption></figure>
+  <div class="img-showcase cols-3">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="配饰设计规范 1" loading="lazy"><figcaption>配饰规范示例 1</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="配饰设计规范 2" loading="lazy"><figcaption>配饰规范示例 2</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="配饰设计规范 3" loading="lazy"><figcaption>配饰规范示例 3</figcaption></figure>
+  </div>
+
+  <h3 style="font-size:18px;margin:32px 0 16px;">三步设计流程</h3>
+  <div class="flow-steps">
+    <div class="flow-card">
+      <div class="flow-num">1</div>
+      <div class="flow-title">方向对齐</div>
+      <div class="flow-desc">大方向参考图 + 简单文字描述。快速对齐，避免重复的、不合规的创意。</div>
+    </div>
+    <div class="flow-card">
+      <div class="flow-num">2</div>
+      <div class="flow-title">概念迭代</div>
+      <div class="flow-desc">提供 2~3 个概念方案。可 2D 也可 3D 流程，前期不做限制。经历多次迭代。</div>
+    </div>
+    <div class="flow-card">
+      <div class="flow-num">3</div>
+      <div class="flow-title">定稿换色</div>
+      <div class="flow-desc">设计方向基本定稿。紫/橙品级添加 2 个换色（共 3 颜色）；蓝色品级只有 1 个颜色。</div>
+    </div>
+  </div>
+</section>
+
+
+<section id="gallery" class="fade-in" style="margin-top:80px;">
+  <div class="section-label">Gallery</div>
+  <h2>作品展示 · 图片速查</h2>
+  <p class="section-desc">农场美术管线核心参考图汇总，涵盖畜牧、宠物、鱼类、NPC、植物及配饰各类别。</p>
+
+  <div class="gallery-card">
+    <h3><span class="g-icon">🐄</span> 畜牧 &amp; 示例农场 B动物</h3>
+    <div class="img-showcase">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="畜牧动物总览" loading="lazy"><figcaption>畜牧动物设计总览</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="畜牧模型规范" loading="lazy"><figcaption>畜牧模型与尺寸规范</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例农场 B动物总览" loading="lazy"><figcaption>示例农场 B动物设计</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例农场 B动物细节" loading="lazy"><figcaption>示例农场 B动物变化幅度</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="gallery-card">
+    <h3><span class="g-icon">🐕</span> 宠物及套装</h3>
+    <div class="img-showcase cols-3">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="宠物设计总览" loading="lazy"><figcaption>宠物设计总览</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="宠物配饰设计" loading="lazy"><figcaption>宠物配饰设计细节</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="宠物设计示例" loading="lazy"><figcaption>宠物设计示例</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="gallery-card">
+    <h3><span class="g-icon">🐟</span> 鱼类 &amp; 珊瑚</h3>
+    <div class="img-showcase">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="金冠鱼集合" loading="lazy"><figcaption>金冠鱼集合 &amp; 设计思路</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="鱼原画规范" loading="lazy"><figcaption>鱼原画制作规范</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例农场鱼" loading="lazy"><figcaption>示例农场鱼总览</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="珊瑚制作规范" loading="lazy"><figcaption>珊瑚制作规范</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="gallery-card">
+    <h3><span class="g-icon">🦊</span> NPC · 植物 · 藏品</h3>
+    <div class="img-showcase">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="NPC小红狐" loading="lazy"><figcaption>NPC 小红狐</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="NPC餐厅厨师" loading="lazy"><figcaption>示例餐厅-厨师+服务商</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="示例农场 B植物" loading="lazy"><figcaption>示例农场 B植物</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="藏品原画设计须知" loading="lazy"><figcaption>农场藏品原画设计须知</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="gallery-card">
+    <h3><span class="g-icon">👒</span> 配饰管线</h3>
+    <div class="img-showcase cols-2">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="配饰规范1" loading="lazy"><figcaption>配饰规范示例 1</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="配饰规范2" loading="lazy"><figcaption>配饰规范示例 2</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+
+<section id="kb" class="fade-in" style="margin-top:80px;">
+  <div class="section-label">Knowledge Base</div>
+  <div class="pipeline-header"><h2>知识库</h2><span class="count">2</span></div>
+  <p class="section-desc">当前管线已沉淀的知识文档，点击标题可直接跳转。</p>
+  <ul class="kb-list">
+    <li class="kb-item">
+      <span class="kb-dot green"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">农场生物设计规范</a></div><div class="kb-desc">畜牧/宠物套装/奇迹动物设计标准。</div></div>
+      <div class="kb-meta"><span class="kb-tag">规范</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot green"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">农场装饰资产与配饰管线</a></div><div class="kb-desc">藏品/鱼/珊瑚/NPC/头背饰全流程。</div></div>
+      <div class="kb-meta"><span class="kb-tag">规范</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+  </ul>
+</section>
+
+<section id="skills" class="fade-in" style="margin-top:48px;">
+  <div class="pipeline-header"><h2>Skill 库</h2><span class="count">4</span></div>
+  <div class="skill-grid">
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">AI 换色方案</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">根据母版自动生成多色系变体方案。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">AI 三视图生成</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">根据正面设计自动生成侧/背面三视图。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">批量设计辅助</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">批量生成同系列不同尺寸的设计变体。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">好感度照片生成</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">AI 生成宠物好感度阶段情感照片。</div></div>
+  </div>
+</section>
+
+</main>
+
+<footer style="text-align:center;padding:24px 0;margin-top:48px;border-top:1px solid rgba(0,0,0,.08);font-size:13px;color:#999;">制作人 Author: 作者 · 分享时请将 world-art.html 与 media/ 文件夹一同打包发送</footer>
+
+<script>window.addEventListener("scroll",()=>{document.getElementById("nav").classList.toggle("scrolled",window.scrollY>10);const links=document.querySelectorAll(".nav-links a");const secs=document.querySelectorAll("section[id]");let cur="";secs.forEach(s=>{if(s.offsetTop-120<=scrollY)cur=s.id});links.forEach(a=>a.classList.toggle("active",a.getAttribute("href")==="#"+cur))});const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("visible")})},{threshold:.1});document.querySelectorAll(".fade-in").forEach(el=>observer.observe(el));const toolPool={livestock:["AI换色","AI三视图","2D转3D","批量变体","风格参考"],pet:["AI换色","AI好感度照片","套装配色","穿模检测","批量设计"],miracle:["AI换色","AI三视图","2D转3D","造型进化","阶段设计"],collect:["AI概念图","主题生成","批量变体","辨识度检测"],fish:["AI变体","批量生成","配色方案","等级外观"],accessory:["AI概念方案","配色换色","三步流程","批量迭代"]};const variation={green:"10~20%",blue:"10~20%",purple:"10~20%",orange:"20~30%",red:"20~50%",rainbow:"30~50%"};const tierColor={green:"var(--green)",blue:"var(--blue)",purple:"var(--purple)",orange:"var(--orange)",red:"var(--red)",rainbow:"linear-gradient(90deg,#EC4899,#8B5CF6)"};const baseDays={livestock:3,pet:4,miracle:5,collect:2,fish:1.5,accessory:3};const tierMul={green:.6,blue:.8,purple:1,orange:1.3,red:1.6,rainbow:2};const stepMap={livestock:["搜集SML体型","填入8/16/32H表格","考虑话题性","异色可能性","产出物设计"],pet:["狗猫体型确定","套装主题规划","散件设计","穿模检测","好感度照片"],miracle:["示例动物挑选","换色设计","商业化规划","一阶段设计","专武ICON","二阶段进化"],collect:["主题组规划","室外/室内双形态","大小控制","LOGO设计","辨识度检查"],fish:["鱼种选择","原画制作","摆放方式","金冠设计","反馈迭代"],accessory:["方向对齐","2~3概念方案","多次迭代","定稿换色","3颜色配置"]};function calc(){const at=document.getElementById("assetType").value;const t=document.getElementById("tier").value;const cx=+document.getElementById("complexity").value;document.getElementById("rVariation").textContent=variation[t];const ai=Math.min(60,Math.round(15+cx*4));document.getElementById("rAI").textContent=ai+"%";const days=(baseDays[at]*tierMul[t]*(.5+cx/20)).toFixed(1);document.getElementById("rDays").textContent=days+"d";const tools=toolPool[at]||toolPool.livestock;document.getElementById("rTags").innerHTML=tools.map(c=>'<span class="ai-tag">'+c+"</span>").join("");const st=stepMap[at]||stepMap.livestock;document.getElementById("rBreakdown").innerHTML=st.map((s,i)=>'<span class="bg" style="background:var(--accent)">'+(i+1)+"</span> "+s+"<br>").join("")}["assetType","tier","complexity"].forEach(id=>{document.getElementById(id).addEventListener("input",calc)});calc();
+</script>
+<aside id="demo-disclosure"><a href="index.html">平台首页</a><span>脱敏演示 · 项目素材已遮挡 · 含演示样例数据 · 生成服务未连接</span></aside></body>
+</html>

@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><script src="demo-guard.js"></script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>示例项目 · 角色模型制作规范</title>
+
+
+<style>
+:root{
+  --bg:#0B1120;--surface:#111827;--surface2:#1F2937;--text:#E5E7EB;--text-secondary:#9CA3AF;
+  --border:#374151;--accent:#3B82F6;--accent-light:rgba(59,130,246,.12);--accent-dark:#1D4ED8;
+  --green:#10B981;--green-bg:rgba(16,185,129,.1);
+  --purple:#8B5CF6;--purple-bg:rgba(139,92,246,.1);
+  --orange:#F59E0B;--orange-bg:rgba(245,158,11,.1);
+  --red:#EF4444;--red-bg:rgba(239,68,68,.1);
+  --cyan:#06B6D4;--cyan-bg:rgba(6,182,212,.1);
+  --white-green:#84CC16;--blue-tier:#3B82F6;--purple-tier:#A855F7;--orange-tier:#F97316;
+  --radius:12px;--shadow:0 2px 8px rgba(0,0,0,.3);--shadow-lg:0 12px 48px rgba(0,0,0,.4);
+  --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:'DM Sans','Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+.skip-link{position:absolute;top:-100px;left:8px;padding:8px 16px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border-radius:0 0 8px 8px;z-index:200;transition:top .2s;text-decoration:none;}
+.skip-link:focus{top:0;}
+::selection{background:var(--accent);color:#fff;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(11,17,32,.88);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);transition:box-shadow .4s;}
+nav.scrolled{box-shadow:0 4px 24px rgba(0,0,0,.4);}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;align-items:center;height:56px;gap:24px;overflow-x:auto;white-space:nowrap;}
+.nav-brand{font-weight:700;font-size:14px;letter-spacing:.5px;color:var(--accent);flex-shrink:0;}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{font-size:13px;color:var(--text-secondary);text-decoration:none;padding:6px 12px;border-radius:6px;transition:background .2s,color .2s;font-weight:500;cursor:pointer;position:relative;}
+.nav-links a:hover{background:var(--accent-light);color:var(--accent);}
+.nav-links a.active{color:var(--accent);font-weight:700;}
+.nav-links a.active::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2px;border-radius:1px;background:var(--accent);}
+
+header.hero{max-width:1200px;margin:0 auto;padding:120px 32px 64px;}
+header.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.2;letter-spacing:-.02em;background:linear-gradient(135deg,#60A5FA 0%,var(--accent) 40%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+header.hero .subtitle{font-size:clamp(1rem,2.5vw,1.2rem);color:var(--text-secondary);margin-top:16px;max-width:720px;line-height:1.8;}
+.tag-row{display:flex;gap:8px;margin-top:24px;flex-wrap:wrap;}
+.tag{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text-secondary);}
+.tag.accent{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+
+main{max-width:1200px;margin:0 auto;padding:0 32px 120px;}
+section{margin-top:80px;}
+section>.section-label{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+section>h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;line-height:1.3;margin-bottom:8px;}
+section>.section-desc{color:var(--text-secondary);font-size:15px;max-width:640px;margin-bottom:32px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;margin-bottom:16px;box-shadow:var(--shadow);}
+.card h3{font-size:18px;font-weight:700;margin-bottom:16px;color:#fff;}
+.card h4{font-size:14px;font-weight:700;margin:20px 0 10px;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;}
+.card p,.card li{font-size:14px;line-height:1.8;}
+.card ul{list-style:none;padding:0;}
+.card li{padding:4px 0 4px 20px;position:relative;}
+.card li::before{content:'›';position:absolute;left:4px;color:var(--accent);font-weight:700;}
+
+table.data{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+table.data th{background:var(--surface2);font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);white-space:nowrap;color:var(--text);}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(55,65,81,.5);vertical-align:top;color:var(--text-secondary);}
+table.data tr:hover td{background:var(--accent-light);}
+table.data td strong{color:var(--text);}
+table.data code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--cyan);}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.lod-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.lod-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.lod-card .lod-name{font-size:36px;font-weight:700;font-family:var(--mono);margin-bottom:4px;}
+.lod-card .lod-label{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);}
+.lod-card .lod-detail{font-size:12px;color:var(--text-secondary);line-height:1.6;}
+.lod-card:nth-child(1) .lod-name{color:var(--cyan);}
+.lod-card:nth-child(2) .lod-name{color:var(--accent);}
+.lod-card:nth-child(3) .lod-name{color:var(--purple);}
+
+.tier-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0;}
+.tier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;}
+.tier-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.tier-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.tier-card:nth-child(1)::before{background:var(--white-green);}
+.tier-card:nth-child(2)::before{background:var(--blue-tier);}
+.tier-card:nth-child(3)::before{background:var(--purple-tier);}
+.tier-card:nth-child(4)::before{background:var(--orange-tier);}
+.tier-card .tier-label{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+.tier-card:nth-child(1) .tier-label{color:var(--white-green);}
+.tier-card:nth-child(2) .tier-label{color:var(--blue-tier);}
+.tier-card:nth-child(3) .tier-label{color:var(--purple-tier);}
+.tier-card:nth-child(4) .tier-label{color:var(--orange-tier);}
+.tier-card .tier-value{font-size:13px;color:var(--text-secondary);line-height:1.7;}
+.tier-card .tier-value strong{color:var(--text);}
+
+.alert{padding:16px 20px;border-radius:var(--radius);margin:16px 0;font-size:13px;line-height:1.7;}
+.alert.info{background:var(--accent-light);border-left:4px solid var(--accent);color:#93C5FD;}
+.alert.warn{background:var(--orange-bg);border-left:4px solid var(--orange);color:#FCD34D;}
+.alert.danger{background:var(--red-bg);border-left:4px solid var(--red);color:#FCA5A5;}
+.alert.green{background:var(--green-bg);border-left:4px solid var(--green);color:#6EE7B7;}
+
+.bone-bar{display:flex;align-items:center;gap:12px;margin:6px 0;}
+.bone-bar .label{font-size:13px;color:var(--text-secondary);min-width:60px;}
+.bone-bar .bar{flex:1;height:24px;border-radius:6px;background:var(--surface2);position:relative;overflow:hidden;}
+.bone-bar .bar .fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:11px;font-weight:600;color:#fff;font-family:var(--mono);transition:width .8s ease;}
+.bone-bar .bar .fill.wg{background:linear-gradient(90deg,#65A30D,#84CC16);}
+.bone-bar .bar .fill.bl{background:linear-gradient(90deg,#2563EB,#3B82F6);}
+.bone-bar .bar .fill.pl{background:linear-gradient(90deg,#7C3AED,#A855F7);}
+.bone-bar .bar .fill.og{background:linear-gradient(90deg,#EA580C,#F97316);}
+
+.checklist{list-style:none;padding:0;}
+.checklist li{padding:8px 0 8px 32px;position:relative;font-size:14px;color:var(--text-secondary);border-bottom:1px solid rgba(55,65,81,.3);}
+.checklist li::before{content:'☐';position:absolute;left:4px;color:var(--accent);font-size:16px;}
+.checklist li:last-child{border-bottom:none;}
+
+.flow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.flow-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.flow-card .flow-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;font-weight:700;margin-bottom:10px;font-family:var(--mono);}
+.flow-card .flow-title{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text);}
+.flow-card .flow-desc{font-size:12px;color:var(--text-secondary);line-height:1.5;}
+
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
+.fade-in.visible{opacity:1;transform:translateY(0);}
+
+@media(max-width:900px){
+  .grid-3,.tier-grid{grid-template-columns:repeat(2,1fr);}
+  .flow-steps{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  .nav-inner{padding:0 16px;gap:16px;}
+  header.hero{padding:100px 16px 48px;}
+  main{padding:0 16px 80px;}
+  .card{padding:20px;}
+  .grid-3,.tier-grid,.flow-steps{grid-template-columns:1fr;}
+}
+
+.ai-demo-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px;box-shadow:var(--shadow);}
+.ai-demo-grid{display:grid;grid-template-columns:300px 1fr;gap:40px;}
+.ai-config .cfg-title{font-size:15px;font-weight:700;margin-bottom:20px;color:#fff;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-secondary);}
+.field select{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;}
+.field select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.2);}
+.slider-wrap{display:flex;align-items:center;gap:12px;}
+.slider-wrap input[type=range]{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--border);outline:none;}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+.slider-wrap .sv{font-family:var(--mono);font-size:13px;font-weight:600;min-width:28px;text-align:center;color:var(--text);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-row span{font-size:13px;color:var(--text);}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle .sl{position:absolute;inset:0;background:var(--border);border-radius:11px;transition:.3s;}
+.toggle .sl::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle input:checked+.sl{background:var(--accent);}
+.toggle input:checked+.sl::before{transform:translateX(18px);}
+.ai-results .res-title{font-size:15px;font-weight:700;margin-bottom:20px;color:#fff;}
+.rbadges{display:flex;gap:16px;flex-wrap:wrap;}
+.rbadge{text-align:center;padding:20px 28px;border-radius:12px;min-width:120px;}
+.rbadge .rv{font-size:28px;font-weight:700;font-family:var(--mono);}
+.rbadge .rl{font-size:12px;margin-top:4px;color:var(--text-secondary);}
+.ai-tags{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0;}
+.ai-tag{font-size:12px;padding:4px 12px;border-radius:16px;border:1px solid var(--border);color:var(--text-secondary);background:var(--surface2);}
+.breakdown{font-size:13px;line-height:2.2;margin-top:16px;color:var(--text-secondary);}
+.breakdown .bg{display:inline-block;width:20px;height:20px;border-radius:4px;text-align:center;line-height:20px;font-weight:700;font-size:11px;color:#fff;margin-right:6px;vertical-align:middle;}
+.bd-label{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);}
+@media(max-width:768px){.ai-demo-grid{grid-template-columns:1fr;}}
+
+/* KB & SKILL */
+.pipeline-header{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;}
+.pipeline-header .count{font-size:14px;color:var(--accent);font-weight:700;}
+.kb-list{list-style:none;padding:0;}
+.kb-item{display:flex;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);}
+.kb-item:last-child{border-bottom:none;}
+.kb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:16px;}
+.kb-dot.green{background:#10B981;}.kb-dot.orange{background:#F59E0B;}.kb-dot.blue{background:#3B82F6;}
+.kb-info{flex:1;min-width:0;}
+.kb-title{font-size:15px;font-weight:600;}
+.kb-title a{color:var(--accent);text-decoration:none;}
+.kb-title a:hover{text-decoration:underline;}
+.kb-title a::after{content:' ↗';font-size:11px;}
+.kb-desc{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+.kb-meta{display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px;}
+.kb-tag{font-size:11px;padding:2px 10px;border-radius:6px;border:1px solid var(--border);color:var(--text-secondary);white-space:nowrap;}
+.kb-status{font-size:11px;padding:2px 10px;border-radius:6px;font-weight:600;white-space:nowrap;}
+.kb-status.done{background:rgba(16,185,129,.15);color:#10B981;}.kb-status.wip{background:rgba(245,158,11,.15);color:#F59E0B;}.kb-status.todo{background:rgba(156,163,175,.12);color:#9CA3AF;}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:16px;}
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+.skill-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.skill-card .sk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.skill-card .sk-name{font-size:15px;font-weight:700;color:#fff;}
+.skill-card .sk-desc{font-size:12px;color:var(--text-secondary);line-height:1.6;}
+
+.img-showcase{margin:20px 0;display:grid;gap:12px;}
+.img-showcase.cols-2{grid-template-columns:1fr 1fr;}
+.img-showcase.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.img-showcase figure{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.img-showcase figure img{width:100%;display:block;object-fit:contain;background:#1a1a2e;}
+.img-showcase figcaption{padding:10px 16px;font-size:12px;color:var(--text-secondary);font-weight:500;text-align:center;border-top:1px solid var(--border);}
+.img-full{margin:20px 0;}
+.img-full img{width:100%;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);display:block;background:#1a1a2e;}
+.img-full figcaption{padding:8px 0;font-size:12px;color:var(--text-secondary);font-weight:500;}
+@media(max-width:768px){.img-showcase.cols-2,.img-showcase.cols-3{grid-template-columns:1fr;}}
+</style>
+<style>#demo-disclosure{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);width:max-content;display:flex;gap:18px;align-items:center;padding:10px 18px;background:#232238;color:#fff;box-shadow:0 8px 32px #0003;border-radius:10px;font:12px/1.5 sans-serif}#demo-disclosure a{color:#fff;white-space:nowrap}body{padding-bottom:70px!important}@media(max-width:600px){#demo-disclosure{font-size:11px;gap:10px}}</style></head>
+<body>
+<a href="#overview" class="skip-link">跳到主要内容</a>
+
+<nav id="nav" role="navigation" aria-label="主导航">
+  <div class="nav-inner">
+    <span class="nav-brand">🎮 3D 角色模型</span>
+    <div class="nav-links">
+      <a href="#overview">总览</a>
+      <a href="#ai-demo">AI演示</a>
+      <a href="#lod">LOD 体系</a>
+      <a href="#accessories">挂件</a>
+      <a href="#tiers">品质对比</a>
+      <a href="#white-green">白绿</a>
+      <a href="#blue">蓝</a>
+      <a href="#purple-t">紫</a>
+      <a href="#orange-t">橙</a>
+      <a href="#ue4">UE4 导入</a>
+      <a href="#material-slots">材质插槽</a>
+      <a href="#material-tiers">材质品级</a>
+      <a href="#skins-detail">蒙皮细则</a>
+      <a href="#checklist">检查清单</a>
+      <a href="#gallery">规范图示</a>
+      <a href="#kb">知识库</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="overview">
+  <h1>角色模型制作规范<br>LOD · 蒙皮 · 贴图 · UE4</h1>
+  <p class="subtitle">示例项目角色模型的完整制作规范，按品质等级（白绿/蓝/紫/橙）定义 LOD 分级、骨骼上限、贴图尺寸、材质槽和命名规则。3D 角色制作与外包质检的核心参考。</p>
+  <div class="tag-row">
+    <span class="tag accent">3D角色</span>
+    <span class="tag accent">UE4</span>
+    <span class="tag">LOD</span>
+    <span class="tag">蒙皮</span>
+    <span class="tag">贴图</span>
+    <span class="tag">骨骼</span>
+    <span class="tag">性能</span>
+    <span class="tag accent">负责人：模型团队</span>
+  </div>
+</header>
+
+<main>
+
+
+<section id="ai-demo" class="fade-in" style="margin-top:80px;">
+  <div class="section-label">AI Configuration</div>
+  <h2>AI 配置化演示（3D 角色模型管线）</h2>
+  <p class="section-desc">AI 根据品质等级和模型复杂度自动推荐骨骼配置、贴图规格和质检项。</p>
+  <div class="ai-demo-box">
+    <div class="ai-demo-grid">
+      <div class="ai-config">
+        <div class="cfg-title">配置参数</div>
+        <div class="field"><label>品质等级</label><select id="tier"><option value="wg">白绿</option><option value="blue">蓝</option><option value="purple" selected>紫</option><option value="orange">橙</option></select></div>
+        <div class="field"><label>模型复杂度</label><div class="slider-wrap"><span style="font-size:12px;color:var(--text-secondary)">简单</span><input type="range" id="complexity" min="1" max="10" value="5"><span style="font-size:12px;color:var(--text-secondary)">复杂</span></div></div>
+        <div class="field"><label>挂件数量</label><div class="slider-wrap"><input type="range" id="accCount" min="0" max="6" value="2"><span class="sv" id="accVal">2</span></div></div>
+        <div style="margin-top:24px;">
+          <div class="toggle-row"><span>自动 LOD 生成</span><label class="toggle"><input type="checkbox" checked><span class="sl"></span></label></div>
+          <div class="toggle-row"><span>贴图优化推荐</span><label class="toggle"><input type="checkbox" checked><span class="sl"></span></label></div>
+          <div class="toggle-row"><span>骨骼数量验证</span><label class="toggle"><input type="checkbox" checked><span class="sl"></span></label></div>
+        </div>
+      </div>
+      <div class="ai-results">
+        <div class="res-title">AI 分析结果</div>
+        <div class="rbadges">
+          <div class="rbadge" style="background:var(--purple-bg);"><div class="rv" id="rBones" style="color:var(--purple);">36</div><div class="rl">LOD0/1 骨骼上限</div></div>
+          <div class="rbadge" style="background:var(--cyan-bg);"><div class="rv" id="rTex" style="color:var(--cyan);">1024²</div><div class="rl">商城贴图尺寸</div></div>
+          <div class="rbadge" style="background:var(--orange-bg);"><div class="rv" id="rDays" style="color:var(--orange);">6.0d</div><div class="rl">预估工时</div></div>
+        </div>
+        <div class="bd-label" style="margin-top:24px;">LOD 配置建议</div>
+        <div class="ai-tags" id="rTags"></div>
+        <div class="bd-label">质检项预览</div>
+        <div class="breakdown" id="rBreakdown"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="lod" class="fade-in">
+  <div class="section-label">01 — LOD System</div>
+  <h2>LOD 总体结构</h2>
+  <p class="section-desc">每个模型制作三级 LOD，LOD0 与 LOD1+2 分开导入 UE4，避免游戏内加载商城高精度资源。</p>
+
+  <div class="grid-3">
+    <div class="lod-card">
+      <div class="lod-name">LOD0</div>
+      <div class="lod-label">商城展示</div>
+      <div class="lod-detail">单独导入 UE4<br>作为一个 SkeletalMesh 资源<br>高分辨率 · 无 Mipmap</div>
+    </div>
+    <div class="lod-card">
+      <div class="lod-name">LOD1</div>
+      <div class="lod-label">大厅 / 游戏内（近）</div>
+      <div class="lod-detail">与 LOD2 合并导入<br>作为另一个 SkeletalMesh 资源<br>中分辨率 · ForceASTC 压缩</div>
+    </div>
+    <div class="lod-card">
+      <div class="lod-name">LOD2</div>
+      <div class="lod-label">大厅 / 游戏内（远）</div>
+      <div class="lod-detail">随 LOD1 合并导入<br>可只蒙皮素体骨骼<br>低分辨率 · Mipmap 启用</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>骨骼导出规则</h3>
+    <ul>
+      <li>每个模型只能导出<strong>自己蒙皮相关的骨骼</strong></li>
+      <li>导出多余骨骼 → 导入 UE4 时<strong>直接失败</strong></li>
+      <li>新增骨骼：手臂旋转 ×2 + 手指 ×2 + 大拇指 ×2（LOD2 可不蒙皮）</li>
+      <li>另有 2 个不参与蒙皮的武器骨骼需一并导出</li>
+    </ul>
+  </div>
+
+  <div class="img-showcase cols-3" style="margin-top:20px;">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LOD模型拆分" loading="lazy"><figcaption>LOD0(商城) vs LOD1/2(游戏) 模型资源拆分</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="贴图资源" loading="lazy"><figcaption>两套贴图资源 — 高分辨率(无Mip) + 低分辨率(含Mip)</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="材质等级" loading="lazy"><figcaption>三级材质 — 商城高品质 / 大厅近距离 / 大厅远距离</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="accessories" class="fade-in">
+  <div class="section-label">02 — Accessories</div>
+  <h2>角色挂件规范</h2>
+  <p class="section-desc">头饰/面饰/背饰三种类型，按品质等级有不同的材质和透明度规则。</p>
+
+  <div class="card">
+    <h3>挂件类型与命名</h3>
+    <table class="data">
+      <thead><tr><th>类型</th><th>前缀</th><th>材质槽名</th></tr></thead>
+      <tbody>
+        <tr><td>头饰</td><td><code>SK(SM)_Decorate_Halo_</code></td><td><strong>Halo</strong></td></tr>
+        <tr><td>面饰</td><td><code>SK(SM)_Decorate_Mask_</code></td><td><strong>Mask</strong></td></tr>
+        <tr><td>背饰</td><td><code>SK(SM)_Decorate_Wing_</code></td><td><strong>Wing</strong></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:var(--text-secondary);margin-top:8px;">SkeletalMesh 用 <code>SK</code>，StaticMesh 用 <code>SM</code></p>
+  </div>
+
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="card" style="margin:0;">
+      <h4>挂件贴图</h4>
+      <table class="data">
+        <thead><tr><th>LOD</th><th>最大尺寸</th><th>Mipmap</th></tr></thead>
+        <tbody>
+          <tr><td>LOD0</td><td><strong>512</strong></td><td>NoMipmaps</td></tr>
+          <tr><td>LOD1/2</td><td><strong>256</strong></td><td>FromTextureGroup</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card" style="margin:0;grid-column:span 2;">
+      <h4>挂件材质规则</h4>
+      <table class="data">
+        <thead><tr><th>品质</th><th>材质数量</th><th>透明度</th></tr></thead>
+        <tbody>
+          <tr><td>蓝/紫</td><td>仅 <strong>1</strong> 个</td><td>必须不透明</td></tr>
+          <tr><td>紫（含镜片）</td><td><strong>1</strong> 个透明材质</td><td>镜框+镜片共用 1 个 Material ID，节省 DrawCall</td></tr>
+          <tr><td>橙</td><td>可多个</td><td>可骨骼蒙皮，但优先用特效替代</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <figure class="img-full" style="margin-top:20px;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="挂件类型" loading="lazy"><figcaption>挂件三类型 — 头饰(Halo) / 面饰(Mask) / 背饰(Wing)</figcaption></figure>
+</section>
+
+
+<section id="tiers" class="fade-in">
+  <div class="section-label">03 — Tier Comparison</div>
+  <h2>各品质等级快速对照</h2>
+  <p class="section-desc">白绿 → 蓝 → 紫 → 橙，骨骼上限递增，模型结构从拆件到整体。</p>
+
+  <h3 style="font-size:16px;margin-bottom:12px;color:var(--cyan);">骨骼上限可视化</h3>
+  <div class="card">
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">LOD0 / LOD1 蒙皮骨骼数</p>
+    <div class="bone-bar"><span class="label" style="color:var(--white-green);">白绿</span><div class="bar"><div class="fill wg" style="width:53%">32</div></div></div>
+    <div class="bone-bar"><span class="label" style="color:var(--blue-tier);">蓝</span><div class="bar"><div class="fill bl" style="width:53%">32</div></div></div>
+    <div class="bone-bar"><span class="label" style="color:var(--purple-tier);">紫</span><div class="bar"><div class="fill pl" style="width:60%">36</div></div></div>
+    <div class="bone-bar"><span class="label" style="color:var(--orange-tier);">橙</span><div class="bar"><div class="fill og" style="width:100%">60</div></div></div>
+    <p style="font-size:12px;color:var(--text-secondary);margin:16px 0 12px 0;">LOD2 蒙皮骨骼数</p>
+    <div class="bone-bar"><span class="label" style="color:var(--white-green);">白绿</span><div class="bar"><div class="fill wg" style="width:64%">23</div></div></div>
+    <div class="bone-bar"><span class="label" style="color:var(--blue-tier);">蓝</span><div class="bar"><div class="fill bl" style="width:64%">23</div></div></div>
+    <div class="bone-bar"><span class="label" style="color:var(--purple-tier);">紫</span><div class="bar"><div class="fill pl" style="width:64%">23</div></div></div>
+    <div class="bone-bar"><span class="label" style="color:var(--orange-tier);">橙</span><div class="bar"><div class="fill og" style="width:100%">36</div></div></div>
+  </div>
+
+  <div class="card" style="overflow-x:auto;">
+    <h3>完整对照表</h3>
+    <table class="data" id="compareTable">
+      <thead>
+        <tr><th>维度</th><th style="color:var(--white-green);">白绿</th><th style="color:var(--blue-tier);">蓝</th><th style="color:var(--purple-tier);">紫</th><th style="color:var(--orange-tier);">橙</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>模型前缀</td><td><code>SK_Body_</code> / <code>SK_TY_</code></td><td><code>SK_BU_</code></td><td><code>SK_PL_</code></td><td><code>SK_GJ_</code></td></tr>
+        <tr><td>换装拆分</td><td><strong>5 个部件</strong></td><td>1 个模型</td><td>1 个模型</td><td>1 个模型</td></tr>
+        <tr><td>表情替换</td><td>✔ 脸部独立</td><td>✔ 脸部材质槽</td><td>✘ 固定</td><td>—</td></tr>
+        <tr><td>LOD0/1 骨骼</td><td><strong>32</strong></td><td><strong>32</strong></td><td><strong>36</strong></td><td><strong>60</strong></td></tr>
+        <tr><td>LOD2 骨骼</td><td><strong>23</strong></td><td><strong>23</strong></td><td><strong>23</strong></td><td><strong>36</strong></td></tr>
+        <tr><td>LOD0 材质数</td><td>每部件 1~2</td><td>2 (Face+Cloth)</td><td>1</td><td>按透明度拆</td></tr>
+        <tr><td>LOD1/2 材质数</td><td>每部件 1</td><td>1</td><td>1</td><td>按透明度拆</td></tr>
+        <tr><td>商城贴图</td><td>各部位不同</td><td>1024²</td><td>1024²</td><td>—</td></tr>
+        <tr><td>游戏贴图</td><td>合并 512²</td><td>512²</td><td>512²</td><td>—</td></tr>
+        <tr><td>蒙皮动画</td><td>✘</td><td>✘</td><td>✘</td><td>✔（慎用）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<section id="white-green" class="fade-in">
+  <div class="section-label" style="color:var(--white-green);">04 — White / Green Tier</div>
+  <h2>白绿套装</h2>
+  <p class="section-desc">5 个换装部件拆分为 5 个不同模型，支持脸部表情替换。</p>
+
+  <div class="card">
+    <h3>模型结构 · 5 部件</h3>
+    <table class="data">
+      <thead><tr><th>部件</th><th>模型前缀</th><th>材质槽</th></tr></thead>
+      <tbody>
+        <tr><td>脸部</td><td><code>SK_Body_Face_</code></td><td>Face</td></tr>
+        <tr><td>上衣（动物皮肤）</td><td><code>SK_Body_Upper_</code></td><td>Skin</td></tr>
+        <tr><td>上衣（服装）</td><td><code>SK_TY_Upper_</code></td><td>Top</td></tr>
+        <tr><td>下衣</td><td><code>SK_Body_Under_</code> / <code>SK_TY_Under_</code></td><td>Skin / Bottom</td></tr>
+        <tr><td>手套</td><td><code>SK_Body_Hands_</code></td><td>Skin / Hand</td></tr>
+        <tr><td>动物头部</td><td><code>SK_Body_Head_</code></td><td>Skin</td></tr>
+      </tbody>
+    </table>
+    <div class="alert info">LOD1/2 模型后缀需为 <code>_LOD1</code>，材质槽需加 <code>_LOD1</code> 和 <code>_LOD2</code> 后缀。</div>
+  </div>
+
+  <div class="card">
+    <h3>LOD0 贴图规范（每部位 3 张）</h3>
+    <table class="data">
+      <thead><tr><th>贴图类型</th><th>sRGB</th><th>Mipmap</th></tr></thead>
+      <tbody>
+        <tr><td><strong>BaseColor</strong></td><td>✔ 勾选</td><td>NoMipmaps</td></tr>
+        <tr><td><strong>ARM</strong> (AO+Roughness+Metallic)</td><td>✘</td><td>NoMipmaps</td></tr>
+        <tr><td><strong>NE</strong> (Normal+Emissive)</td><td>✘</td><td>NoMipmaps</td></tr>
+      </tbody>
+    </table>
+    <h4>各部位贴图尺寸</h4>
+    <table class="data">
+      <thead><tr><th>部位</th><th>LOD0</th><th>LOD1/2</th><th>UV 备注</th></tr></thead>
+      <tbody>
+        <tr><td>脸部</td><td><strong>1024×256</strong></td><td>512×128</td><td>放 4 个表情，UV 为贴图 1/4</td></tr>
+        <tr><td>上衣</td><td><strong>512×512</strong></td><td>256×256</td><td>—</td></tr>
+        <tr><td>下衣</td><td><strong>1024×256</strong></td><td>512×128</td><td>UV 为贴图 3/4</td></tr>
+        <tr><td>手套</td><td><strong>256×256</strong></td><td>128×128</td><td>—</td></tr>
+        <tr><td>动物皮肤</td><td><strong>512×512</strong></td><td>256×256</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>LOD1/2 贴图压缩设置</h3>
+    <table class="data">
+      <thead><tr><th>贴图类型</th><th>sRGB</th><th>压缩</th><th>Mipmap</th></tr></thead>
+      <tbody>
+        <tr><td>BaseColor</td><td>✔</td><td><strong>ForceASTC 8×8</strong></td><td>FromTextureGroup</td></tr>
+        <tr><td>ARM</td><td>✘</td><td><strong>ForceASTC 4×4</strong></td><td>FromTextureGroup</td></tr>
+        <tr><td>Normal</td><td>✘</td><td><strong>ForceASTC 4×4</strong></td><td>FromTextureGroup</td></tr>
+      </tbody>
+    </table>
+    <div class="alert green">运行时贴图合并：LOD1/2 进入游戏时，动态合并为一整张 <strong>512×512</strong> 贴图。</div>
+  </div>
+
+  <div class="img-showcase cols-2" style="margin-top:20px;">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="脸部表情" loading="lazy"><figcaption>脸部贴图 — 4 个表情放置在 1024×256 区域</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="合并贴图" loading="lazy"><figcaption>运行时合并为 512×512 — 各部位空间分配</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="blue" class="fade-in">
+  <div class="section-label" style="color:var(--blue-tier);">05 — Blue Tier</div>
+  <h2>蓝套装</h2>
+  <p class="section-desc">一个 SkeletalMesh 不拆分，前缀 SK_BU_。支持脸部表情替换。</p>
+
+  <div class="card">
+    <h3>模型特性</h3>
+    <table class="data">
+      <thead><tr><th>特性</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>部件</td><td>脸部 + 身体（<strong>不拆分</strong>）</td></tr>
+        <tr><td>表情兼容</td><td>✔ 需要替换</td></tr>
+        <tr><td>LOD0 材质槽</td><td><strong>2 个</strong>：Face + Cloth（商城换表情）</td></tr>
+        <tr><td>LOD1/2 材质槽</td><td><strong>1 个</strong>：Cloth（不拆分）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>贴图规范</h3>
+    <table class="data">
+      <thead><tr><th>LOD</th><th>贴图尺寸</th><th>Mipmap</th></tr></thead>
+      <tbody>
+        <tr><td>LOD0（商城）</td><td><strong>1024×1024</strong></td><td>NoMipmaps</td></tr>
+        <tr><td>LOD1/2（游戏内）</td><td><strong>512×512</strong></td><td>FromTextureGroup</td></tr>
+      </tbody>
+    </table>
+    <div class="alert info">脸部 UV 与白绿套装分布相同，运行时根据玩家选择填充脸部区域。LOD1/2 脸部仅占左上 1/4×1/4。</div>
+  </div>
+
+  <div class="img-showcase cols-2" style="margin-top:20px;">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="蓝套装材质" loading="lazy"><figcaption>蓝套装 LOD0 — Face + Cloth 双材质槽拆分</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="运行时脸部" loading="lazy"><figcaption>运行时根据玩家选择的脸型填充脸部贴图区域</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="purple-t" class="fade-in">
+  <div class="section-label" style="color:var(--purple-tier);">06 — Purple Tier</div>
+  <h2>紫套装</h2>
+  <p class="section-desc">一个 SkeletalMesh，前缀 SK_PL_。固定表情，全部 LOD 均 1 个材质槽。</p>
+
+  <div class="card">
+    <h3>模型特性</h3>
+    <table class="data">
+      <thead><tr><th>特性</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>部件</td><td>脸部 + 身体（<strong>不拆分</strong>）</td></tr>
+        <tr><td>表情</td><td><strong>固定表情</strong>，不需要替换</td></tr>
+        <tr><td>材质槽</td><td>全部 LOD 均 <strong>1 个</strong></td></tr>
+        <tr><td>贴图</td><td>一套 3 张</td></tr>
+        <tr><td>LOD0/1 骨骼</td><td><strong>36 根</strong>（高于蓝的 32）</td></tr>
+        <tr><td>LOD2 骨骼</td><td>23 根</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>贴图规范</h3>
+    <table class="data">
+      <thead><tr><th>LOD</th><th>贴图尺寸</th></tr></thead>
+      <tbody>
+        <tr><td>LOD0（商城）</td><td><strong>1024×1024</strong></td></tr>
+        <tr><td>LOD1/2（游戏内）</td><td><strong>512×512</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<section id="orange-t" class="fade-in">
+  <div class="section-label" style="color:var(--orange-tier);">07 — Orange Tier</div>
+  <h2>橙套装</h2>
+  <p class="section-desc">一个 SkeletalMesh，前缀 SK_GJ_。可使用骨骼蒙皮动画（慎用），材质按透明度拆分。</p>
+
+  <div class="card">
+    <h3>模型特性</h3>
+    <table class="data">
+      <thead><tr><th>特性</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>材质拆分</td><td>按透明度类型拆分（不透明 1 个槽 + 透明 1 个槽）</td></tr>
+        <tr><td>骨骼蒙皮</td><td>✔ 可使用，但<strong>运行时开销大，优先用特效替代</strong></td></tr>
+        <tr><td>LOD0/1 骨骼</td><td><strong>60 根</strong>（最高）</td></tr>
+        <tr><td>LOD2 骨骼</td><td><strong>36 根</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="alert warn">橙品质骨骼蒙皮开销大，优先考虑<strong>特效替代</strong>方案。</div>
+  </div>
+
+  <figure class="img-full" style="margin-top:20px;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="橙套装材质槽" loading="lazy"><figcaption>橙套装材质插槽规则 — 不透明/透明拆分</figcaption></figure>
+</section>
+
+
+<section id="ue4" class="fade-in">
+  <div class="section-label">08 — UE4 Import</div>
+  <h2>UE4 导入 / Reimport 流程</h2>
+
+  <div class="card">
+    <h3>LOD 导入步骤</h3>
+    <div class="flow-steps">
+      <div class="flow-card"><div class="flow-num">1</div><div class="flow-title">右键 LOD0</div><div class="flow-desc">在模型图标上右键</div></div>
+      <div class="flow-card"><div class="flow-num">2</div><div class="flow-title">Import LOD</div><div class="flow-desc">选择 Add LOD N（N = 需要导入的级别）</div></div>
+      <div class="flow-card"><div class="flow-num">3</div><div class="flow-title">选择 FBX</div><div class="flow-desc">弹出窗口中选择对应 FBX 文件</div></div>
+      <div class="flow-card"><div class="flow-num">4</div><div class="flow-title">检查 LOD Picker</div><div class="flow-desc">确认 Bones / Mapped to Vertices / Polys</div></div>
+    </div>
+    <div class="alert danger" style="margin-top:16px;"><strong>注意：</strong>切勿使用引擎自带减面工具生成 LOD 后再从 FBX 导入，会被引擎生成的 LOD 覆盖。</div>
+  </div>
+
+  <div class="card">
+    <h3>Reimport 规则</h3>
+    <table class="data">
+      <thead><tr><th>操作</th><th>影响</th><th>后续</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Reimport LOD1</strong></td><td>引擎<strong>自动删除 LOD2</strong>（防止骨架变化导致蒙皮失效）</td><td style="color:var(--red);">必须重新导入 LOD2</td></tr>
+        <tr><td><strong>Reimport LOD2</strong></td><td>不影响其他 LOD</td><td style="color:var(--green);">无需额外操作</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="img-showcase cols-2" style="margin-top:20px;">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LOD0导入" loading="lazy"><figcaption>LOD0 SkeletalMesh — 白绿上衣 UE4 导入示例</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LOD1/2导入" loading="lazy"><figcaption>LOD1/2 SkeletalMesh — UE4 导入示例</figcaption></figure>
+  </div>
+  <div class="img-showcase cols-2" style="margin-top:12px;">
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="骨骼结构" loading="lazy"><figcaption>骨骼结构 — 含新增旋转/手指骨骼标注</figcaption></figure>
+    <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="骨骼导出" loading="lazy"><figcaption>3DMax 骨骼导出 — 仅导出蒙皮相关骨骼</figcaption></figure>
+  </div>
+</section>
+
+
+<section id="material-slots" class="fade-in">
+  <div class="section-label">09 — Material Slot Rules</div>
+  <h2>紫橙套装材质插槽规则</h2>
+  <p class="section-desc">换脸插槽锁定 Skin，不加数字后缀。按 LOD 级别严格控制 DrawCall 开销。</p>
+
+  <div class="card">
+    <h3>橙套装材质插槽</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">接口人：zoli · 模型前缀 <code>SK_OG_</code> · 按透明度类型拆分材质槽</p>
+    <table class="data">
+      <thead><tr><th>LOD 级别</th><th>建议材质槽数</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>局外 LOD0</td><td><strong>≤ 5</strong></td><td>TeslaChen 建议</td></tr>
+        <tr><td>局内大厅 LOD1</td><td><strong>≤ 3</strong></td><td>橙装上限 7dc，50 人同屏 = 350dc；米8 上限 250dc，推算 LOD1 上限 3 个，理想 1~2</td></tr>
+        <tr><td>局内大厅 LOD2</td><td><strong>1~2</strong></td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="alert info">制作后需同步到材质配表（策划：倩倩，程序：张园林）</div>
+    <ul style="margin-top:16px;">
+      <li><strong>贴图</strong>：LOD1 较 LOD0 缩小一倍，LOD2 与 LOD1 共用</li>
+      <li><strong>材质球命名</strong>：LOD1/LOD2 加后缀 <code>_LOD1</code> / <code>_LOD2</code></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>紫套装材质插槽</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">模型前缀 <code>SK_PL_</code> · 同样按透明度拆分</p>
+    <table class="data">
+      <thead><tr><th>LOD 级别</th><th>建议材质槽数</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>局外 LOD0</td><td><strong>1</strong> 个（Skin）</td><td>标准配置</td></tr>
+        <tr><td>局外 LOD0（含半透）</td><td><strong>2</strong> 个</td><td>TeslaChen 建议</td></tr>
+        <tr><td>局外 LOD0 上限</td><td>≤ <strong>3</strong> 个</td><td>—</td></tr>
+        <tr><td>局内大厅 LOD1</td><td>继承 LOD0</td><td>—</td></tr>
+        <tr><td>局内大厅 LOD2</td><td><strong>1~2</strong></td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="alert warn"><strong>换脸功能</strong>：换脸插槽锁定 <code>Skin</code>，不加任何数字后缀。</div>
+  </div>
+</section>
+
+
+<section id="material-tiers" class="fade-in">
+  <div class="section-label">10 — Material Tier Standards</div>
+  <h2>材质品级标准 &amp; 制作规范</h2>
+  <p class="section-desc">明确各品级可使用的材质配置、制作流程要点和跨职能协作规范。</p>
+
+  <div class="card">
+    <h3>各品级材质标准</h3>
+    <table class="data">
+      <thead><tr><th>品级</th><th>材质配置</th><th>半透/透明</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--white-green);"><strong>白/绿/蓝</strong></td><td>仅基础材质 ×1</td><td style="color:var(--red);">✘ 不能加半透或透明</td></tr>
+        <tr><td style="color:var(--purple-tier);"><strong>紫</strong></td><td>基础 ×1，或 基础 ×1 + 特殊（已有）×1</td><td>可选</td></tr>
+        <tr><td style="color:var(--orange-tier);"><strong>橙</strong></td><td>基础 ×1 + 特殊（已有）×1 + 新材质 ×1~2</td><td style="color:var(--green);">✔ 允许</td></tr>
+      </tbody>
+    </table>
+    <div class="alert info"><strong>材质槽数量上限</strong>（含模型 + 特效）：<strong>5~7 个</strong></div>
+  </div>
+
+  <div class="card">
+    <h3>橙装制作流程</h3>
+    <div class="flow-steps" style="grid-template-columns:repeat(3,1fr);">
+      <div class="flow-card"><div class="flow-num">1</div><div class="flow-title">材质评估</div><div class="flow-desc">原画设计前确认：是否有对标效果？是否为已有材质？避免多组合材质，增加复用性。</div></div>
+      <div class="flow-card"><div class="flow-num">2</div><div class="flow-title">前期功能测试</div><div class="flow-desc">TA 验证材质可行性，按品阶分配至对应 TA 制作同学。</div></div>
+      <div class="flow-card"><div class="flow-num">3</div><div class="flow-title">制作 &amp; 联调</div><div class="flow-desc">模型 + TA + 特效协作验收。避免无限期调整，定期会议确认效果。</div></div>
+      <div class="flow-card"><div class="flow-num">4</div><div class="flow-title">分级</div><div class="flow-desc">确认 LOD 各级材质效果：LOD0 高品质 → LOD1 简化 → LOD2 再简化。</div></div>
+      <div class="flow-card"><div class="flow-num">5</div><div class="flow-title">性能测试</div><div class="flow-desc">DrawCall 和同屏人数验证，确保不超出预算。</div></div>
+      <div class="flow-card"><div class="flow-num">6</div><div class="flow-title">配表同步</div><div class="flow-desc">制作后同步到材质配表，策划和程序确认。</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>跨职能协作要点</h3>
+    <table class="data">
+      <thead><tr><th>职能</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td><strong>原画侧</strong></td><td>设计前同步材质给模型和 TA 评估，避免多组合材质，增加复用性</td></tr>
+        <tr><td><strong>模型侧</strong></td><td>完善材质库图例，增强设计同学对材质运用的灵活度</td></tr>
+        <tr><td><strong>TA 侧</strong></td><td>人力紧缺需做好分工；材质库更新元素；确认角色材质接口人</td></tr>
+        <tr><td><strong>特效侧</strong></td><td>原画阶段须介入评估特效的实现</td></tr>
+        <tr><td><strong>APM</strong></td><td>专项管理材质制作排期，按材质生产流程推动效果落地</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<section id="skins-detail" class="fade-in">
+  <div class="section-label">11 — Skinning Details</div>
+  <h2>白绿套装蒙皮与材质槽细则</h2>
+  <p class="section-desc">各部位材质槽拆分规则、命名前缀和 LOD 骨骼要求的完整定义。</p>
+
+  <div class="card">
+    <h3>材质槽详细拆分</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">LOD1/2 材质槽需分别添加 <code>_LOD1</code> 和 <code>_LOD2</code> 后缀。如部位不包含某类型材质则省略对应槽。</p>
+    <table class="data">
+      <thead><tr><th>部位</th><th>材质槽</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>脸部</td><td><code>Face</code></td><td>—</td></tr>
+        <tr><td>上衣</td><td><code>Skin</code>（动物素体）+ <code>Top</code>（服装）</td><td>如不含某类型则省略对应槽</td></tr>
+        <tr><td>下衣</td><td><code>Skin</code>（动物素体）+ <code>Bottom</code>（服装）</td><td>如不含某类型则省略对应槽</td></tr>
+        <tr><td>手套</td><td><code>Skin</code>（动物素体）+ <code>Hand</code>（服装）</td><td>如不含某类型则省略对应槽</td></tr>
+        <tr><td>动物头部</td><td><code>Skin</code></td><td>仅一个材质槽</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>模型命名前缀速查</h3>
+    <table class="data">
+      <thead><tr><th>部位</th><th>LOD0 命名前缀</th><th>LOD1/2 后缀</th></tr></thead>
+      <tbody>
+        <tr><td>脸部</td><td><code>SK_Body_Face_</code></td><td><code>_LOD1</code></td></tr>
+        <tr><td>上衣（动物皮肤）</td><td><code>SK_Body_Upper_</code></td><td><code>_LOD1</code></td></tr>
+        <tr><td>上衣（服装）</td><td><code>SK_TY_Upper_</code></td><td><code>_LOD1</code></td></tr>
+        <tr><td>下衣（动物皮肤）</td><td><code>SK_Body_Under_</code></td><td><code>_LOD1</code></td></tr>
+        <tr><td>下衣（服装）</td><td><code>SK_TY_Under_</code></td><td><code>_LOD1</code></td></tr>
+        <tr><td>手套</td><td><code>SK_Body_Hands_</code></td><td><code>_LOD1</code></td></tr>
+        <tr><td>动物头部</td><td><code>SK_Body_Head_</code></td><td><code>_LOD1</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>蓝套装 UV 布局细节</h3>
+    <ul>
+      <li>LOD0 脸部 UV 与白绿套装脸部 UV 分布相同，且脸部 UV 与时装 UV 重合</li>
+      <li>LOD1/2 脸部仅占据左上方长宽各 <strong>1/4</strong></li>
+      <li>脸部贴图区域为空缺（或放置默认脸型），<strong>运行时根据玩家选择的脸型填充</strong></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>贴图设置完整参考（通用白绿蓝紫）</h3>
+    <h4>LOD0 设置</h4>
+    <table class="data">
+      <thead><tr><th>贴图</th><th>sRGB</th><th>压缩</th><th>Mipmap</th></tr></thead>
+      <tbody>
+        <tr><td><strong>BaseColor</strong></td><td>✔</td><td>默认</td><td>NoMipmaps</td></tr>
+        <tr><td><strong>ARM</strong> (AO+Roughness+Metallic)</td><td>✘</td><td>默认</td><td>NoMipmaps</td></tr>
+        <tr><td><strong>NE</strong> (Normal+Emissive)</td><td>✘</td><td>默认</td><td>NoMipmaps</td></tr>
+      </tbody>
+    </table>
+    <h4>LOD1/2 设置</h4>
+    <table class="data">
+      <thead><tr><th>贴图</th><th>sRGB</th><th>压缩</th><th>Mipmap</th></tr></thead>
+      <tbody>
+        <tr><td><strong>BaseColor</strong></td><td>✔</td><td><strong>ForceASTC 8×8</strong></td><td>FromTextureGroup</td></tr>
+        <tr><td><strong>ARM</strong></td><td>✘</td><td><strong>ForceASTC 4×4</strong></td><td>FromTextureGroup</td></tr>
+        <tr><td><strong>Normal</strong></td><td>✘</td><td><strong>ForceASTC 4×4</strong></td><td>FromTextureGroup</td></tr>
+      </tbody>
+    </table>
+    <div class="alert green"><strong>贴图规则</strong>：LOD1 较 LOD0 缩小一倍，LOD2 与 LOD1 共用贴图。运行时动态合并为 512×512。</div>
+  </div>
+</section>
+
+
+<section id="checklist" class="fade-in">
+  <div class="section-label">12 — Checklist</div>
+  <h2>实践检查清单</h2>
+  <p class="section-desc">模型交付和外包质检时的关键检查项。</p>
+
+  <div class="card">
+    <h3>基础质检项</h3>
+    <ul class="checklist">
+      <li>导出模型前检查骨骼数量是否符合品质等级上限</li>
+      <li>LOD0 和 LOD1+2 必须分开导入，避免游戏内加载高精度资源</li>
+      <li>白绿蓝紫品质的 LOD1/2 贴图必须设置 ForceASTC 压缩</li>
+      <li>橙品质骨骼蒙皮开销大，优先考虑特效替代</li>
+      <li>Reimport LOD1 后必须重新导入 LOD2</li>
+      <li>挂件蓝紫品质仅允许 1 个材质，且不透明</li>
+      <li>外包交付时需检查：骨骼数、材质槽命名、贴图尺寸、Mipmap 设置</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>材质与性能检查项</h3>
+    <ul class="checklist">
+      <li>白/绿/蓝品级不能使用半透或透明材质</li>
+      <li>橙装材质制作前需先做材质评估（是否有对标效果、是否为已有材质）</li>
+      <li>紫装 LOD0 材质槽标准 1 个（Skin），最多不超过 3 个</li>
+      <li>橙装 LOD1 材质槽不超过 3 个（50 人同屏 DrawCall 限制）</li>
+      <li>材质槽含模型 + 特效总计不超过 5~7 个</li>
+      <li>材质制作后需同步到材质配表</li>
+      <li>换脸插槽锁定 Skin，不加任何数字后缀</li>
+      <li>LOD1 贴图较 LOD0 缩小一倍，LOD2 与 LOD1 共用</li>
+      <li>LOD1/2 材质球命名须加 _LOD1 / _LOD2 后缀</li>
+    </ul>
+  </div>
+</section>
+
+<section id="gallery" class="fade-in" style="margin-top:80px;">
+  <div class="section-label">13 — Reference Gallery</div>
+  <h2>规范图示速查</h2>
+  <p class="section-desc">快速浏览 3D 角色制作全链路的关键规范图示。</p>
+
+  <div class="card">
+    <h3>UV 展开与贴图标准</h3>
+    <div class="img-showcase cols-3">
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="UV标准" loading="lazy"><figcaption>UV 展开标准 — 蓝/紫套装共用布局</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="脸部表情" loading="lazy"><figcaption>脸部 4 表情 UV — 1024×256 区域</figcaption></figure>
+      <figure><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%22750%22%20viewBox%3D%220%200%201200%20750%22%3E%3Crect%20width%3D%221200%22%20height%3D%22750%22%20fill%3D%22%23d9dce5%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%221088%22%20height%3D%22638%22%20rx%3D%2212%22%20fill%3D%22%23bec4d2%22%2F%3E%3Cpath%20d%3D%22M56%20220H1144M56%20380H1144M56%20540H1144M320%2056V694M590%2056V694M860%2056V694%22%20stroke%3D%22%23d0d4df%22%20stroke-width%3D%2214%22%2F%3E%3Crect%20x%3D%22330%22%20y%3D%22315%22%20width%3D%22540%22%20height%3D%22120%22%20rx%3D%2216%22%20fill%3D%22%23293044%22%2F%3E%3Ctext%20x%3D%22600%22%20y%3D%22386%22%20text-anchor%3D%22middle%22%20font-size%3D%2232%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%3E%E9%A1%B9%E7%9B%AE%E7%B4%A0%E6%9D%90%E5%B7%B2%E9%81%AE%E6%8C%A1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="合并贴图" loading="lazy"><figcaption>运行时 512×512 合并贴图空间分配</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+
+<section id="kb" class="fade-in" style="margin-top:80px;">
+  <div class="section-label">Knowledge Base</div>
+  <div class="pipeline-header"><h2>知识库</h2><span class="count">8</span></div>
+  <p class="section-desc">当前管线已沉淀的知识文档与规范，点击标题可直接跳转。</p>
+  <ul class="kb-list">
+    <li class="kb-item">
+      <span class="kb-dot green"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">角色模型制作规范（完整版）</a></div><div class="kb-desc">LOD/蒙皮/贴图/骨骼/材质插槽/品级标准全套制作规范。</div></div>
+      <div class="kb-meta"><span class="kb-tag">规范</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot green"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">橙\紫套装材质插槽规则</a></div><div class="kb-desc">各 LOD 级别材质槽上限、DrawCall 预算、换脸插槽规则。</div></div>
+      <div class="kb-meta"><span class="kb-tag">规范</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot green"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">角色-TA合作效率 &amp; 材质品级标准</a></div><div class="kb-desc">各品级材质配置标准、橙装制作流程、跨职能协作规范。</div></div>
+      <div class="kb-meta"><span class="kb-tag">流程</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot blue"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">示例项目3D角色服装制作规范</a></div><div class="kb-desc">示例团队文档版完整服装制作规范。</div></div>
+      <div class="kb-meta"><span class="kb-tag">规范</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot blue"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">紫橙服饰装制作规范（进阶篇）</a></div><div class="kb-desc">紫橙高品质套装进阶制作规范。</div></div>
+      <div class="kb-meta"><span class="kb-tag">规范</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot blue"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">材质库 &amp; 材质标效</a></div><div class="kb-desc">材质库及各品级材质标效对照表。</div></div>
+      <div class="kb-meta"><span class="kb-tag">数据</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot blue"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">示例项目纹理设置</a></div><div class="kb-desc">角色贴图纹理参数设置参考表。</div></div>
+      <div class="kb-meta"><span class="kb-tag">数据</span><span class="kb-status done">✓ 已完成</span></div>
+    </li>
+    <li class="kb-item">
+      <span class="kb-dot orange"></span>
+      <div class="kb-info"><div class="kb-title"><a href="unavailable.html">3D 模型 AI 生成 Agent 方案</a></div><div class="kb-desc">全套流程方案，3D AI Agent 架构设计。</div></div>
+      <div class="kb-meta"><span class="kb-tag">方案</span><span class="kb-status wip">◐ 进行中</span></div>
+    </li>
+  </ul>
+</section>
+
+<section id="skills" class="fade-in" style="margin-top:48px;">
+  <div class="pipeline-header"><h2>Skill 库</h2><span class="count">7</span></div>
+  <div class="skill-grid">
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">自动 LOD 生成</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">根据品质等级自动生成 LOD0/1/2 模型。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">贴图优化推荐</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">自动检测并推荐贴图压缩、尺寸和 Mipmap 优化方案。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">骨骼数量验证</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">自动校验骨骼数量是否符合品级上限（32/36/60）。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">模型质检自动化</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">一键运行模型质检清单，输出合规报告。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">材质插槽校验</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">校验各 LOD 级别材质槽数量是否符合 DrawCall 预算上限。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">材质评估辅助</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">橙装制作前自动评估材质复用性，匹配已有材质库。</div></div>
+    <div class="skill-card"><div class="sk-head"><span class="sk-name">命名规范校验</span><span class="kb-status todo">○ 待开始</span></div><div class="sk-desc">校验模型/材质/贴图前缀和后缀是否符合各品级命名规则。</div></div>
+  </div>
+</section>
+
+</main>
+
+<footer style="text-align:center;padding:24px 0;margin-top:48px;border-top:1px solid rgba(255,255,255,.06);font-size:13px;color:#666;">制作人 Author: 作者 · 发送时请打包整个 3D-Character 文件夹</footer>
+
+<script>window.addEventListener("scroll",()=>{document.getElementById("nav").classList.toggle("scrolled",window.scrollY>10);const links=document.querySelectorAll(".nav-links a");const secs=document.querySelectorAll("section[id]");let cur="";secs.forEach(s=>{if(s.offsetTop-120<=scrollY)cur=s.id});links.forEach(a=>a.classList.toggle("active",a.getAttribute("href")==="#"+cur))});const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("visible")})},{threshold:.1});document.querySelectorAll(".fade-in").forEach(el=>observer.observe(el));const cfg={wg:{bones01:32,bones2:23,tex:"各部位不同",matSlot:"每部件1~2",prefix:"SK_Body_ / SK_TY_",split:"5个部件",days:4,color:"var(--white-green)",bg:"rgba(132,204,22,.1)"},blue:{bones01:32,bones2:23,tex:"1024²",matSlot:"2(Face+Cloth)",prefix:"SK_BU_",split:"1个模型",days:5,color:"var(--blue-tier)",bg:"rgba(59,130,246,.1)"},purple:{bones01:36,bones2:23,tex:"1024²",matSlot:"1",prefix:"SK_PL_",split:"1个模型",days:8,color:"var(--purple-tier)",bg:"rgba(168,85,247,.1)"},orange:{bones01:60,bones2:36,tex:"—",matSlot:"按透明度拆",prefix:"SK_GJ_",split:"1个模型",days:14,color:"var(--orange-tier)",bg:"rgba(249,115,22,.1)"}};function calc(){const t=document.getElementById("tier").value;const cx=+document.getElementById("complexity").value;const ac=+document.getElementById("accCount").value;document.getElementById("accVal").textContent=ac;const c=cfg[t];document.getElementById("rBones").textContent=c.bones01;document.getElementById("rBones").style.color=c.color;document.getElementById("rBones").parentElement.style.background=c.bg;document.getElementById("rTex").textContent=c.tex;const days=(c.days*(.5+cx/20)+ac*1.5).toFixed(1);document.getElementById("rDays").textContent=days+"d";const tags=["LOD0: 商城 NoMipmap","LOD1: 近距离 ASTC","LOD2: 远距离 Mipmap","骨骼: "+c.bones01+"/"+c.bones2,"材质槽: "+c.matSlot,"前缀: "+c.prefix];document.getElementById("rTags").innerHTML=tags.map(t2=>'<span class="ai-tag">'+t2+"</span>").join("");const checks=["骨骼数 ≤ "+c.bones01+" (LOD0/1)","骨骼数 ≤ "+c.bones2+" (LOD2)","LOD0 与 LOD1+2 分开导入","贴图 ForceASTC 压缩 (LOD1/2)","材质槽命名规范 ("+c.prefix+")","挂件材质数 ≤ 1 (蓝紫)","模型拆分: "+c.split];document.getElementById("rBreakdown").innerHTML=checks.map((s,i)=>'<span class="bg" style="background:'+c.color+'">'+(i+1)+"</span> "+s+"<br>").join("")}["tier","complexity","accCount"].forEach(id=>{document.getElementById(id).addEventListener("input",calc)});calc();
+</script>
+<aside id="demo-disclosure"><a href="index.html">平台首页</a><span>脱敏演示 · 项目素材已遮挡 · 含演示样例数据 · 生成服务未连接</span></aside></body>
+</html>

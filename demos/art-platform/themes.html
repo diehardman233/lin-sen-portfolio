@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><script src="demo-guard.js"></script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>示例项目 · 赛季主题筛选系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--card:#131829;--card2:#1a2038;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--orange:#fdcb6e;--text:#e0e0e0;--text2:#888;--border:#2d3452}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:56px 1fr;height:100vh}
+.header{grid-column:1/-1;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;padding:0 24px;border-bottom:1px solid var(--border);gap:12px}
+.header h1{font-size:16px;background:linear-gradient(135deg,var(--accent2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+.header .badge{background:var(--accent);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px}
+.header .stats{margin-left:auto;display:flex;gap:16px;font-size:12px;color:var(--text2)}
+.header .stats span{color:var(--accent2);font-weight:600}
+.sidebar{background:var(--card);border-right:1px solid var(--border);overflow-y:auto;padding:14px;font-size:13px}
+.sidebar h3{font-size:11px;color:var(--text2);margin:14px 0 6px;text-transform:uppercase;letter-spacing:1px}.sidebar h3:first-child{margin-top:0}
+.fg{margin-bottom:10px}.fg label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:5px;font-size:12px;outline:none}
+.fg textarea{height:50px;resize:vertical}.fg input:focus,.fg select:focus{border-color:var(--accent)}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag{background:var(--card2);border:1px solid var(--border);color:var(--text2);padding:2px 8px;border-radius:10px;font-size:10px;cursor:pointer;transition:.15s;user-select:none}
+.tag:hover{border-color:var(--accent);color:var(--accent2)}.tag.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.sr{display:flex;align-items:center;gap:6px}.sr input[type=range]{flex:1;accent-color:var(--accent)}.sv{font-size:11px;color:var(--accent2);min-width:28px;text-align:right}
+.btn{width:100%;padding:8px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;margin-top:6px}
+.btn-p{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff}.btn-p:hover{box-shadow:0 4px 15px rgba(108,92,231,.4)}
+.btn-s{background:var(--card2);color:var(--text2);border:1px solid var(--border);margin-top:4px}
+.main{overflow-y:auto;padding:16px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border)}
+.tb{padding:8px 16px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:12px;border-bottom:2px solid transparent;transition:.15s}
+.tb.on{color:var(--accent2);border-bottom-color:var(--accent)}.tb:hover{color:var(--text)}
+.tc{display:none}.tc.on{display:block}
+.stitle{font-size:14px;font-weight:600;margin:16px 0 10px;display:flex;align-items:center;gap:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;transition:.2s}
+.card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.card .src{font-size:10px;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot-red{background:#ff2442}.dot-game{background:#6c5ce7}.dot-macro{background:#00b894}
+.card .nm{font-size:14px;font-weight:600;margin-bottom:3px}
+.card .desc{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:6px}
+.ev-box{background:var(--card2);border-radius:6px;padding:10px;margin-bottom:8px;font-size:11px;line-height:1.7}
+.ev-box .ev-t{color:var(--accent2);font-weight:600;margin-bottom:4px;font-size:10px}
+.ev-box .ev-stat{color:var(--green);font-weight:600}
+.ev-box .ev-links{margin-top:4px;display:flex;flex-direction:column;gap:2px}
+.ev-box .ev-links a{color:var(--accent2);text-decoration:none;font-size:10px;display:flex;align-items:center;gap:4px}
+.ev-box .ev-links a:hover{text-decoration:underline;color:#fff}
+.ev-box .ev-links .link-icon{font-size:12px;flex-shrink:0}
+.ev-box .ev-links .link-badge{background:var(--card);padding:1px 5px;border-radius:3px;font-size:9px;color:var(--text2);margin-left:4px}
+.card .kw{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
+.card .kw span{background:var(--card2);padding:1px 6px;border-radius:8px;font-size:10px;color:var(--accent2)}
+.card .metrics{display:flex;gap:6px;flex-wrap:wrap}
+.card .m{font-size:10px;padding:2px 6px;border-radius:5px;background:var(--card2)}.card .m b{color:var(--accent2)}
+.heat{position:absolute;top:10px;right:10px;font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600}
+.h-hot{background:rgba(225,112,85,.15);color:var(--red)}.h-warm{background:rgba(253,203,110,.15);color:var(--orange)}.h-cool{background:rgba(0,184,148,.15);color:var(--green)}
+.rank{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;float:left;margin-right:10px;line-height:1}
+table{width:100%;border-collapse:separate;border-spacing:0}
+th{background:var(--card2);padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);font-weight:500;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
+td{padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border)}
+tr:hover td{background:rgba(108,92,231,.05)}
+.sc{font-weight:700;font-size:13px}.sc.hi{color:var(--green)}.sc.mi{color:var(--orange)}.sc.lo{color:var(--red)}
+.st-btn{padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;border:1px solid transparent;transition:.15s;font-weight:500;user-select:none}
+.st-used{background:rgba(225,112,85,.15);color:var(--red);border-color:rgba(225,112,85,.3)}
+.st-free{background:rgba(0,184,148,.15);color:var(--green);border-color:rgba(0,184,148,.3)}
+.st-pending{background:rgba(253,203,110,.15);color:var(--orange);border-color:rgba(253,203,110,.3)}
+.st-selected{background:rgba(108,92,231,.15);color:var(--accent2);border-color:rgba(108,92,231,.3)}
+/* Add Season Form */
+.add-form{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px}
+.add-form h4{font-size:12px;color:var(--accent2);margin-bottom:8px}
+.add-row{display:grid;grid-template-columns:80px 120px 1fr 100px auto;gap:8px;align-items:end}
+.add-row input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 7px;border-radius:4px;font-size:11px;outline:none}
+.add-row input:focus{border-color:var(--accent)}
+.add-row button{padding:5px 14px;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600}
+.chk{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.chk h3{margin-bottom:10px;font-size:14px}
+.chk-row{display:grid;grid-template-columns:1fr 2fr auto;gap:10px;align-items:end}
+.chk-row input{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:7px;border-radius:5px;font-size:12px;outline:none}
+.cr{margin-top:10px;padding:12px;border-radius:6px;font-size:12px;line-height:1.8;display:none}.cr.show{display:block}
+.cr-pass{background:rgba(0,184,148,.1);border:1px solid rgba(0,184,148,.3)}
+.cr-warn{background:rgba(253,203,110,.1);border:1px solid rgba(253,203,110,.3)}
+.cr-fail{background:rgba(225,112,85,.1);border:1px solid rgba(225,112,85,.3)}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.chart-box h3{margin-bottom:12px;font-size:13px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:180px;padding:0 8px}
+.bg{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:.3s}
+.bl{font-size:9px;color:var(--text2);text-align:center;max-height:50px;overflow:hidden}
+.bv{font-size:9px;color:var(--accent2);font-weight:600}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+<style>#demo-disclosure{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);width:max-content;display:flex;gap:18px;align-items:center;padding:10px 18px;background:#232238;color:#fff;box-shadow:0 8px 32px #0003;border-radius:10px;font:12px/1.5 sans-serif}#demo-disclosure a{color:#fff;white-space:nowrap}body{padding-bottom:70px!important}@media(max-width:600px){#demo-disclosure{font-size:11px;gap:10px}}</style></head>
+<body>
+<div class="app">
+<div class="header">
+  <h1>🎯 示例项目 · 赛季主题筛选系统</h1><div class="badge">v3.4</div>
+  <div class="stats"><div>外部趋势 <span id="sT">0</span></div><div>竞品 <span id="sC">0</span></div><div>已用 <span id="sU">0</span></div><div>推荐 <span id="sR">0</span></div></div>
+</div>
+<div class="sidebar">
+  <h3>🎯 筛选条件</h3>
+  <div class="fg"><label>目标赛季</label><select id="fSeason"><option value="示例期">示例期（2027.01）</option><option value="示例期" selected>示例期（2026.11）</option><option value="示例期">示例期（2026.09）</option></select></div>
+  <div class="fg"><label>目标品级</label><select id="fGrade"><option value="hidden">隐藏橙</option><option value="basic">基础橙</option><option value="purple">紫装</option></select></div>
+  <div class="fg"><label>季节偏好</label><div class="tags" id="tSeason"><span class="tag" data-v="spring">🌸 春</span><span class="tag" data-v="summer">☀️ 夏</span><span class="tag" data-v="autumn">🍂 秋</span><span class="tag on" data-v="winter">❄️ 冬</span><span class="tag" data-v="any">🌐 不限</span></div></div>
+  <h3>📊 数据源权重</h3>
+  <div class="fg"><label>小红书/社交平台</label><div class="sr"><input type="range" id="wRed" min="0" max="100" value="30"><span class="sv" id="wRedV">30%</span></div></div>
+  <div class="fg"><label>竞品游戏热度</label><div class="sr"><input type="range" id="wGame" min="0" max="100" value="30"><span class="sv" id="wGameV">30%</span></div></div>
+  <div class="fg"><label>时尚行业宏观</label><div class="sr"><input type="range" id="wMacro" min="0" max="100" value="20"><span class="sv" id="wMacroV">20%</span></div></div>
+  <div class="fg"><label>示例项目历史验证</label><div class="sr"><input type="range" id="wCE" min="0" max="100" value="20"><span class="sv" id="wCEV">20%</span></div></div>
+  <h3>⛔ 规避</h3>
+  <div class="fg"><label>规避已用主题</label><select id="fAvoid"><option value="1">开启</option><option value="0">关闭</option></select></div>
+  <div class="fg"><label>排除关键词</label><textarea id="fExclude" placeholder="每行一个"></textarea></div>
+  <button class="btn btn-p" onclick="runFilter()">🔍 运行筛选</button>
+  <h3>🤖 AI配置</h3>
+  <div class="fg"><label>混元API Key</label><input id="apiKey" type="password" placeholder="展示版不连接内部服务" oninput="demoStorage.setItem('hunyuan_api_key',this.value)" value="" disabled></div>
+  <p style="font-size:10px;color:var(--text2);margin-top:2px">填入后点"重新生成AI脑洞"将调用混元实时生成。不填则使用离线创意池。</p>
+</div>
+<div class="main">
+  <div class="tabs">
+    <button class="tb on" onclick="sw(this,'scheme')">📌 选题方案</button>
+    <button class="tb" onclick="sw(this,'sources')">🌐 数据源</button>
+    <button class="tb" onclick="sw(this,'history')">📜 历史规避库</button>
+    <button class="tb" onclick="sw(this,'check')">✅ 主题检测</button>
+  </div>
+  <div class="tc on" id="tab-scheme">
+    <div style="display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--border)">
+      <button class="tb on" onclick="swSub(this,'sub-creative')" data-sub="1">💡 AI脑洞</button>
+      <button class="tb" onclick="swSub(this,'sub-recommend')" data-sub="1">🏆 AI推荐</button>
+      <button class="tb" onclick="swSub(this,'sub-reserve')" data-sub="1">📋 策划储备</button>
+    </div>
+    <div class="tc on" id="tab-sub-creative">
+      <div class="stitle">🤖 AI脑洞创意推荐 <span style="font-size:12px;color:var(--accent2);font-weight:400" id="aiCount"></span></div>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:8px">基于AI生成的有趣、脑洞大开的选题方向——不是追热点，而是"没人做过但可能炸场"的新奇创意。每条都关联了示例趋势/CE历史/竞品验证。</p>
+      <button class="btn btn-p" style="width:auto;padding:6px 16px;margin-bottom:12px;font-size:11px" onclick="regenAI()">🔄 重新生成AI脑洞</button>
+      <div class="grid" id="aiGrid"></div>
+      <div class="stitle" style="margin-top:20px">🎮 市面有趣游戏/跨界灵感</div>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:8px">从独立游戏、跨界联动、脑洞设计中提取的灵感方向。</p>
+      <div class="grid" id="funGrid"></div>
+    </div>
+    <div class="tc" id="tab-sub-recommend">
+      <div class="stitle">🏆 基于外部市场数据的主题推荐</div>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:12px">每条推荐附带真实数据来源链接（小红书用户帖、游戏社区讨论、行业报告），可点击验证。</p>
+      <div class="grid" id="recoGrid"></div>
+    </div>
+    <div class="tc" id="tab-sub-reserve">
+      <div class="stitle">📋 示例项目策划储备库 <span style="font-size:12px;color:var(--accent2);font-weight:400" id="rvCount"></span></div>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:8px">来源：策划组储备表。包含已CE/未CE/储备中的主题。</p>
+      <table><thead><tr><th>主题</th><th>关键词</th><th>时代/风格</th><th>策划人</th><th>CE状态</th><th>前瞻</th></tr></thead><tbody id="rvBody"></tbody></table>
+    </div>
+  </div>
+  <div class="tc" id="tab-sources">
+    <div class="stitle"><span class="dot dot-red" style="width:8px;height:8px"></span> 小红书/社交平台</div><div class="grid" id="gRed"></div>
+    <div class="stitle"><span class="dot dot-game" style="width:8px;height:8px"></span> 竞品游戏</div><div class="grid" id="gGame"></div>
+    <div class="stitle"><span class="dot dot-macro" style="width:8px;height:8px"></span> 行业宏观 + KM内部洞察</div><div class="grid" id="gMacro"></div>
+  </div>
+  <div class="tc" id="tab-history">
+    <div class="stitle">📜 历史赛季规避库</div>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:10px">点击状态按钮切换：已用→待定→可用。下方可添加新赛季。</p>
+    <div class="add-form">
+      <h4>➕ 添加赛季</h4>
+      <div class="add-row">
+        <input id="addSeason" placeholder="如 示例期">
+        <input id="addName" placeholder="主题名称">
+        <input id="addKw" placeholder="关键词（逗号分隔）">
+        <input id="addStyle" placeholder="风格标签">
+        <button onclick="addSeason()">添加</button>
+      </div>
+    </div>
+    <table><thead><tr><th>赛季</th><th>上线</th><th>主题</th><th>评分</th><th>关键词</th><th>风格</th><th>状态</th><th></th></tr></thead><tbody id="hBody"></tbody></table>
+  </div>
+  <div class="tc" id="tab-check">
+    <div class="chk"><h3>✅ 新主题可行性检测</h3>
+      <div class="chk-row"><div><label style="font-size:11px;color:var(--text2)">主题名</label><input id="ckN" placeholder="如：海蓝度假风"></div><div><label style="font-size:11px;color:var(--text2)">关键词</label><input id="ckK" placeholder="海蓝,度假,热带,贝壳"></div><button class="btn btn-p" style="width:auto;padding:6px 16px;height:32px;margin:0" onclick="checkTheme()">检测</button></div>
+      <div class="cr" id="ckR"></div>
+    </div>
+  </div>
+</div>
+</div>
+<script>const redbookData=[{"id":"redbook0","name":"示例 · 纸艺旅人","desc":"人工构造的流程演示数据","keywords":["折纸","纸层","轻盈"],"heat":70,"source":"示例来源","season":["any"],"type":"redbook","evidence":{"stats":"示例数据，不代表业务表现","links":[]}},{"id":"redbook1","name":"示例 · 海岸漫步","desc":"人工构造的流程演示数据","keywords":["海浪","贝壳","清透"],"heat":75,"source":"示例来源","season":["any"],"type":"redbook","evidence":{"stats":"示例数据，不代表业务表现","links":[]}},{"id":"redbook2","name":"示例 · 花园访客","desc":"人工构造的流程演示数据","keywords":["花瓣","叶片","柔和"],"heat":80,"source":"示例来源","season":["any"],"type":"redbook","evidence":{"stats":"示例数据，不代表业务表现","links":[]}}];const gameData=[{"id":"game0","name":"示例 · 纸艺旅人","desc":"人工构造的流程演示数据","keywords":["折纸","纸层","轻盈"],"heat":70,"source":"示例来源","season":["any"],"type":"game","evidence":{"stats":"示例数据，不代表业务表现","links":[]}},{"id":"game1","name":"示例 · 海岸漫步","desc":"人工构造的流程演示数据","keywords":["海浪","贝壳","清透"],"heat":75,"source":"示例来源","season":["any"],"type":"game","evidence":{"stats":"示例数据，不代表业务表现","links":[]}},{"id":"game2","name":"示例 · 花园访客","desc":"人工构造的流程演示数据","keywords":["花瓣","叶片","柔和"],"heat":80,"source":"示例来源","season":["any"],"type":"game","evidence":{"stats":"示例数据，不代表业务表现","links":[]}}];const macroData=[{"id":"macro0","name":"示例 · 纸艺旅人","desc":"人工构造的流程演示数据","keywords":["折纸","纸层","轻盈"],"heat":70,"source":"示例来源","season":["any"],"type":"macro","evidence":{"stats":"示例数据，不代表业务表现","links":[]}},{"id":"macro1","name":"示例 · 海岸漫步","desc":"人工构造的流程演示数据","keywords":["海浪","贝壳","清透"],"heat":75,"source":"示例来源","season":["any"],"type":"macro","evidence":{"stats":"示例数据，不代表业务表现","links":[]}},{"id":"macro2","name":"示例 · 花园访客","desc":"人工构造的流程演示数据","keywords":["花瓣","叶片","柔和"],"heat":80,"source":"示例来源","season":["any"],"type":"macro","evidence":{"stats":"示例数据，不代表业务表现","links":[]}}];let usedThemes=[{"season":"示例期","time":"示例时间","name":"示例 · 纸艺旅人","score":4,"keywords":"纸艺,轻盈","style":"纸艺","status":"used"}];const payData=[{"d":"示例1","v":100},{"d":"示例2","v":120},{"d":"示例3","v":140},{"d":"示例4","v":160},{"d":"示例5","v":180}];const lotData=[{"n":"示例主题 1","v":50},{"n":"示例主题 2","v":60},{"n":"示例主题 3","v":70}];const reserveData=[{"name":"示例 · 纸艺旅人","keywords":"折纸,纸层,轻盈","era":"示例","style":"paper craft, folded shapes","planner":"示例角色","ceStatus":"仅供演示","forecast":"示例资产"},{"name":"示例 · 海岸漫步","keywords":"海浪,贝壳,清透","era":"示例","style":"coastal, simple silhouette","planner":"示例角色","ceStatus":"仅供演示","forecast":"示例资产"},{"name":"示例 · 花园访客","keywords":"花瓣,叶片,柔和","era":"示例","style":"botanical, soft shapes","planner":"示例角色","ceStatus":"仅供演示","forecast":"示例资产"}];let aiCreativeData=[{"name":"示例 · 纸艺旅人","desc":"人工构造的主题样例","keywords":["折纸","纸层","轻盈"],"heat":75,"reason":"用于体验筛选与推荐流程"},{"name":"示例 · 海岸漫步","desc":"人工构造的主题样例","keywords":["海浪","贝壳","清透"],"heat":75,"reason":"用于体验筛选与推荐流程"},{"name":"示例 · 花园访客","desc":"人工构造的主题样例","keywords":["花瓣","叶片","柔和"],"heat":75,"reason":"用于体验筛选与推荐流程"}];const funInspirationData=[{"name":"示例 · 纸艺旅人","desc":"通用主题样例","keywords":["折纸","纸层","轻盈"],"source":"示例资料","url":"#"},{"name":"示例 · 海岸漫步","desc":"通用主题样例","keywords":["海浪","贝壳","清透"],"source":"示例资料","url":"#"},{"name":"示例 · 花园访客","desc":"通用主题样例","keywords":["花瓣","叶片","柔和"],"source":"示例资料","url":"#"}];function similarity(k1,k2){const s1=new Set(k1.map(k=>k.trim().toLowerCase()));const s2=new Set(typeof k2==="string"?k2.split(",").map(k=>k.trim().toLowerCase()):k2.map(k=>k.trim().toLowerCase()));let o=0;s1.forEach(k=>{if(s2.has(k))o++});return o/Math.max(s1.size,s2.size,1)}function collisionCheck(kw){let mx=0,mn="";usedThemes.filter(t=>t.status==="used"||t.status==="selected").forEach(t=>{if(!t.keywords)return;const s=similarity(kw,t.keywords);if(s>mx){mx=s;mn=t.name}});return{sim:mx,name:mn}}function seasonMatch(ss){const a=[...document.querySelectorAll("#tSeason .tag.on")].map(t=>t.dataset.v);if(a.includes("any")||ss.includes("any"))return 1;let m=0;ss.forEach(s=>{if(a.includes(s))m++});return m>0?1:.3}function runFilter(){const wR=parseInt(E("wRed").value)/100,wG=parseInt(E("wGame").value)/100,wM=parseInt(E("wMacro").value)/100;const avoid=E("fAvoid").value==="1";const ex=E("fExclude").value.split("\n").map(s=>s.trim().toLowerCase()).filter(Boolean);const grade=E("fGrade").value;function shouldExclude(keywords){const ks=(Array.isArray(keywords)?keywords.join(","):keywords||"").toLowerCase();return ex.some(e=>ks.includes(e))}function getSeasonScore(seasons){return seasonMatch(seasons||["any"])}function getCollision(keywords){return avoid?collisionCheck(Array.isArray(keywords)?keywords:keywords.split(",")):{sim:0,name:""}}function getGradeBonus(keywords){const kArr=Array.isArray(keywords)?keywords:keywords.split(",");if(grade==="hidden"&&kArr.some(k=>["华丽","限定","暗夜","国风","古风","奢华","双形态","传家宝","稀缺"].includes(k)))return .08;if(grade==="basic"&&kArr.some(k=>["可爱","萌系","温暖","治愈","简约","清爽","度假","柔软","收集","社交"].includes(k)))return .08;return 0}let r=[...redbookData,...gameData,...macroData].map(item=>{const bh=item.heat/100;let sw2=item.type==="redbook"?wR:item.type==="game"?wG:wM;const sm=getSeasonScore(item.season);const col=getCollision(item.keywords);const cp=col.sim>.3?col.sim*.6:0;const gb=getGradeBonus(item.keywords);return{...item,bh,sw:sw2,sm,cp,col,gb,fs:bh*sw2*3+sm*.3+gb-cp,exc:shouldExclude(item.keywords)}});r=r.filter(x=>!x.exc);r.sort((a,b)=>b.fs-a.fs);E("sR").textContent=r.length;renderReco(r);let filteredAI=aiCreativeData.filter(item=>!shouldExclude(item.keywords)).map(item=>{const sm=getSeasonScore(["any"]);const col=getCollision(item.keywords);const cp=col.sim>.3?col.sim*.5:0;const gb=getGradeBonus(item.keywords);const fs=item.heat/100+sm*.2+gb-cp;return{...item,fs,col,cp}});filteredAI.sort((a,b)=>b.fs-a.fs);renderFilteredAI(filteredAI);E("aiCount").textContent="（"+filteredAI.length+"条匹配）";let filteredRv=reserveData.filter(item=>!shouldExclude(item.keywords));renderFilteredReserve(filteredRv);E("rvCount").textContent="（"+filteredRv.length+"/"+reserveData.length+"条）"}function renderReco(items){E("recoGrid").innerHTML=items.slice(0,12).map((item,i)=>{const ev=item.evidence||{};const lh=(ev.links||[]).map(l=>`<a href="${l.url}" target="_blank"><span class="link-icon">📎</span>${l.title}<span class="link-badge">${l.badge||""}</span></a>`).join("");return`<div class="card"><div class="rank">#${i+1}</div>
+      <div class="src"><span class="dot dot-${item.type==="redbook"?"red":item.type==="game"?"game":"macro"}"></span>${item.source}</div>
+      <div class="nm">${item.name}</div><div class="desc">${item.desc}</div>
+      ${ev.stats||lh?`<div class="ev-box"><div class="ev-t">📊 数据证据</div>${ev.stats?`<div><span class="ev-stat">${ev.stats}</span></div>`:""}${lh?`<div class="ev-links">${lh}</div>`:""}</div>`:""}
+      <div class="kw">${item.keywords.map(k=>`<span>${k}</span>`).join("")}</div>
+      <div class="metrics"><div class="m">综合 <b>${item.fs.toFixed(2)}</b></div><div class="m">热度 <b>${item.heat}%</b></div>${item.cp>0?`<div class="m" style="color:var(--red)">⚠撞 ${item.col.name}</div>`:""}</div>
+      <span class="heat ${item.heat>=90?"h-hot":item.heat>=75?"h-warm":"h-cool"}">${item.heat>=90?"🔥":item.heat>=75?"📈":"💎"} ${item.heat}%</span></div>`}).join("")}function renderFilteredAI(items){E("aiGrid").innerHTML=items.map((item,i)=>{return`<div class="card"><div class="src"><span class="dot" style="background:#ff6b6b;width:6px;height:6px"></span> AI脑洞 #${i+1}</div>
+      <div class="nm">${item.name}</div><div class="desc">${item.desc}</div>
+      <div class="ev-box"><div class="ev-t">💡 推荐理由</div><div style="font-size:11px;color:var(--text2);line-height:1.6">${item.reason}</div></div>
+      <div class="kw">${item.keywords.map(k=>`<span>${k}</span>`).join("")}</div>
+      <div class="metrics">${item.cp>0?`<div class="m" style="color:var(--red)">⚠撞 ${item.col.name}</div>`:""}<div class="m">匹配 <b>${(item.fs*100).toFixed(0)}%</b></div></div>
+      <span class="heat ${item.heat>=90?"h-hot":item.heat>=75?"h-warm":"h-cool"}">🧠 ${item.heat}%</span></div>`}).join("")}function renderFilteredReserve(items){E("rvBody").innerHTML=items.map((t,i)=>{const sc=t.ceStatus.includes("已使用")||t.ceStatus.includes("已选用")?"st-used":t.ceStatus.includes("已CE")?"st-selected":t.ceStatus.includes("储备")?"st-free":"st-pending";return`<tr><td><b>${t.name}</b></td><td style="font-size:11px;color:var(--text2);max-width:200px">${t.keywords}</td><td style="font-size:11px">${t.era} · ${t.style}</td><td style="font-size:11px">${t.planner}</td><td><span class="st-btn ${sc}">${t.ceStatus}</span></td><td style="font-size:11px;color:var(--text2)">${t.forecast}</td></tr>`}).join("")}function renderSources(){["gRed","gGame","gMacro"].forEach((id,i)=>{const data=[redbookData,gameData,macroData][i];const dc=["dot-red","dot-game","dot-macro"][i];E(id).innerHTML=data.map(item=>{const ev=item.evidence||{};const lh=(ev.links||[]).map(l=>`<a href="${l.url}" target="_blank"><span class="link-icon">📎</span>${l.title}<span class="link-badge">${l.badge||""}</span></a>`).join("");return`<div class="card"><div class="src"><span class="dot ${dc}"></span>${item.source}</div><div class="nm">${item.name}</div><div class="desc">${item.desc}</div>
+        ${ev.stats||lh?`<div class="ev-box"><div class="ev-t">📊 数据证据</div>${ev.stats?`<div><span class="ev-stat">${ev.stats}</span></div>`:""}${lh?`<div class="ev-links">${lh}</div>`:""}</div>`:""}
+        <div class="kw">${item.keywords.map(k=>`<span>${k}</span>`).join("")}</div>
+        <span class="heat ${item.heat>=90?"h-hot":item.heat>=75?"h-warm":"h-cool"}">${item.heat}%</span></div>`}).join("")})}function renderHistory(){E("hBody").innerHTML=usedThemes.map((t,i)=>{const c=t.score>=4?"hi":t.score>=3.7?"mi":"lo";const sc=t.status==="used"?"st-used":t.status==="selected"?"st-selected":t.status==="pending"?"st-pending":"st-free";const st=t.status==="used"?"已用":t.status==="selected"?"已选中":t.status==="pending"?"待定":"可用";return`<tr><td>${t.season}</td><td style="color:var(--text2)">${t.time}</td><td><b>${t.name}</b></td><td><span class="sc ${c}">${t.score||"-"}</span></td><td style="font-size:11px;color:var(--text2);max-width:160px">${t.keywords||"-"}</td><td style="font-size:11px">${t.style}</td><td><span class="st-btn ${sc}" onclick="toggleSt(${i})">${st}</span></td><td><span style="cursor:pointer;font-size:12px;color:var(--text2)" onclick="removeSeason(${i})" title="删除">✕</span></td></tr>`}).join("");E("sU").textContent=usedThemes.filter(t=>t.status==="used"||t.status==="selected").length}function toggleSt(i){const cy=["used","pending","free"];const ci=cy.indexOf(usedThemes[i].status);usedThemes[i].status=cy[(ci+1)%cy.length];renderHistory();runFilter()}function removeSeason(i){if(confirm("确定删除 "+usedThemes[i].season+"？")){usedThemes.splice(i,1);renderHistory();runFilter()}}function addSeason(){const s=E("addSeason").value.trim(),n=E("addName").value.trim(),kw=E("addKw").value.trim(),st=E("addStyle").value.trim();if(!s||!n)return alert("请填写赛季号和主题名");const lastTime=usedThemes.length?usedThemes[usedThemes.length-1].time:"";let newTime="";if(lastTime){const[y,m]=lastTime.split(".");const nm=parseInt(m)+2;newTime=nm>12?parseInt(y)+1+"."+String(nm-12).padStart(2,"0"):y+"."+String(nm).padStart(2,"0")}usedThemes.push({season:s,time:newTime,name:n,score:0,keywords:kw,style:st||"-",status:"used"});E("addSeason").value="";E("addName").value="";E("addKw").value="";E("addStyle").value="";renderHistory();runFilter()}function renderCharts(){const mx=Math.max(...payData.map(d=>d.v));E("cPay").innerHTML=payData.map(d=>`<div class="bg"><div class="bv">${(d.v/1e4).toFixed(0)}万</div><div class="bar" style="height:${d.v/mx*100}%;background:linear-gradient(to top,var(--accent),var(--accent2))"></div><div class="bl">${d.d}</div></div>`).join("");const lm=Math.max(...lotData.map(d=>d.v));E("cLot").innerHTML=lotData.map(d=>`<div class="bg"><div class="bv">${(d.v/1e4).toFixed(0)}万</div><div class="bar" style="height:${d.v/lm*100}%;background:linear-gradient(to top,var(--green),#55efc4)"></div><div class="bl">${d.n}</div></div>`).join("")}async function regenAI(){const btn=document.querySelector('[onclick="regenAI()"]');const season=E("fSeason").value;const grade=E("fGrade").value;const seasonTags=[...document.querySelectorAll("#tSeason .tag.on")].map(t=>t.dataset.v).join("/");const usedNames=usedThemes.filter(t=>t.status==="used").map(t=>t.name).join("、");const apiKey=demoStorage.getItem("hunyuan_api_key");if(apiKey){btn.textContent="🔄 正在生成...";btn.disabled=true;const prompt="请生成通用主题样例，返回 name、desc、keywords、heat、reason 字段。";try{const resp=await fetch("unavailable.html",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},body:JSON.stringify({model:"hunyuan-turbo",messages:[{role:"user",content:prompt}],temperature:.9})});const data=await resp.json();const text=data.choices?.[0]?.message?.content||"";const match=text.match(/\[[\s\S]*\]/);if(match){const newIdeas=JSON.parse(match[0]);aiCreativeData=newIdeas.map(item=>({...item,keywords:item.keywords||[]}));btn.textContent="🔄 重新生成AI脑洞（混元在线）";btn.disabled=false;runFilter();return}}catch(e){console.log("混元API调用失败，回退到离线模式",e)}btn.textContent="🔄 重新生成AI脑洞";btn.disabled=false}const pool=[{"name":"示例 · 纸艺旅人","desc":"通用主题样例","keywords":["折纸","纸层","轻盈"],"heat":75,"reason":"人工构造的演示主题"},{"name":"示例 · 海岸漫步","desc":"通用主题样例","keywords":["海浪","贝壳","清透"],"heat":75,"reason":"人工构造的演示主题"},{"name":"示例 · 花园访客","desc":"通用主题样例","keywords":["花瓣","叶片","柔和"],"heat":75,"reason":"人工构造的演示主题"}];aiCreativeData=pool.sort(()=>Math.random()-.5).slice(0,6).concat(aiCreativeData.slice(0,4));runFilter()}function checkTheme(){const name=E("ckN").value.trim(),kw=E("ckK").value.trim().split(",").map(s=>s.trim()).filter(Boolean);if(!name)return;let msgs=[],level="pass";usedThemes.filter(t=>(t.status==="used"||t.status==="selected")&&t.keywords).forEach(t=>{const s=similarity(kw,t.keywords);if(s>.4){msgs.push(`⛔ 撞题：与${t.season}「${t.name}」重合${(s*100).toFixed(0)}%`);level="fail"}else if(s>.2){msgs.push(`⚠️ 相似：与${t.season}「${t.name}」${(s*100).toFixed(0)}%`);if(level!=="fail")level="warn"}});let tm=[];[...redbookData,...gameData,...macroData].forEach(t=>{if(similarity(kw,t.keywords)>.15)tm.push(`${t.source}「${t.name}」${t.heat}%`)});if(tm.length)msgs.push(`✅ 匹配趋势：${tm.slice(0,4).join("、")}`);else msgs.push(`ℹ️ 未匹配趋势`);if(!msgs.some(m=>m.startsWith("⛔")||m.startsWith("⚠")))msgs.unshift(`✅「${name}」通过！`);const el=E("ckR");el.className=`cr show cr-${level}`;el.innerHTML=msgs.join("<br>")}function E(id){return document.getElementById(id)}function sw(btn,tab){document.querySelectorAll(".tabs>.tb").forEach(b=>b.classList.remove("on"));document.querySelectorAll(".main>.tc").forEach(c=>c.classList.remove("on"));btn.classList.add("on");E("tab-"+tab).classList.add("on")}function swSub(btn,sub){btn.parentElement.querySelectorAll(".tb").forEach(b=>b.classList.remove("on"));btn.classList.add("on");["sub-creative","sub-recommend","sub-reserve"].forEach(s=>{const el=E("tab-"+s);if(el)el.classList.remove("on")});E("tab-"+sub).classList.add("on")}["wRed","wGame","wMacro","wCE"].forEach(id=>{const el=E(id);if(el)el.addEventListener("input",()=>{E(id+"V").textContent=el.value+"%";runFilter()})});document.querySelectorAll("#tSeason .tag").forEach(tag=>{tag.addEventListener("click",()=>{document.querySelectorAll("#tSeason .tag").forEach(t=>t.classList.remove("on"));tag.classList.add("on");runFilter()})});E("fGrade").addEventListener("change",()=>runFilter());E("fAvoid").addEventListener("change",()=>runFilter());E("fSeason").addEventListener("change",()=>runFilter());E("fExclude").addEventListener("input",()=>runFilter());E("sT").textContent=redbookData.length;E("sC").textContent=gameData.length;const savedKey=demoStorage.getItem("hunyuan_api_key");if(savedKey)E("apiKey").value=savedKey;E("funGrid").innerHTML=funInspirationData.map(item=>`<div class="card"><div class="src"><span class="dot dot-game" style="width:6px;height:6px"></span> ${item.source}</div><div class="nm">${item.name}</div><div class="desc">${item.desc}</div><div class="kw">${item.keywords.map(k=>`<span>${k}</span>`).join("")}</div><div style="margin-top:6px"><a href="${item.url}" target="_blank" style="font-size:10px;color:var(--accent2);text-decoration:none">📎 查看原文</a></div></div>`).join("");renderSources();renderHistory();runFilter();
+</script>
+<aside id="demo-disclosure"><a href="index.html">平台首页</a><span>脱敏演示 · 项目素材已遮挡 · 含演示样例数据 · 生成服务未连接</span></aside></body>
+</html>
