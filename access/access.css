@@ -1,0 +1,32 @@
+/* Temporary browsing restriction. Source files remain public on GitHub Pages. */
+html.access-locked body{overflow:hidden!important}
+html.access-locked #home-content>:not(#home),html.access-locked #resume-panel,html.access-locked .case-dialog,html.access-locked #demo-viewer{display:none!important}
+html.access-locked .studio-edition .studio-hero{height:100svh;min-height:0;max-height:none}
+html.access-locked .hero-sticky{height:100svh;min-height:0}
+#portfolio-access{position:fixed;inset:0;box-sizing:border-box;width:min(440px,calc(100vw - 36px));max-height:calc(100dvh - 32px);margin:auto;padding:46px 36px 26px;background:#f1ecfc;color:#241638;border:0;border-radius:24px;box-shadow:0 32px 100px #13042166;font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif;text-align:left;overflow:auto;color-scheme:light}
+#portfolio-access::backdrop{background:#170b3266;backdrop-filter:blur(10px)}
+#portfolio-access *{box-sizing:border-box}
+#portfolio-access .access-close{position:absolute;right:12px;top:12px;display:grid;place-items:center;width:40px;height:40px;padding:10px;background:transparent;border:0;border-radius:50%;color:#493a5b;cursor:pointer}
+#portfolio-access .access-close:hover{background:#e5ddf4}
+#portfolio-access .access-close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+#portfolio-access .access-kicker{font-size:12px;line-height:1.5;letter-spacing:.1em;margin:0 0 20px;color:#756784}
+#portfolio-access h2{font-size:34px;line-height:1.25;font-weight:600;letter-spacing:-.04em;margin:0 0 12px}
+#portfolio-access .access-intro{font-size:15px;line-height:1.6;color:#70627f;margin:0 0 30px}
+#portfolio-access label{display:block;font-size:14px;margin-bottom:10px;font-weight:500}
+#portfolio-access .access-field{display:flex;align-items:center;gap:8px;background:#e5dcf2;border-radius:12px;padding-right:8px}
+#portfolio-access input{display:block;min-width:0;flex:1;width:100%;height:54px;padding:14px 16px;background:transparent;color:#241638;border:0;outline:0;font-family:inherit;font-size:18px;letter-spacing:.12em}
+#portfolio-access .access-field:focus-within{box-shadow:0 0 0 2px #865bc8}
+#portfolio-access .access-visibility{flex-shrink:0;border:0;background:transparent;border-radius:8px;font:inherit;font-size:14px;min-width:48px;min-height:40px;color:#5e427d;cursor:pointer}
+#portfolio-access #access-error{min-height:22px;font-size:14px;line-height:22px;color:#ad344e;margin:8px 0 10px}
+#portfolio-access .access-submit{width:100%;height:52px;border:0;border-radius:12px;background:#5b28a0;color:white;font:inherit;font-size:16px;font-weight:500;cursor:pointer;transition:background .2s,transform .2s}
+#portfolio-access .access-submit:hover{background:#6d35b8}
+#portfolio-access .access-submit:active{transform:scale(.99)}
+#portfolio-access .access-submit:disabled{opacity:.65;cursor:wait}
+#portfolio-access :focus-visible{outline:2px solid #865bc8;outline-offset:3px}
+#portfolio-access input:focus-visible{outline:0}
+#portfolio-access .access-footnote{font-size:12px;color:#82748f;text-align:center;margin:18px 0 0;line-height:1.5}
+.access-relock{font:inherit;font-size:14px;color:inherit;background:none;border:0;padding:4px 0;cursor:pointer;opacity:.75}
+.access-relock:hover{opacity:1}
+.access-noscript{position:fixed;left:20px;right:20px;bottom:20px;z-index:10000;text-align:center;color:#fff;background:#241638;padding:16px;border-radius:12px;font:16px/1.6 Arial,sans-serif}
+@media(max-width:480px){#portfolio-access{padding:42px 26px 24px}#portfolio-access h2{font-size:30px}}
+@media(prefers-reduced-motion:reduce){#portfolio-access *{transition:none!important}}
