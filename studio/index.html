@@ -250,6 +250,23 @@ html:has(body.studio-edition) { overscroll-behavior-x: none; }
 .studio-edition .gallery-loop .card-meta h3 { font-size: clamp(17px,1.45vw,24px); line-height: 1.35; }
 .studio-edition .gallery-loop .card-meta p { font-size: 13px; margin-top: 5px; line-height: 1.5; }
 .studio-edition .gallery-loop .card-year { font-size: 11px; white-space: nowrap; }
+.cover-crop-frame { position: absolute; inset: 0; }
+@media (min-width: 701px) {
+  .gallery-stage-loop {
+    row-gap: clamp(20px,3.5vh,42px);
+    padding-block: var(--wall-clearance,44px);
+  }
+  .work-grid.gallery-loop { --gallery-aspect: 1.48; }
+  .lab-grid.gallery-loop { --gallery-aspect: 1.32; }
+  .studio-edition .gallery-loop .card-art {
+    width: 100%;
+    height: min(calc(var(--piece) / var(--gallery-aspect)), var(--gallery-cover-limit,100vh));
+  }
+  .studio-edition .gallery-loop .card-meta { padding-top: clamp(8px,1.3vh,13px); }
+  .cover-crop-frame { top: 50%; bottom: auto; translate: 0 -50%; }
+  /* The pipeline cover carries its title in the upper-left corner. */
+  .work-card[data-project="art-platform"] .cover-crop-frame { top: 10%; translate: 0 -10%; }
+}
 @media(max-width:1000px) {
   .studio-edition .gallery-section .gallery-loop { --piece: calc((90vw - 38px) / 2); }
 }
@@ -930,8 +947,15 @@ function card(item,index){
  if(item.coverCollection){art.classList.add('collection-cover');for(const [asset,label] of item.coverCollection){const img=el('img');img.src=mediaURL(asset);img.alt=label;img.loading='lazy';img.draggable=false;art.append(img);}}
  else if(item.coverPair){art.classList.add('paired-cover');for(const part of item.coverPair){const panel=el('div','cover-half'),img=el('img');img.src=mediaURL(part.asset);img.alt=part.label+'项目主视觉';img.loading='lazy';img.draggable=false;img.style.objectPosition=part.position||'50% 50%';panel.append(img,el('span','cover-half-label',part.label));art.append(panel);}}
  else if(item.cover||item.images.length){const img=el('img');img.src=mediaURL(item.cover?.asset||item.images[0][0]);img.alt=item.cover?.alt||item.name+'作品画面';img.loading='lazy';img.draggable=false;
-  if(item.cover){const [iw,ih]=item.cover.size,[x,y,w,h]=item.cover.crop;img.dataset.coverCrop='true';Object.assign(img.style,{width:(iw/w*100)+'%',height:(ih/h*100)+'%',left:(-x/w*100)+'%',top:(-y/h*100)+'%'});}
-  art.append(img);}else{art.append(el('div','type-art',item.type));}
+  if(item.cover){
+   const [iw,ih]=item.cover.size,[x,y,w,h]=item.cover.crop;
+   const frame=el('span','cover-crop-frame');
+   frame.style.aspectRatio=w+' / '+h;
+   img.dataset.coverCrop='true';
+   Object.assign(img.style,{width:(iw/w*100)+'%',height:(ih/h*100)+'%',left:(-x/w*100)+'%',top:(-y/h*100)+'%'});
+   frame.append(img);art.append(frame);
+  }else{art.append(img);}
+ }else{art.append(el('div','type-art',item.type));}
  const plus=el('span','card-open');if(videosFor(item).length)plus.classList.add('video-indicator');plus.innerHTML=videosFor(item).length?'<svg class="icon" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></svg>':'<svg class="icon" viewBox="0 0 24 24"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></svg>';plus.setAttribute('aria-hidden','true');art.append(plus);
  const meta=el('div','card-meta'),left=el('div');left.append(el('h3','',item.name),el('p','',item.subtitle));meta.append(left,el('span','card-year',item.year));float.append(art,meta);button.append(float);wrap.append(button);
  if(item.demo){plus.classList.add('demo-indicator');plus.innerHTML='<svg class="icon" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></svg>';}
@@ -1214,7 +1238,18 @@ async function animateClose(){
  const fade=animateElement(mode==='reader'?reader:sheet,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(12px) scale(.985)'}],{duration:300,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
  animateElement(dialog,[{backgroundColor:getComputedStyle(dialog).backgroundColor,boxShadow:getComputedStyle(dialog).boxShadow},{backgroundColor:'transparent',boxShadow:'0 0 0 transparent'}],{duration:320,easing:'ease',fill:'both'});
  let last=fade;
- if(canFly){const clone=makeFlight(target.src,from);if(source.src!==target.src||source.dataset.coverCrop){const cover=el('img');cover.src=source.src;cover.alt='';Object.assign(cover.style,{position:'absolute',inset:'0'});if(source.dataset.coverCrop){cover.dataset.coverCrop='true';for(const property of ['width','height','left','top'])cover.style[property]=source.style[property];}clone.append(cover);animateElement(cover,[{opacity:0},{opacity:1}],{duration:400,easing:'ease',fill:'both'});}hiddenMedia=target;target.style.visibility='hidden';last=animateElement(clone,[rectFrame(from,3),rectFrame(to,10)],{duration:440,easing:'cubic-bezier(.3,0,.2,1)',fill:'both'});}
+ if(canFly){
+  const clone=makeFlight(target.src,from);
+  if(source.src!==target.src||source.dataset.coverCrop){
+   const crop=source.closest('.cover-crop-frame');
+   const cover=crop?crop.cloneNode(true):source.cloneNode(false);
+   if(!crop)Object.assign(cover.style,{position:'absolute',inset:'0'});
+   clone.append(cover);
+   animateElement(cover,[{opacity:0},{opacity:1}],{duration:400,easing:'ease',fill:'both'});
+  }
+  hiddenMedia=target;target.style.visibility='hidden';
+  last=animateElement(clone,[rectFrame(from,3),rectFrame(to,10)],{duration:440,easing:'cubic-bezier(.3,0,.2,1)',fill:'both'});
+ }
  await last.finished.catch(()=>{});if(token!==transitionId)return false;cancelTransition();return true;
 }
 
@@ -1419,8 +1454,10 @@ window.addEventListener('popstate',restoreDemo);window.addEventListener('hashcha
     stage.style.setProperty('--gallery-columns', split);
     stage.append(...cards);
     const isProjectWall = rail.id === 'work-grid';
+    const navigation = document.querySelector('.nav-shell');
     const slots = cards.map((card, index) => ({
       card,
+      caption: card.querySelector('.card-meta'),
       column: index % split,
       lower: index >= split,
       count: index < split ? split : cards.length - split
@@ -1478,8 +1515,21 @@ window.addEventListener('popstate',restoreDemo);window.addEventListener('hashcha
         cardWidth * centerScale * Math.sin(edgeAngle) / 2;
       const cornerScale = centerScale * camera / (camera - nearZ);
       const style = getComputedStyle(stage);
+      const hoverRoom = 24;
+      if (matchMedia('(min-width: 701px)').matches) {
+        // Only the two rows share this budget. The section heading scrolls independently.
+        const available = document.documentElement.clientHeight - Math.ceil(navigation.getBoundingClientRect().bottom) - 12;
+        const rowCaptions = [0, 0];
+        for (const slot of slots) {
+          const row = slot.lower ? 1 : 0;
+          rowCaptions[row] = Math.max(rowCaptions[row], slot.caption.offsetHeight);
+        }
+        const innerHeight = (available - 2 * hoverRoom - 2) / cornerScale;
+        const coverHeight = (innerHeight - parseFloat(style.rowGap) - rowCaptions[0] - rowCaptions[1]) / 2;
+        stage.style.setProperty('--gallery-cover-limit', Math.max(1, Math.floor(coverHeight)) + 'px');
+      }
       const gridHeight = stage.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-      const clearance = Math.ceil(gridHeight * (cornerScale - 1) / 2) + 24;
+      const clearance = Math.ceil(gridHeight * (cornerScale - 1) / 2) + hoverRoom;
       stage.style.setProperty('--wall-clearance', clearance + 'px');
       stride = cardWidth + parseFloat(getComputedStyle(stage).columnGap);
       if (previousStride) offset *= stride / previousStride;
@@ -1493,6 +1543,8 @@ window.addEventListener('popstate',restoreDemo);window.addEventListener('hashcha
       paint();
     }
     new ResizeObserver(measure).observe(rail);
+    window.addEventListener('resize', measure);
+    document.fonts.ready.then(measure);
     measure();
 
     let visible = false, hovered = false, frame = 0, last = 0, holdUntil = 0;
@@ -2524,7 +2576,7 @@ vec4 sRGBTransferOETF( in vec4 value ) {
 		#define ENV_WORLDPOS
 	#endif
 	#ifdef ENV_WORLDPOS
-		
+
 		varying vec3 vWorldPosition;
 	#else
 		varying vec3 vReflect;
@@ -3797,7 +3849,7 @@ gl_Position = projectionMatrix * mvPosition;`,gd=`#ifdef DITHERING
 	float getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowIntensity, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {
 		float shadow = 1.0;
 		vec3 lightToPosition = shadowCoord.xyz;
-		
+
 		float lightToPositionLength = length( lightToPosition );
 		if ( lightToPositionLength - shadowCameraFar <= 0.0 && lightToPositionLength - shadowCameraNear >= 0.0 ) {
 			float dp = ( lightToPositionLength - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear );			dp += shadowBias;
